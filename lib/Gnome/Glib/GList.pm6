@@ -1,14 +1,14 @@
 use v6;
 use NativeCall;
 
-use GTK::V3::X;
-use GTK::V3::N::NativeLib;
-use GTK::V3::Glib::GObject;
+use Gnome::N::X;
+use Gnome::N::N-GObject;
+use Gnome::N::NativeLib;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/glib/glist.h
 # https://developer.gnome.org/glib/stable/glib-Doubly-Linked-Lists.html
-unit class GTK::V3::Glib::GList:auth<github:MARTIMM>;
+unit class Gnome::Glib::GList:auth<github:MARTIMM>;
 
 #-------------------------------------------------------------------------------
 class N-GList is repr('CPointer') is export { }

@@ -1,12 +1,13 @@
 use v6;
 use NativeCall;
 
-use GTK::V3::X;
-use GTK::V3::N::NativeLib;
+use Gnome::N::X;
+#use Gnome::N::N-GObject;
+use Gnome::N::NativeLib;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/gmain.h
-unit class GTK::V3::Glib::GMain:auth<github:MARTIMM>;
+unit class Gnome::Glib::GMain:auth<github:MARTIMM>;
 
 #-------------------------------------------------------------------------------
 # /usr/include/glib-2.0/glib/gmain.h
@@ -110,7 +111,7 @@ sub g_timeout_add (
 method FALLBACK ( $native-sub is copy, |c ) {
 
   $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-');
-  die X::GTK::V3.new(:message(
+  die X::Gnome.new(:message(
       "Native sub name '$native-sub' made too short. Keep at least one '-' or '_'."
     )
   ) unless $native-sub.index('_') >= 0;
