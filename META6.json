@@ -1,0 +1,24 @@
+{
+  "description": "Perl6 Gnome glib api",
+  "name": "Gnome::lib",
+  "version": "0.13.1",
+  "authors": [ "Marcel Timmerman"],
+  "tags": [ "gnome", "glib"],
+
+  "perl": "6",
+  "license": "Artistic-2.0",
+
+  "provides": {
+    "Gnome::Glib::GError": "lib/Gnome/Glib/GError.pm6",
+    "Gnome::Glib::GList": "lib/Gnome/Glib/GList.pm6",
+    "Gnome::Glib::GMain": "lib/Gnome/Glib/GMain.pm6",
+    "Gnome::Glib::GSList": "lib/Gnome/Glib/GSList.pm6"
+  },
+
+  "source-url": "git://github.com/MARTIMM/gnome-glib.git",
+
+  "depends": [ "Gnome::N"],
+  "test-depends": [ ],
+  "build-depends": [ ],
+  "resources": [ ]
+}
