@@ -7,7 +7,7 @@ use Gnome::N::NativeLib;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/gmain.h
-unit class Gnome::Glib::GMain:auth<github:MARTIMM>;
+unit class Gnome::Glib::Main:auth<github:MARTIMM>;
 
 #-------------------------------------------------------------------------------
 # /usr/include/glib-2.0/glib/gmain.h

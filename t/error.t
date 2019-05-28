@@ -1,12 +1,12 @@
 use v6;
 use Test;
 
-use Gnome::Glib::GError;
+use Gnome::Glib::Error;
 
 #-------------------------------------------------------------------------------
 subtest 'create error object', {
-  my Gnome::Glib::GError $e .= new;
-  isa-ok $e, Gnome::Glib::GError, 'object ok';
+  my Gnome::Glib::Error $e .= new;
+  isa-ok $e, Gnome::Glib::Error, 'object ok';
 }
 
 

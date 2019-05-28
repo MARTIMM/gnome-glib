@@ -7,7 +7,7 @@ use Gnome::N::NativeLib;
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/glib/gerror.h
 # https://developer.gnome.org/glib/stable/glib-Error-Reporting.html
-unit class Gnome::Glib::GError:auth<github:MARTIMM>;
+unit class Gnome::Glib::Error:auth<github:MARTIMM>;
 
 #-------------------------------------------------------------------------------
 class N-GError is repr('CStruct') is export {

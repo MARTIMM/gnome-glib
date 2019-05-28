@@ -1,12 +1,12 @@
 use v6;
 use Test;
 
-use Gnome::Glib::GMain;
+use Gnome::Glib::Main;
 
 #-------------------------------------------------------------------------------
 subtest 'create gmain object', {
-  my Gnome::Glib::GMain $e .= new;
-  isa-ok $e, Gnome::Glib::GMain, 'object ok';
+  my Gnome::Glib::Main $e .= new;
+  isa-ok $e, Gnome::Glib::Main, 'object ok';
 }
 
 #-------------------------------------------------------------------------------
