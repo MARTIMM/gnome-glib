@@ -15,7 +15,7 @@
     "Gnome::Glib::SList": "lib/Gnome/Glib/SList.pm6"
   },
 
-  "source-url": "git://github.com/MARTIMM/gnome-glib.git",
+  "source-url": "git://github.com/MARTIMM/perl6-gnome-glib.git",
 
   "depends": [ "Gnome::N"],
   "test-depends": [ ],
