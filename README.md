@@ -10,17 +10,17 @@
 
 | Pdf from pod | Link to Gnome Developer |
 |-------|--------------|
-| Gnome::GObject::GError |
-| Gnome::GObject::GList |  [Doubly-Linked Lists][GList]
-| Gnome::GObject::GMain |  [The Main Event Loop][GMain]
-| Gnome::GObject::GSList |  [Singly-Linked Lists][GSList]
+| Gnome::Glib::Error |
+| Gnome::Glib::List |  [Doubly-Linked Lists][List]
+| Gnome::Glib::Main |  [The Main Event Loop][Main]
+| Gnome::Glib::SList |  [Singly-Linked Lists][SList]
 
 ## Release notes
 * [Release notes][changes]
 
-# Installation of Gnome::GObject
+# Installation of Gnome::Glib
 
-`zef install Gnome::GObject`
+`zef install Gnome::Glib
 
 
 # Author
@@ -41,11 +41,10 @@ There are always some problems! If you find one please help by filing an issue a
 [changes]: https://github.com/MARTIMM/perl6-gnome-glib/blob/master/CHANGES.md
 [logo]: https://github.com/MARTIMM/perl6-gnome-glib/blob/master/doc/images/gtk-logo-100.png
 
-[glist]: https://developer.gnome.org/glib/stable/glib-Doubly-Linked-Lists.html
-[gmain]: https://developer.gnome.org/glib/stable/glib-The-Main-Event-Loop.html
-[gslist]: https://developer.gnome.org/glib/stable/glib-Singly-Linked-Lists.html
-[gerror]: https://developer.gnome.org/glib/stable/glib-Error-Reporting.html
-
+[Error]: https://developer.gnome.org/glib/stable/glib-Error-Reporting.html
+[List]: https://developer.gnome.org/glib/stable/glib-Doubly-Linked-Lists.html
+[Main]: https://developer.gnome.org/glib/stable/glib-The-Main-Event-Loop.html
+[SList]: https://developer.gnome.org/glib/stable/glib-Singly-Linked-Lists.html
 
 [//]: # (https://nbviewer.jupyter.org/github/MARTIMM/gtk-v3/blob/master/doc/GObject.pdf)
 [//]: # (Pod documentation rendered with)
