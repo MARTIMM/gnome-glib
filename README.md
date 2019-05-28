@@ -1,6 +1,6 @@
 ![gtk logo][logo]
 
-# Gnome Glib - Data structures and utilities for C programs
+# Gnome Glib - C-based object and type system with signals and slots
 
 [![License](http://martimm.github.io/label/License-label.svg)](http://www.perlfoundation.org/artistic_license_2_0)
 
@@ -10,17 +10,17 @@
 
 | Pdf from pod | Link to Gnome Developer |
 |-------|--------------|
-| Gnome::Glib::GBoxed |
-| Gnome::Glib::GList |  [Doubly-Linked Lists][GList]
-| Gnome::Glib::GMain |  [The Main Event Loop][GMain]
-| Gnome::Glib::GSList |  [Singly-Linked Lists][GSList]
+| Gnome::GObject::GError |
+| Gnome::GObject::GList |  [Doubly-Linked Lists][GList]
+| Gnome::GObject::GMain |  [The Main Event Loop][GMain]
+| Gnome::GObject::GSList |  [Singly-Linked Lists][GSList]
 
 ## Release notes
 * [Release notes][changes]
 
-# Installation of Gnome::Glib
+# Installation of Gnome::GObject
 
-`zef install Gnome::Glib`
+`zef install Gnome::GObject`
 
 
 # Author
