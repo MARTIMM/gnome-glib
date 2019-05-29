@@ -70,7 +70,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
   CATCH { test-catch-exception( $_, $native-sub); }
 
   $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-');
-  die X::GTK::V3.new(:message(
+  die X::Gnome.new(:message(
       "Native sub name '$native-sub' made too short. Keep at least one '-' or '_'."
     )
   ) unless $native-sub.index('_') >= 0;

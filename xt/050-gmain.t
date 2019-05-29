@@ -2,13 +2,13 @@ use v6;
 use NativeCall;
 use Test;
 
-use GTK::V3::Glib::GMain;
-use GTK::V3::Gtk::GtkMain;
+use Gnome::Glib::GMain;
+use Gnome::Gtk3::Main;
 
 diag "\nGlib main loop test";
 
 # initialize
-my GTK::V3::Gtk::GtkMain $main .= new;
+my Gnome::Gtk3::Main $main .= new;
 
 # check with default args
 my $argc = CArray[int32].new;
@@ -16,7 +16,7 @@ $argc[0] = 0;
 is $main.gtk-init-check( $argc, CArray[CArray[Str]]), 1, "gtk initalized";
 
 #-------------------------------------------------------------------------------
-my GTK::V3::Glib::GMain $gmain .= new;
+my Gnome::Glib::GMain $gmain .= new;
 my $main-context1 = $gmain.context-new;
 my $loop = $gmain.loop-new( $main-context1, False);
 
