@@ -18,9 +18,10 @@
 ## Release notes
 * [Release notes][changes]
 
-# Installation of Gnome::Glib
+# Installation
+Do not install this package on its own. Instead install `Gnome::Gtk3`.
 
-`zef install Gnome::Glib
+`zef install Gnome::Gtk3`
 
 
 # Author
@@ -30,7 +31,7 @@ Github account name: **MARTIMM**
 
 # Issues
 
-There are always some problems! If you find one please help by filing an issue at [my github project](https://github.com/MARTIMM/perl6-gnome-glib/issues).
+There are always some problems! If you find one please help by filing an issue at [my Gnome::Gtk3 github project][issues].
 
 # Attribution
 * The inventors of Perl6 of course and the writers of the documentation which help me out every time again and again.
@@ -40,6 +41,7 @@ There are always some problems! If you find one please help by filing an issue a
 [//]: # (---- [refs] ----------------------------------------------------------)
 [changes]: https://github.com/MARTIMM/perl6-gnome-glib/blob/master/CHANGES.md
 [logo]: https://github.com/MARTIMM/perl6-gnome-glib/blob/master/doc/images/gtk-logo-100.png
+[issues]: https://github.com/MARTIMM/perl6-gnome-gtk3/issues
 
 [Error]: https://developer.gnome.org/glib/stable/glib-Error-Reporting.html
 [List]: https://developer.gnome.org/glib/stable/glib-Doubly-Linked-Lists.html
