@@ -1,5 +1,8 @@
 ## Release notes
 
+* 2019-08-01 0.14.0
+  * Extended Error and created Quark. Also tests and doc is added.
+
 * 2019-05-28 0.13.3
   * Updating docs
 
