@@ -10,239 +10,21 @@ use v6;
 
 GLib provides a standard method of reporting errors from a called function to the calling code. Functions that can fail take a return location for a C<N-GError> as their last argument. On error, a new C<N-GError> instance will be allocated and returned to the caller via this argument. After handling the error, the error object must be freed. Do this using C<clear-error()>.
 
-=begin comment
-For example:
+The C<N-GError> object contains three fields: I<domain> indicates the module the error-reporting function is located in, I<code> indicates the specific error that occurred, and I<message> is a user-readable error message with as many details as possible. Several functions are provided to deal with an error received from a called function: C<g_error_matches()> returns C<1> if the error matches a given domain and code. To display an error to the user, simply call the C<message()> method, perhaps along with additional context known only to the calling function.
 
-  gboolean g_file_get_contents (const gchar  *filename,
-                                gchar       **contents,
-                                gsize        *length,
-                                GError      **error);
+This class is greatly simplified because in Perl6 one can use Exception classes to throw any errors. It exists mainly to handle errors coming from other GTK+ functions.
 
-If you pass a non-C<Any> value for the `error` argument, it should
-point to a location where an error can be placed. For example:
-
-  gchar *contents;
-  GError *err = NULL;
-
-  g_file_get_contents ("foo.txt", &contents, NULL, &err);
-  g_assert ((contents == NULL && err != NULL) || (contents != NULL && err == NULL));
-  if (err != NULL)
-    {
-      // Report error to user, and free error
-      g_assert (contents == NULL);
-      fprintf (stderr, "Unable to read file: C<s>\n", err->message);
-      g_error_free (err);
-    }
-  else
-    {
-      // Use file contents
-      g_assert (contents != NULL);
-    }
-
-Note that `err != NULL` in this example is a reliable indicator
-of whether C<g_file_get_contents()> failed. Additionally,
-C<g_file_get_contents()> returns a boolean which
-indicates whether it was successful.
-=end comment
-
-Because C<g_file_get_contents()> returns C<0> on failure, if you
-are only interested in whether it failed and don't need to display
-an error message, you can pass C<Any> for the I<error> argument:
-=begin comment
-  if (g_file_get_contents ("foo.txt", &contents, NULL, NULL)) // ignore errors
-    // no error occurred
-    ;
-  else
-    // error
-    ;
-=end comment
-
-The C<GError> object contains three fields: I<domain> indicates the module
-the error-reporting function is located in, I<code> indicates the specific
-error that occurred, and I<message> is a user-readable error message with
-as many details as possible. Several functions are provided to deal
-with an error received from a called function: C<g_error_matches()>
-returns C<1> if the error matches a given domain and code,
-C<g_propagate_error()> copies an error into an error location (so the
-calling function will receive it), and C<g_clear_error()> clears an
-error location by freeing the error and resetting the location to
-C<Any>. To display an error to the user, simply display the I<message>,
-perhaps along with additional context known only to the calling
-function (the file being opened, or whatever - though in the
-C<g_file_get_contents()> case, the I<message> already contains a filename).
-
-When implementing a function that can report errors, the basic
-tool is C<g_set_error()>. Typically, if a fatal error occurs you
-want to C<g_set_error()>, then return immediately. C<g_set_error()>
-does nothing if the error location passed to it is C<Any>.
-
-=begin comment
-Here's an example:
-
-  gint
-  foo_open_file (GError **error)
-  {
-    gint fd;
-    int saved_errno;
-
-    g_return_val_if_fail (error == NULL || *error == NULL, -1);
-
-    fd = open ("file.txt", O_RDONLY);
-    saved_errno = errno;
-
-    if (fd < 0)
-      {
-        g_set_error (error,
-                     FOO_ERROR,                 // error domain
-                     FOO_ERROR_BLAH,            // error code
-                     "Failed to open file: C<s>", // error message format string
-                     g_strerror (saved_errno));
-        return -1;
-      }
-    else
-      return fd;
-  }
-=end comment
-
-=begin comment
-Things are somewhat more complicated if you yourself call another
-function that can report a C<GError>. If the sub-function indicates
-fatal errors in some way other than reporting a C<GError>, such as
-by returning C<1> on success, you can simply do the following:
-|[<!-- language="C" -->
-gboolean
-my_function_that_can_fail (GError **err)
-{
-  g_return_val_if_fail (err == NULL || *err == NULL, FALSE);
-
-  if (!sub_function_that_can_fail (err))
-    {
-      // assert that error was set by the sub-function
-      g_assert (err == NULL || *err != NULL);
-      return FALSE;
-    }
-
-  // otherwise continue, no error occurred
-  g_assert (err == NULL || *err == NULL);
-}
-]|
-=end comment
-
-If the sub-function does not indicate errors other than by
-reporting a C<GError> (or if its return value does not reliably indicate
-errors) you need to create a temporary C<GError>
-since the passed-in one may be C<Any>. C<g_propagate_error()> is
-intended for use in this case.
-=begin comment
-|[<!-- language="C" -->
-gboolean
-my_function_that_can_fail (GError **err)
-{
-  GError *tmp_error;
-
-  g_return_val_if_fail (err == NULL || *err == NULL, FALSE);
-
-  tmp_error = NULL;
-  sub_function_that_can_fail (&tmp_error);
-
-  if (tmp_error != NULL)
-    {
-      // store tmp_error in err, if err != NULL,
-      // otherwise call C<g_error_free()> on tmp_error
-      g_propagate_error (err, tmp_error);
-      return FALSE;
-    }
-
-  // otherwise continue, no error occurred
-}
-]|
-=end comment
-
-=begin comment
-Error pileups are always a bug. For example, this code is incorrect:
-|[<!-- language="C" -->
-gboolean
-my_function_that_can_fail (GError **err)
-{
-  GError *tmp_error;
-
-  g_return_val_if_fail (err == NULL || *err == NULL, FALSE);
-
-  tmp_error = NULL;
-  sub_function_that_can_fail (&tmp_error);
-  other_function_that_can_fail (&tmp_error);
-
-  if (tmp_error != NULL)
-    {
-      g_propagate_error (err, tmp_error);
-      return FALSE;
-    }
-}
-]|
-=end comment
-
-I<tmp_error> should be checked immediately after C<sub_function_that_can_fail()>, and either cleared or propagated upward. The rule is: after each error, you must either handle the error, or return it to the calling function.
-
-Note that passing C<Any> for the error location is the equivalent of handling an error by always doing nothing about it. So the following code is fine, assuming errors in C<sub_function_that_can_fail()> are not fatal to C<my_function_that_can_fail()>:
-
-=begin comment
-
-|[<!-- language="C" -->
-gboolean
-my_function_that_can_fail (GError **err)
-{
-  GError *tmp_error;
-
-  g_return_val_if_fail (err == NULL || *err == NULL, FALSE);
-
-  sub_function_that_can_fail (NULL); // ignore errors
-
-  tmp_error = NULL;
-  other_function_that_can_fail (&tmp_error);
-
-  if (tmp_error != NULL)
-    {
-      g_propagate_error (err, tmp_error);
-      return FALSE;
-    }
-}
-]|
-=end comment
-
-Note that passing C<Any> for the error location ignores errors;
-it's equivalent to
-`try { C<sub_function_that_can_fail()>; } catch (...) {}`
-in C++. It does not mean to leave errors unhandled; it means
-to handle them by doing nothing.
 
 Error domains and codes are conventionally named as follows:
 
-- The error domain is called <NAMESPACE>_<MODULE>_ERROR,
-  for example C<G_SPAWN_ERROR> or C<G_THREAD_ERROR>:
+- The error domain is called I<NAMESPACE>_I<MODULE>_ERROR. For instance glib file utilities uses G_FILE_ERROR.
 
-=begin comment
-  |[<!-- language="C" -->
-  C<define> G_SPAWN_ERROR C<g_spawn_error_quark()>
+- The quark function for the error domain is called <namespace>_<module>_error_quark, for example C<g-file-error-quark()>.
 
-  GQuark
-  g_spawn_error_quark (void)
-  {
-      return g_quark_from_static_string ("g-spawn-error-quark");
-  }
-  ]|
-=end comment
-
-- The quark function for the error domain is called
-  <namespace>_<module>_error_quark,
-  for example C<g_spawn_error_quark()> or C<g_thread_error_quark()>.
-
-- The error codes are in an enumeration called
-  <Namespace><Module>Error;
-  for example, C<GThreadError> or C<GSpawnError>.
+- The error codes are in an enumeration called <Namespace><Module>Error, for example C<GFileError>.
 
 - Members of the error code enumeration are called
-  <NAMESPACE>_<MODULE>_ERROR_<CODE>,
-  for example C<G_SPAWN_ERROR_FORK> or C<G_THREAD_ERROR_AGAIN>.
+  <NAMESPACE>_<MODULE>_ERROR_<CODE>, for example C<G_FILE_ERROR_NOENT>.
 
 - If there's a "generic" or "unknown" error code for unrecoverable
   errors it doesn't make sense to distinguish with specific codes,
@@ -253,97 +35,13 @@ Error domains and codes are conventionally named as follows:
   instead treat any unrecognized error code as equivalent to
   FAILED.
 
-## Comparison of C<GError> and traditional error handling # {C<gerror>-comparison}
-
-C<GError> has several advantages over traditional numeric error codes:
-importantly, tools like
-[gobject-introspection](https://developer.gnome.org/gi/stable/) understand
-C<GErrors> and convert them to exceptions in bindings; the message includes
-more information than just a code; and use of a domain helps prevent
-misinterpretation of error codes.
-
-C<GError> has disadvantages though: it requires a memory allocation, and
-formatting the error message string has a performance overhead. This makes it
-unsuitable for use in retry loops where errors are a common case, rather than
-being unusual. For example, using C<G_IO_ERROR_WOULD_BLOCK> means hitting these
-overheads in the normal control flow. String formatting overhead can be
-eliminated by using C<g_set_error_literal()> in some cases.
-
-These performance issues can be compounded if a function wraps the C<GErrors>
-returned by the functions it calls: this multiplies the number of allocations
-and string formatting operations. This can be partially mitigated by using
-C<g_prefix_error()>.
-
-## Rules for use of C<GError> # {C<gerror>-rules}
-
-Summary of rules for use of C<GError>:
-
-- Do not report programming errors via C<GError>.
-
-- The last argument of a function that returns an error should
-  be a location where a C<GError> can be placed (i.e. "C<GError>** error").
-  If C<GError> is used with varargs, the C<GError>** should be the last
-  argument before the "...".
-
-- The caller may pass C<Any> for the C<GError>** if they are not interested
-  in details of the exact error that occurred.
-
-- If C<Any> is passed for the C<GError>** argument, then errors should
-  not be returned to the caller, but your function should still
-  abort and return if an error occurs. That is, control flow should
-  not be affected by whether the caller wants to get a C<GError>.
-
-- If a C<GError> is reported, then your function by definition had a
-  fatal failure and did not complete whatever it was supposed to do.
-  If the failure was not fatal, then you handled it and you should not
-  report it. If it was fatal, then you must report it and discontinue
-  whatever you were doing immediately.
-
-- If a C<GError> is reported, out parameters are not guaranteed to
-  be set to any defined value.
-
-- A C<GError>* must be initialized to C<Any> before passing its address
-  to a function that can report errors.
-
-- "Piling up" errors is always a bug. That is, if you assign a
-  new C<GError> to a C<GError>* that is non-C<Any>, thus overwriting
-  the previous error, it indicates that you should have aborted
-  the operation instead of continuing. If you were able to continue,
-  you should have cleared the previous error with C<g_clear_error()>.
-  C<g_set_error()> will complain if you pile up errors.
-
-- By convention, if you return a boolean value indicating success
-  then C<1> means success and C<0> means failure. Avoid creating
-  functions which have a boolean return value and a GError parameter,
-  but where the boolean does something other than signal whether the
-  GError is set.  Among other problems, it requires C callers to allocate
-  a temporary error.  Instead, provide a "gboolean *" out parameter.
-  There are functions in GLib itself such as C<g_key_file_has_key()> that
-  are deprecated because of this. If C<0> is returned, the error must
-  be set to a non-C<Any> value.  One exception to this is that in situations
-  that are already considered to be undefined behaviour (such as when a
-  C<g_return_val_if_fail()> check fails), the error need not be set.
-  Instead of checking separately whether the error is set, callers
-  should ensure that they do not provoke undefined behaviour, then
-  assume that the error will be set on failure.
-
-- A C<Any> return value is also frequently used to mean that an error
-  occurred. You should make clear in your documentation whether C<Any>
-  is a valid return value in non-error cases; if C<Any> is a valid value,
-  then users must check whether an error was returned to see if the
-  function succeeded.
-
-- When implementing a function that can report errors, you may want
-  to add a check at the top of your function that the error return
-  location is either C<Any> or contains a C<Any> error (e.g.
-  `g_return_if_fail (error == NULL || *error == NULL);`).
-
 =head1 Synopsis
 =head2 Declaration
 
   unit class Gnome::Glib::Error;
 
 =head2 Example
+
 
 =end pod
 #-------------------------------------------------------------------------------
@@ -363,21 +61,22 @@ unit class Gnome::Glib::Error:auth<github:MARTIMM>;
 =head1 Types
 =head2 class N-GError;
 
-=item has uint32 $.domain; The set domain. 0 when cleared.
-=item has int32 $.code; The set error code. 0 when cleared.
+=item has uint32 $.domain; The set domain.
+=item has int32 $.code; The set error code.
 =item has Str $.message; The error message.
 
 =end pod
 
 class N-GError is repr('CStruct') is export {
-  has uint32 $.domain is rw;            # is GQuark
-  has int32 $.code is rw;
+  has uint32 $.domain;            # is GQuark
+  has int32 $.code;
   has Str $.message;
 }
 
 #-------------------------------------------------------------------------------
 has N-GError $!g-gerror;
 
+has Bool $.error-is-valid = False;
 #-------------------------------------------------------------------------------
 =begin pod
 =head1 Methods
@@ -387,7 +86,7 @@ has N-GError $!g-gerror;
 
 Create a new error object. A domain, which is a string must be converted to an unsigned integer with one of the Quark conversion methods. See C<Gnome::Glib::Quark>.
 
-=head3 multi method new ( N-GError :gerror )
+=head3 multi method new ( N-GError :gerror! )
 
 Create a new error object using an other native error object.
 
@@ -407,10 +106,13 @@ submethod BUILD ( *%options ) {
     $!g-gerror = g_error_new_literal(
       %options<domain>, %options<code>, %options<error-message>
     );
+
+    $!error-is-valid = True;
   }
 
   elsif %options<gerror>.defined {
-    $!g-gerror = %options<gerror>
+    $!g-gerror = %options<gerror>;
+    $!error-is-valid = True;
   }
 
   elsif %options.keys.elems {
@@ -448,13 +150,91 @@ method FALLBACK ( $native-sub is copy, |c ) {
 }
 
 #-------------------------------------------------------------------------------
+# doc of $!error-is-valid defined above
+=begin pod
+=head2 error-is-valid
+
+Returns True if native error object is valid, otherwise False.
+
+  method error-is-valid ( --> Bool )
+
+=end pod
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 clear-error
+
+Clear the error and return data to memory to pool. The error object is not valid after this call and error-is-valid() will return False.
+
+  method clear-error ()
+
+=end pod
+
 method clear-error ( ) {
 
   _g_error_free($!g-gerror);
-  $!g-gerror.domain = 0;
-  $!g-gerror.code = 0;
+  $!error-is-valid = False;
+  $!g-gerror = N-GError;
 }
 
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 domain
+
+Get the domain code from the error object. Use C<to-string()> from C<Gnome::Glib::Quark> to get the domain text representation of it. Returns 0 if object is invalid.
+
+  method domain ( --> UInt )
+
+=end pod
+
+method domain ( --> UInt ) {
+  $!error-is-valid ?? $!g-gerror.domain !! 0;
+}
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 code
+
+Return the error code of the error. Returns 0 if object is invalid.
+
+  method code ( --> Int )
+
+=end pod
+
+method code ( --> Int ) {
+  $!error-is-valid ?? $!g-gerror.code !! 0;
+}
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 message
+
+Return the error message in the error object. Returns '' if object is invalid.
+
+  method message ( --> Str )
+
+=end pod
+
+method message ( --> Str ) {
+  $!error-is-valid ?? $!g-gerror.message !! '';
+}
+
+#`{{ Todo
+#-------------------------------------------------------------------------------
+method set-error ( --> CArray[N-GError] ) {
+  if $!error-is-valid {
+    _g_error_free($!g-gerror);
+    $!error-is-valid = False;
+    $!g-gerror = N-GError;
+  }
+
+  state CArray[N-GError] $ga;
+  $ga .= new(N-GError);
+  $!g-gerror := $ga[0];
+
+  $ga
+}
+}}
 #`{{
 #-------------------------------------------------------------------------------
 =begin pod
