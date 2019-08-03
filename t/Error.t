@@ -55,10 +55,25 @@ subtest 'Manipulations', {
 
 
 #-------------------------------------------------------------------------------
-# create a local sub to call a gk function
+# create a local sub to call a gtk function
+# Definition is:
+#   gboolean g_file_get_contents (
+#      const gchar  *filename,
+#      gchar       **contents,  // Address to return content
+#      gsize        *length,
+#      GError      **error);    // Address to return error
+#
+# So for api spec for contents and error;
+#   CArray[Str] $contents
+#   CArray[N-GError] $error
+#
+# The variables must be initialized with undefined fields;
+#   my CArray[Str] $s .= new(Str);
+#   my CArray[N-GError] $ga .= new(N-GError);
+#
 sub g_file_get_contents (
-  Str $filename, CArray[Str] $contents is rw, int32 $length is rw,
-  CArray[N-GError] $error is rw
+  Str $filename, CArray[Str] $contents, int32 $length is rw,
+  CArray[N-GError] $error
 ) returns int32
   is native(&glib-lib)
   { * }
@@ -69,7 +84,7 @@ subtest 'A real error', {
 
   my CArray[N-GError] $ga .= new(N-GError);
   my N-GError $gerr;
-  my CArray[Str] $s .= new('');
+  my CArray[Str] $s .= new(Str);
   my int32 $l;
   my Int $r = g_file_get_contents( $f, $s, $l, $ga);
   is $r, 1, 'no error';
@@ -83,6 +98,9 @@ subtest 'A real error', {
   is $gerr.domain, 3, 'domain is 3; 3rd domain registration in this test';
   is $quark.to-string($gerr.domain), 'g-file-error-quark',
      'domain text is g-file-error-quark';
+
+  # 4 is value of G_FILE_ERROR_NOENT in enum GFileError (not defined yet)
+  # See also https://developer.gnome.org/glib/stable/glib-File-Utilities.html
   is $gerr.code, 4, 'error code for this error is 4';
   is $gerr.message,
      'Failed to open file “unknown-file.txt”: No such file or directory',
