@@ -1,5 +1,9 @@
 ## Release notes
 
+* 2019-08-05 0.14.1
+  * Improved documentation of Error.
+  * Now one can add an undefined error object with Error.new(:$gerror) but it will set the flag $.error-is-valid to False, showing that the object is invalid. This small change makes it more easy to create an Error object and test its flag instead of returning a type object which needs different testing.
+
 * 2019-08-01 0.14.0
   * Extended Error and created Quark. Also tests and doc is added.
 
