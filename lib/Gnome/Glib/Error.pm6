@@ -42,6 +42,11 @@ Error domains and codes are conventionally named as follows:
 
 =head2 Example
 
+  my Gnome::Gtk3::Builder $builder .= new(:empty);
+
+  # try to read non existing file
+  my Gnome::Glib::Error $e = $builder.add-from-file('x.glade');
+  die $e.message if $e.error-is-valid;
 
 =end pod
 #-------------------------------------------------------------------------------
@@ -107,12 +112,12 @@ submethod BUILD ( *%options ) {
       %options<domain>, %options<code>, %options<error-message>
     );
 
-    $!error-is-valid = True;
+    $!error-is-valid = ?$!g-gerror;
   }
 
-  elsif %options<gerror>.defined {
+  elsif %options<gerror>:exists {
     $!g-gerror = %options<gerror>;
-    $!error-is-valid = True;
+    $!error-is-valid = ?$!g-gerror;
   }
 
   elsif %options.keys.elems {
