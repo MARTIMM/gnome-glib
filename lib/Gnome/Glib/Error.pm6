@@ -1,4 +1,7 @@
+#TL:1:Gnome::Glib::Error
+
 use v6;
+
 #-------------------------------------------------------------------------------
 =begin pod
 
@@ -83,15 +86,18 @@ has N-GError $!g-gerror;
 
 has Bool $.error-is-valid = False;
 #-------------------------------------------------------------------------------
+#TN:1:new(:gerror):
+#TN:1:new(:$domain, :code, :error-message):
+
 =begin pod
 =head1 Methods
 =head2 new
 
 =head3 multi method new ( UInt :$domain!, Int :$code!, Str :$error-message! )
 
-Create a new error object. A domain, which is a string must be converted to an unsigned integer with one of the Quark conversion methods. See C<Gnome::Glib::Quark>.
+Create a new error object. A domain, which is a string must be converted to an unsigned integer with one of the Quark conversion methods. See I<Gnome::Glib::Quark>.
 
-=head3 multi method new ( N-GError :gerror! )
+=head3 multi method new ( N-GError :$gerror! )
 
 Create a new error object using an other native error object.
 
@@ -104,7 +110,15 @@ submethod BUILD ( *%options ) {
   # return unless self.^name eq 'Gnome::Glib::Error';
 
   # process all named arguments
-  if %options<domain>.defined and
+  if %options.elems == 0 {
+    die X::Gnome.new(
+      :message( 'No options specified ' ~ self.^name ~
+                ': ' ~ %options.keys.join(', ')
+      )
+    );
+  }
+
+  elsif %options<domain>.defined and
      %options<code>.defined and
      %options<error-message>.defined {
 
@@ -120,11 +134,11 @@ submethod BUILD ( *%options ) {
     $!error-is-valid = ?$!g-gerror;
   }
 
-  elsif %options.keys.elems {
+  elsif %options.elems {
     die X::Gnome.new(
-      :message('Unsupported options for ' ~ self.^name ~
-               ': ' ~ %options.keys.join(', ')
-              )
+      :message( 'Unsupported options for ' ~ self.^name ~
+                ': ' ~ %options.keys.join(', ')
+      )
     );
   }
 }
@@ -155,21 +169,23 @@ method FALLBACK ( $native-sub is copy, |c ) {
 }
 
 #-------------------------------------------------------------------------------
+#TM:1:error-is-valid
 # doc of $!error-is-valid defined above
 =begin pod
 =head2 error-is-valid
 
-Returns True if native error object is valid, otherwise False.
+Returns True if native error object is valid, otherwise C<False>.
 
   method error-is-valid ( --> Bool )
 
 =end pod
 
 #-------------------------------------------------------------------------------
+#TM:1:clear-error
 =begin pod
 =head2 clear-error
 
-Clear the error and return data to memory to pool. The error object is not valid after this call and error-is-valid() will return False.
+Clear the error and return data to memory to pool. The error object is not valid after this call and error-is-valid() will return C<False>.
 
   method clear-error ()
 
@@ -183,45 +199,48 @@ method clear-error ( ) {
 }
 
 #-------------------------------------------------------------------------------
+#TM:1:domain
 =begin pod
 =head2 domain
 
-Get the domain code from the error object. Use C<to-string()> from C<Gnome::Glib::Quark> to get the domain text representation of it. Returns 0 if object is invalid.
+Get the domain code from the error object. Use C<to-string()> from I<Gnome::Glib::Quark> to get the domain text representation of it. Returns C<UInt> if object is invalid.
 
   method domain ( --> UInt )
 
 =end pod
 
 method domain ( --> UInt ) {
-  $!error-is-valid ?? $!g-gerror.domain !! 0;
+  $!error-is-valid ?? $!g-gerror.domain !! UInt;
 }
 
 #-------------------------------------------------------------------------------
+#TM:1:code
 =begin pod
 =head2 code
 
-Return the error code of the error. Returns 0 if object is invalid.
+Return the error code of the error. Returns C<Int> if object is invalid.
 
   method code ( --> Int )
 
 =end pod
 
 method code ( --> Int ) {
-  $!error-is-valid ?? $!g-gerror.code !! 0;
+  $!error-is-valid ?? $!g-gerror.code !! Int;
 }
 
 #-------------------------------------------------------------------------------
+#TM:1:message
 =begin pod
 =head2 message
 
-Return the error message in the error object. Returns '' if object is invalid.
+Return the error message in the error object. Returns C<Str> if object is invalid.
 
   method message ( --> Str )
 
 =end pod
 
 method message ( --> Str ) {
-  $!error-is-valid ?? $!g-gerror.message !! '';
+  $!error-is-valid ?? $!g-gerror.message !! Str;
 }
 
 #`{{ Todo
@@ -273,18 +292,17 @@ sub _g_error_new (
 }}
 
 #-------------------------------------------------------------------------------
+#TM:2:g_error_new_literal:new( :domain, :code, :error-message)
 =begin pod
 =head2 [g_error_] new_literal
 
 Creates a new C<N-GError>.
 
-Returns: a new C<N-GError>
-
   method g_error_new_literal (
     UInt $domain, Int $code, Str $message --> N-GError
   )
 
-=item N-GObject $domain; error domain
+=item UInt $domain; error domain
 =item Int $code; error code
 =item Str $message; error message
 
@@ -324,17 +342,24 @@ sub g_error_new_valist ( N-GObject $domain, int32 $code, Str $format,  $va_list 
 }}
 
 #-------------------------------------------------------------------------------
-# do not document. used indirectly using clear-error()
+# do not document. used indirectly via clear-error()
 sub _g_error_free ( N-GError $error )
   is native(&glib-lib)
   is symbol('g_error_free')
   { * }
 
 #-------------------------------------------------------------------------------
+#TM:1:g_error_copy
 =begin pod
 =head2 g_error_copy
 
-Makes a copy of I<error>.
+Makes a copy of the native error object.
+
+  # create or get the error object from somewhere
+  my Gnome::Glib::Error $e = ...;
+
+  # later one can copy the error if needed and create a second object
+  my Gnome::Glib::Error $e2 .= new(:gerror($e.g-error-copy));
 
 Returns: a new C<N-GError>
 
@@ -348,19 +373,20 @@ sub g_error_copy ( N-GError $error )
   { * }
 
 #-------------------------------------------------------------------------------
+#TM:1:g_error_matches
 =begin pod
 =head2 g_error_matches
 
-Returns C<1> if I<error> matches I<domain> and I<code>, C<0>
-otherwise. In particular, when I<error> is C<Any>, C<0> will
-be returned.
+Returns C<1> if Gnome::Glib::Error> matches I<$domain> and I<$code>, C<0> otherwise. In particular, when I<error> is C<Any>, C<0> will be returned.
 
-If I<domain> contains a `FAILED` (or otherwise generic) error code,
+=begin comment
+If I<$domain> contains a `FAILED` (or otherwise generic) error code,
 you should generally not check for it explicitly, but should
 instead treat any not-explicitly-recognized error code as being
 equivalent to the `FAILED` code. This way, if the domain is
 extended in the future to provide a more specific error code for
 a certain case, your code will still work.
+=end comment
 
   method g_error_matches ( UInt $domain, Int $code --> Int  )
 

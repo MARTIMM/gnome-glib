@@ -7,20 +7,34 @@ use Gnome::N::NativeLib;
 use Gnome::Glib::Quark;
 use Gnome::Glib::Error;
 
-use Gnome::N::X;
+#use Gnome::N::X;
 #Gnome::N::debug(:on);
 
 #-------------------------------------------------------------------------------
-my Gnome::Glib::Quark $quark .= new;
+my Gnome::Glib::Quark $quark .= new(:empty);
 my Gnome::Glib::Error $e;
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
+  throws-like(
+    { Gnome::Glib::Error.new(); },
+    X::Gnome, 'Cannot create without args',
+    :message(/:s No options specified/)
+  );
+
+  throws-like(
+    { Gnome::Glib::Error.new(:message('abc def')); },
+    X::Gnome, 'Cannot create with wrong args',
+    :message(/:s Unsupported options for/)
+  );
+
   # The error domain is called <NAMESPACE>_<MODULE>_ERROR
   my Int $domain = $quark.from-string('gnome_gtk3_button_test_error');
   $e .= new( :$domain, :code(1), :error-message('Error in test'));
-  isa-ok $e, Gnome::Glib::Error;
+  isa-ok $e, Gnome::Glib::Error, '.new(:$domain, :$code, :$error-message)';
 
+  diag '.clear-error()';
   $e.clear-error;
+  ok !$e.error-is-valid, 'error $e is not valid';
   $e = Nil;
 }
 
@@ -51,6 +65,12 @@ subtest 'Manipulations', {
 
   $e2.clear-error;
   $e.clear-error;
+
+  is $e.domain, UInt, 'domain undefined';
+  is $e.code, Int, 'code undefined';
+  is $e.message, Str, 'message undefined';
+
+  is $e.g-error-matches( $domain, 3), 0, 'error does not match anymore';
 }
 
 
