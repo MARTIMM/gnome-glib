@@ -5,7 +5,7 @@ use Test;
 use Gnome::Glib::SList;
 
 #use Gnome::N::X;
-Gnome::N::debug(:on);
+#Gnome::N::debug(:on);
 
 #-------------------------------------------------------------------------------
 my Gnome::Glib::SList $s .= new(:empty);
