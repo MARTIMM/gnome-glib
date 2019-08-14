@@ -1,3 +1,5 @@
+#TL:1:Gnome::Glib::Quark
+
 use v6;
 #-------------------------------------------------------------------------------
 =begin pod
@@ -8,18 +10,18 @@ use v6;
 
 =head1 Description
 
-Quarks are associations between strings and integer identifiers or a C<GQuark>. Given either the string or the C<GQuark> identifier it is possible to retrieve the other.
+Quarks are associations between strings and integer identifiers or a I<GQuark>. Given either the string or the I<GQuark> identifier it is possible to retrieve the other.
 
 =begin comment
 Quarks are used for both [datasets](https://developer.gnome.org/glib/stable/glib-Datasets.html) and [keyed data lists](https://developer.gnome.org/glib/stable/glib-Keyed-Data-Lists.html).
 =end comment
-Quarks are used for example for error domains, see also C<Gnome::Glib::Error>.
+Quarks are used for example to specify error domains, see also I<Gnome::Glib::Error>.
 
 To create a new quark from a string, use C<g_quark_from_string()>.
 
-To find the string corresponding to a given C<GQuark>, use C<g_quark_to_string()>.
+To find the string corresponding to a given I<GQuark>, use C<g_quark_to_string()>.
 
-To find the C<GQuark> corresponding to a given string, use C<g_quark_try_string()>.
+To find the I<GQuark> corresponding to a given string, use C<g_quark_try_string()>.
 
 =begin comment
 Another use for the string pool maintained for the quark functions is string interning, using C<g_intern_string()> or C<g_intern_static_string()>. An interned string is a canonical representation for a string. One important advantage of interned strings is that they can be compared for equality by a simple pointer comparison, rather than using C<strcmp()>.
@@ -57,6 +59,42 @@ use Gnome::N::N-GObject;
 unit class Gnome::Glib::Quark:auth<github:MARTIMM>;
 
 #-------------------------------------------------------------------------------
+# method new, mark for code coverage
+#TS:1:new
+=begin pod
+=head2 new
+=head3 multi method new ( Bool :$empty! )
+
+Create a new error object.
+=end pod
+
+submethod BUILD ( *%options ) {
+
+  # prevent creating wrong widgets
+  # no parent, nor children ...
+  # return unless self.^name eq 'Gnome::Glib::Error';
+
+  # process all named arguments
+  if %options.elems == 0 {
+    die X::Gnome.new(
+      :message( 'No options specified ' ~ self.^name ~
+                ': ' ~ %options.keys.join(', ')
+      )
+    );
+  }
+
+  elsif %options<empty>:exists { }
+
+  elsif %options.elems {
+    die X::Gnome.new(
+      :message( 'Unsupported options for ' ~ self.^name ~
+                ': ' ~ %options.keys.join(', ')
+      )
+    );
+  }
+}
+
+#-------------------------------------------------------------------------------
 method FALLBACK ( $native-sub is copy, |c ) {
 
   CATCH { test-catch-exception( $_, $native-sub); }
@@ -75,21 +113,19 @@ method FALLBACK ( $native-sub is copy, |c ) {
 }
 
 #-------------------------------------------------------------------------------
+#TM:1:g_quark_try_string
 =begin pod
 =head2 [g_quark_] try_string
 
-Gets the C<GQuark> associated with the given string, or 0 if string is
-undefined or it has no associated C<GQuark>.
+Gets the I<GQuark> associated with the given string, or 0 if string is undefined or it has no associated I<GQuark>.
 
-If you want the GQuark to be created if it doesn't already exist,
-use C<g_quark_from_string()> or C<g_quark_from_static_string()>.
+If you want the GQuark to be created if it doesn't already exist, use C<g_quark_from_string()> or C<g_quark_from_static_string()>.
 
-Returns: the C<GQuark> associated with the string, or 0 if I<string> is
-C<Any> or there is no C<GQuark> associated with it
+Returns: the I<GQuark> associated with the string, or 0 if I<$string> is undefined or there is no I<GQuark> associated with it.
 
   method g_quark_try_string ( Str $string --> Int  )
 
-=item Str $string; (nullable): a string
+=item Str $string: a string
 
 =end pod
 
@@ -103,12 +139,12 @@ sub g_quark_try_string ( Str $string )
 =begin pod
 =head2 [g_quark_] from_static_string
 
-Gets the C<GQuark> identifying the given (static) string. If the
-string does not currently have an associated C<GQuark>, a new C<GQuark>
+Gets the I<GQuark> identifying the given (static) string. If the
+string does not currently have an associated I<GQuark>, a new I<GQuark>
 is created, linked to the given string.
 
 Note that this function is identical to C<g_quark_from_string()> except
-that if a new C<GQuark> is created the string itself is used rather
+that if a new I<GQuark> is created the string itself is used rather
 than a copy. This saves memory, but can only be used if the string
 will continue to exist until the program terminates. It can be used
 with statically allocated strings in the main program, but not with
@@ -116,11 +152,11 @@ statically allocated memory in dynamically loaded modules, if you
 expect to ever unload the module again (e.g. do not use this
 function in GTK+ theme engines).
 
-Returns: the C<GQuark> identifying the string, or 0 if I<string> is C<Any>
+Returns: the I<GQuark> identifying the string, or 0 if I<$string> is undefined
 
   method g_quark_from_static_string ( Str $string --> N-GObject  )
 
-=item Str $string; (nullable): a string
+=item Str $string: a string
 
 =end pod
 
@@ -131,18 +167,19 @@ sub g_quark_from_static_string ( Str $string )
 }}
 
 #-------------------------------------------------------------------------------
+#TM:1:g_quark_from_string
 =begin pod
 =head2 [g_quark_] from_string
 
-Gets the C<GQuark> identifying the given string. If the string does
-not currently have an associated C<GQuark>, a new C<GQuark> is created,
+Gets the I<GQuark> identifying the given string. If the string does
+not currently have an associated I<GQuark>, a new I<GQuark> is created,
 using a copy of the string.
 
-Returns: the C<GQuark> identifying the string, or 0 if I<string> is C<Any>
+Returns: the I<GQuark> identifying the string, or 0 if I<$string> is undefined
 
   method g_quark_from_string ( Str $string --> Int  )
 
-=item Str $string; (nullable): a string
+=item Str $string: a string
 
 =end pod
 
@@ -202,6 +239,7 @@ sub g_intern_static_string ( Str $string )
 }}
 
 #-------------------------------------------------------------------------------
+#TM:1:g_quark_to_string
 =begin pod
 =head2 [g_quark_] to_string
 
