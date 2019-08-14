@@ -1,5 +1,8 @@
 ## Release notes
 
+* 2019-08-10 0.14.3
+  * Completing Error and Quark, documentation and test coverage
+
 * 2019-08-10 0.14.2
   * Added documentation to SList.
 
