@@ -39,7 +39,7 @@ subtest 'Manipulations', {
   is $quark.from-string('my 2nd string'), $q, "2nd string has got quark $q";
   is $quark.to-string($q), 'my 2nd string', "2nd string found from quark";
 
-  is $quark.to-string(42), Str, 'quark not registered';
+  is $quark.to-string(42), Any, 'quark not registered';
 }
 
 #-------------------------------------------------------------------------------

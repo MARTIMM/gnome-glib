@@ -122,5 +122,5 @@ method FALLBACK ( $native-sub is copy, |c ) {
 
   CATCH { test-catch-exception( $_, $native-sub); }
 
-  test-call( $s, Any, |c)
+  test-call-without-natobj( $s, |c)
 }

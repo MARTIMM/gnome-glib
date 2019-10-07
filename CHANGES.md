@@ -1,5 +1,8 @@
 ## Release notes
 
+* 2019-10-07 0.14.4
+  * changed call to test-call()
+
 * 2019-08-10 0.14.3
   * Completing Error and Quark, documentation and test coverage
 
