@@ -146,7 +146,12 @@ submethod BUILD ( *%options ) {
 #-------------------------------------------------------------------------------
 method CALL-ME ( N-GError $gerror? --> N-GError ) {
 
-  $!g-gerror = $gerror if ?$gerror;
+  if $gerror.defined {
+    _g_error_free($!g-gerror) if $!g-gerror.defined;
+    $!g-gerror = $gerror;
+    $!error-is-valid = True;
+  }
+
   $!g-gerror
 }
 
@@ -193,7 +198,7 @@ Clear the error and return data to memory to pool. The error object is not valid
 
 method clear-error ( ) {
 
-  _g_error_free($!g-gerror);
+  _g_error_free($!g-gerror) if $!g-gerror.defined;
   $!error-is-valid = False;
   $!g-gerror = N-GError;
 }
