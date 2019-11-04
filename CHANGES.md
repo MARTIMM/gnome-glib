@@ -1,5 +1,8 @@
 ## Release notes
 
+* 2019-10-30 0.15.0
+  * Added Option module.
+
 * 2019-10-07 0.14.4
   * changed call to test-call()
 

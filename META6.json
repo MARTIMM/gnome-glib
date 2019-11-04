@@ -1,7 +1,7 @@
 {
   "description": "Perl6 Gnome glib api, Please install Gnome::Gtk3",
   "name": "Gnome::Glib",
-  "version": "0.14.4",
+  "version": "0.15.0",
   "authors": [ "Marcel Timmerman"],
   "tags": [ "gnome", "glib"],
 
@@ -12,6 +12,7 @@
     "Gnome::Glib::Error": "lib/Gnome/Glib/Error.pm6",
     "Gnome::Glib::List": "lib/Gnome/Glib/List.pm6",
     "Gnome::Glib::Main": "lib/Gnome/Glib/Main.pm6",
+    "Gnome::Glib::Option": "lib/Gnome/Glib/Option.pm6",
     "Gnome::Glib::Quark": "lib/Gnome/Glib/Quark.pm6",
     "Gnome::Glib::SList": "lib/Gnome/Glib/SList.pm6"
   },
