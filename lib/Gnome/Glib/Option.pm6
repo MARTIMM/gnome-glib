@@ -1,5 +1,7 @@
 #TL:1:Gnome::Glib::Option:
 
+#TODO split option_group from option_context
+
 use v6;
 #-------------------------------------------------------------------------------
 =begin pod
