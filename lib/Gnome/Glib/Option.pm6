@@ -162,10 +162,10 @@ unit class Gnome::Glib::Option:auth<github:MARTIMM>;
 
 #-------------------------------------------------------------------------------
 #subset N-GDestroyNotify of Callable;
-subset N-GOptionParseFunc of Callable;
-subset N-GOptionArgFunc of Callable;
-subset N-GTranslateFunc of Callable;
-subset N-GOptionErrorFunc of Callable;
+#subset N-GOptionParseFunc of Callable;
+#subset N-GOptionArgFunc of Callable;
+#subset N-GTranslateFunc of Callable;
+#subset N-GOptionErrorFunc of Callable;
 
 #-------------------------------------------------------------------------------
 =begin pod
