@@ -1,4 +1,6 @@
 ## Release notes
+* 2019-11-11 0.15.1
+  * Issue #5 (on Gnome::Gtk3); change tests in Error.t
 
 * 2019-10-30 0.15.0
   * Added Option module.
