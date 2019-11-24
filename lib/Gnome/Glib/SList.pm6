@@ -158,8 +158,9 @@ method FALLBACK ( $native-sub is copy, |c ) {
 
   note "Native sub string $native-sub" if $Gnome::N::x-debug;
   my Callable $s;
-  try { $s = &::($native-sub); }
-  try { $s = &::("g_slist_$native-sub") unless ?$s; }
+  try { $s = &::("g_slist_$native-sub") };
+  try { $s = &::("g_$native-sub"); } unless ?$s;
+  try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
   if $s {
     #test-call( $s, $!gslist, |c)

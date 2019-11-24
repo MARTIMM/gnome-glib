@@ -106,8 +106,9 @@ method FALLBACK ( $native-sub is copy, |c ) {
   ) unless $native-sub.index('_') >= 0;
 
   my Callable $s;
-  try { $s = &::($native-sub); }
-  try { $s = &::("g_quark_$native-sub"); }
+  try { $s = &::("g_quark_$native-sub"); };
+  try { $s = &::("g_$native-sub"); } unless ?$s;
+  try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
   test-call-without-natobj( &$s, |c)
 }

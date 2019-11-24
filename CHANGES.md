@@ -1,4 +1,7 @@
 ## Release notes
+* 2019-11-24 0.15.2
+  * Modified FALLBACK routines to change order of tests
+
 * 2019-11-11 0.15.1
   * Issue #5 (on Gnome::Gtk3); change tests in Error.t
 
