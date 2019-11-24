@@ -408,8 +408,9 @@ method FALLBACK ( $native-sub is copy, |c ) {
   $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-').defined;
 
   my Callable $s;
-  try { $s = &::($native-sub); }
-  try { $s = &::("g_option_$native-sub"); } unless ?$s;
+  try { $s = &::("g_option_$native-sub"); };
+  try { $s = &::("g_$native-sub"); } unless ?$s;
+  try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
   #$s = callsame unless ?$s;
 
