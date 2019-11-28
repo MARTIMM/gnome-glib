@@ -1,4 +1,7 @@
 ## Release notes
+* 2019-11-28 0.15.3
+  * Modified and extended List module and added tests and documentation
+
 * 2019-11-24 0.15.2
   * Modified FALLBACK routines to change order of tests
 
