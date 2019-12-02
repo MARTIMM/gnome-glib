@@ -63,11 +63,14 @@ unit class Gnome::Glib::Quark:auth<github:MARTIMM>;
 #TS:1:new
 =begin pod
 =head2 new
-=head3 multi method new ( Bool :$empty! )
 
-Create a new error object.
+Create a new quark object.
+
+  multi method new ( Bool :$empty! )
+
 =end pod
 
+#TM:1:new(:empty)
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong widgets
