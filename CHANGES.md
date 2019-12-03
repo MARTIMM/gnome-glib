@@ -1,4 +1,7 @@
 ## Release notes
+* 2019-12-03 0.15.4:
+  * Documentation changes
+
 * 2019-11-28 0.15.3
   * Modified and extended List module and added tests and documentation
 

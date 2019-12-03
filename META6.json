@@ -1,7 +1,7 @@
 {
   "description": "Perl6 Gnome glib api, Please install Gnome::Gtk3",
   "name": "Gnome::Glib",
-  "version": "0.15.3",
+  "version": "0.15.4",
   "authors": [ "Marcel Timmerman"],
   "tags": [ "gnome", "glib"],
 
