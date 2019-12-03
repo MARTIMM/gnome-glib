@@ -267,7 +267,7 @@ method set-error ( --> CArray[N-GError] ) {
 #`{{
 #-------------------------------------------------------------------------------
 =begin pod
-=head2 g_error_new
+=head2 [g_] error_new
 
 Creates a new C<N-GError> with the given I<domain>, I<code> and a I<error-message>. Originally the message is a printf like string followed with variables to be substituted in the format string. This can be easily solved in Perl6 and is therefore simplified here. A warning; every percent character is substituted with the text 'percent-filtered-out' to prevent crashes in the C function. If needed please use C<g_error_new_literal()>.
 
@@ -299,7 +299,7 @@ sub _g_error_new (
 #-------------------------------------------------------------------------------
 #TM:2:g_error_new_literal:new( :domain, :code, :error-message)
 =begin pod
-=head2 [g_error_] new_literal
+=head2 [[g_] error_] new_literal
 
 Creates a new C<N-GError>.
 
@@ -321,7 +321,7 @@ sub g_error_new_literal ( uint32 $domain, int32 $code, Str $message )
 #`{{
 #-------------------------------------------------------------------------------
 =begin pod
-=head2 [g_error_] new_valist
+=head2 [[g_] error_] new_valist
 
 Creates a new C<N-GError> with the given I<domain> and I<code>,
 and a message formatted with I<format>.
@@ -356,7 +356,7 @@ sub _g_error_free ( N-GError $error )
 #-------------------------------------------------------------------------------
 #TM:1:g_error_copy
 =begin pod
-=head2 g_error_copy
+=head2 [g_] error_copy
 
 Makes a copy of the native error object.
 
@@ -380,7 +380,7 @@ sub g_error_copy ( N-GError $error )
 #-------------------------------------------------------------------------------
 #TM:1:g_error_matches
 =begin pod
-=head2 g_error_matches
+=head2 [g_] error_matches
 
 Returns C<1> if Gnome::Glib::Error> matches I<$domain> and I<$code>, C<0> otherwise. In particular, when I<error> is C<Any>, C<0> will be returned.
 
@@ -408,7 +408,7 @@ sub g_error_matches ( N-GError $error, uint32 $domain, int32 $code )
 #`{{
 #-------------------------------------------------------------------------------
 =begin pod
-=head2 g_set_error
+=head2 [g_] set_error
 
 Does nothing if I<err> is C<Any>; if I<err> is non-C<Any>, then I<err>
 must be C<Any>. A new C<N-GError> is created and assigned to I<err>. I<message> is like in C<g_error_new()> filtered from percent characters. For these strings please use C<g_set_error_literal()>.
@@ -439,7 +439,7 @@ sub _g_set_error (
 #`{{
 #-------------------------------------------------------------------------------
 =begin pod
-=head2 g_set_error_literal
+=head2 [g_] set_error_literal
 
 Does nothing if I<err> is C<Any>; if I<err> is non-C<Any>, then I<err>
 must be C<Any>. A new C<GError> is created and assigned to I<err>.
@@ -462,7 +462,7 @@ sub g_set_error_literal (
 #`{{
 #-------------------------------------------------------------------------------
 =begin pod
-=head2 g_propagate_error
+=head2 [g_] propagate_error
 
 If I<dest> is C<Any>, free I<src>; otherwise, moves I<src> into I<dest>.
 The error variable I<dest> points to must be C<Any>.
@@ -486,7 +486,7 @@ sub g_propagate_error ( N-GObject $dest, N-GObject $src )
 #`{{
 #-------------------------------------------------------------------------------
 =begin pod
-=head2 g_clear_error
+=head2 [g_] clear_error
 
 Calls C<g_error_free()> on the native object and sets it to C<Any>.
 
@@ -501,7 +501,7 @@ sub g_clear_error ( N-GError $err )
 #`{{
 #-------------------------------------------------------------------------------
 =begin pod
-=head2 g_prefix_error
+=head2 [g_] prefix_error
 
 Formats a string according to I<format> and prefix it to an existing
 error message. If I<err> is C<Any> (ie: no error variable) then do
@@ -527,7 +527,7 @@ sub g_prefix_error ( N-GObject $err, Str $format, Any $any = Any,  $3 )
 #`{{
 #-------------------------------------------------------------------------------
 =begin pod
-=head2 g_propagate_prefixed_error
+=head2 [g_] propagate_prefixed_error
 
 If I<dest> is C<Any>, free I<src>; otherwise, moves I<src> into *I<dest>.
 *I<dest> must be C<Any>. After the move, add a prefix as with
