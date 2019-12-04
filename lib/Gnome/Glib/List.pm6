@@ -215,7 +215,7 @@ method clear-list ( ) {
 #-------------------------------------------------------------------------------
 # TM:0:g_list_alloc:
 =begin pod
-=head2 g_list_alloc
+=head2 [g_] list_alloc
 
 Allocates space for one B<Gnome::Glib::List> element. It is called by
 C<g_list_append()>, C<g_list_prepend()>, C<g_list_insert()> and
@@ -238,7 +238,7 @@ sub g_list_alloc (  )
 #-------------------------------------------------------------------------------
 # TM:0:g_list_free:
 =begin pod
-=head2 g_list_free
+=head2 [g_] list_free
 
 Frees all of the memory used by a B<Gnome::Glib::List>.
 The freed elements are returned to the slice allocator.
@@ -261,7 +261,7 @@ sub _g_list_free ( N-GList $list )
 #-------------------------------------------------------------------------------
 # TM:0:g_list_free_1:
 =begin pod
-=head2 [g_list_] free_1
+=head2 [[g_] list_] free_1
 
 Frees one B<Gnome::Glib::List> element, but does not update links from the next and
 previous elements in the list, so you should not call this function on an
@@ -281,7 +281,7 @@ sub g_list_free_1 ( N-GList $list )
 #-------------------------------------------------------------------------------
 # TM:0:g_list_free_full:
 =begin pod
-=head2 [g_list_] free_full
+=head2 [[g_] list_] free_full
 
 Convenience method, which frees all the memory used by a B<Gnome::Glib::List>,
 and calls I<free_func> on every element's data.
@@ -306,7 +306,7 @@ sub g_list_free_full ( N-GList $list, GDestroyNotify $free_func )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_append:
 =begin pod
-=head2 g_list_append
+=head2 [g_] list_append
 
 Adds a new element on to the end of the list.
 
@@ -349,7 +349,7 @@ sub g_list_append ( N-GList $list, Pointer $data )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_prepend:
 =begin pod
-=head2 g_list_prepend
+=head2 [g_] list_prepend
 
 Prepends a new element on to the start of the list.
 
@@ -386,7 +386,7 @@ sub g_list_prepend ( N-GList $list, Pointer $data )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_insert:
 =begin pod
-=head2 g_list_insert
+=head2 [g_] list_insert
 
 Inserts a new element into the list at the given position.
 
@@ -408,7 +408,7 @@ sub g_list_insert ( N-GList $list, Pointer $data, int32 $position )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_insert_sorted:
 =begin pod
-=head2 [g_list_] insert_sorted
+=head2 [[g_] list_] insert_sorted
 
 Inserts a new element into the list, using the given comparison
 function to determine its position.
@@ -436,7 +436,7 @@ sub g_list_insert_sorted ( N-GList $list, Pointer $data, GCompareFunc $func )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_insert_sorted_with_data:
 =begin pod
-=head2 [g_list_] insert_sorted_with_data
+=head2 [[g_] list_] insert_sorted_with_data
 
 Inserts a new element into the list, using the given comparison
 function to determine its position.
@@ -467,7 +467,7 @@ sub g_list_insert_sorted_with_data ( N-GList $list, Pointer $data, GCompareDataF
 #-------------------------------------------------------------------------------
 #TM:0:g_list_insert_before:
 =begin pod
-=head2 [g_list_] insert_before
+=head2 [[g_] list_] insert_before
 
 Inserts a new element into the list before the given position.
 
@@ -488,7 +488,7 @@ sub g_list_insert_before ( N-GList $list, N-GList $sibling, Pointer $data )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_concat:
 =begin pod
-=head2 g_list_concat
+=head2 [g_] list_concat
 
 Adds the second B<Gnome::Glib::List> onto the end of the first B<Gnome::Glib::List>.
 Note that the elements of the second B<Gnome::Glib::List> are not copied.
@@ -517,7 +517,7 @@ sub g_list_concat ( N-GList $list1, N-GList $list2 )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_remove:
 =begin pod
-=head2 g_list_remove
+=head2 [g_] list_remove
 
 Removes an element from a B<Gnome::Glib::List>.
 If two elements contain the same data, only the first is removed.
@@ -539,7 +539,7 @@ sub g_list_remove ( N-GList $list, Pointer $data )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_remove_all:
 =begin pod
-=head2 [g_list_] remove_all
+=head2 [[g_] list_] remove_all
 
 Removes all list nodes with data equal to I<data>.
 Returns the new head of the list. Contrast with
@@ -562,7 +562,7 @@ sub g_list_remove_all ( N-GList $list, Pointer $data )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_remove_link:
 =begin pod
-=head2 [g_list_] remove_link
+=head2 [[g_] list_] remove_link
 
 Removes an element from a B<Gnome::Glib::List>, without freeing the element.
 The removed element's prev and next links are set to C<Any>, so
@@ -593,7 +593,7 @@ sub g_list_remove_link ( N-GList $list, N-GList $llink )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_delete_link:
 =begin pod
-=head2 [g_list_] delete_link
+=head2 [[g_] list_] delete_link
 
 Removes the node link_ from the list and frees it.
 Compare this to C<g_list_remove_link()> which removes the node
@@ -615,7 +615,7 @@ sub g_list_delete_link ( N-GList $list, N-GList $link_ )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_reverse:
 =begin pod
-=head2 g_list_reverse
+=head2 [g_] list_reverse
 
 Reverses a B<Gnome::Glib::List>.
 It simply switches the next and prev pointers of each element.
@@ -636,7 +636,7 @@ sub g_list_reverse ( N-GList $list )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_copy:
 =begin pod
-=head2 g_list_copy
+=head2 [g_] list_copy
 
 Copies a B<N-GList>.
 
@@ -662,7 +662,7 @@ sub _g_list_copy ( N-GList $list )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_copy_deep:
 =begin pod
-=head2 [g_list_] copy_deep
+=head2 [[g_] list_] copy_deep
 
 Makes a full (deep) copy of a B<Gnome::Glib::List>.
 
@@ -707,7 +707,7 @@ sub g_list_copy_deep ( N-GList $list, GCopyFunc $func, Pointer $user_data )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_nth:
 =begin pod
-=head2 g_list_nth
+=head2 [g_] list_nth
 
 Gets the element at the given position in a B<Gnome::Glib::List>.
 
@@ -730,7 +730,7 @@ sub g_list_nth ( N-GList $list, uint32 $n )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_nth_prev:
 =begin pod
-=head2 [g_list_] nth_prev
+=head2 [[g_] list_] nth_prev
 
 Gets the element I<n> places before I<list>.
 
@@ -751,7 +751,7 @@ sub g_list_nth_prev ( N-GList $list, uint32 $n )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_find:
 =begin pod
-=head2 g_list_find
+=head2 [g_] list_find
 
 Finds the element in a B<Gnome::Glib::List> which contains the given data.
 
@@ -771,7 +771,7 @@ sub g_list_find ( N-GList $list, Pointer $data )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_find_custom:
 =begin pod
-=head2 [g_list_] find_custom
+=head2 [[g_] list_] find_custom
 
 Finds an element in a B<Gnome::Glib::List>, using a supplied function to
 find the desired element. It iterates over the list, calling
@@ -797,7 +797,7 @@ sub g_list_find_custom ( N-GList $list, Pointer $data, GCompareFunc $func )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_position:
 =begin pod
-=head2 g_list_position
+=head2 [g_] list_position
 
 Gets the position of the given element
 in the B<Gnome::Glib::List> (starting from 0).
@@ -819,7 +819,7 @@ sub g_list_position ( N-GList $list, N-GList $llink )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_index:
 =begin pod
-=head2 g_list_index
+=head2 [g_] list_index
 
 Gets the position of the element containing
 the given data (starting from 0).
@@ -842,7 +842,7 @@ sub g_list_index ( N-GList $list, Pointer $data )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_last:
 =begin pod
-=head2 g_list_last
+=head2 [g_] list_last
 
 Gets the last element in a B<Gnome::Glib::List>, or C<Any> if the B<Gnome::Glib::List> has no elements.
 
@@ -858,7 +858,7 @@ sub g_list_last ( N-GList $list )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_first:
 =begin pod
-=head2 g_list_first
+=head2 [g_] list_first
 
 Gets the first element in a B<Gnome::Glib::List>, or C<Any> if the B<Gnome::Glib::List> has no elements
 
@@ -874,7 +874,7 @@ sub g_list_first ( N-GList $list )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_length:
 =begin pod
-=head2 g_list_length
+=head2 [g_] list_length
 
 Gets the number of elements in a B<Gnome::Glib::List>.
 
@@ -896,7 +896,7 @@ sub g_list_length ( N-GList $list )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_foreach:
 =begin pod
-=head2 g_list_foreach
+=head2 [g_] list_foreach
 
 Calls a function for each element of a B<Gnome::Glib::List>.
 
@@ -933,7 +933,7 @@ sub _g_list_foreach (
 #-------------------------------------------------------------------------------
 #TM:0:g_list_sort:
 =begin pod
-=head2 g_list_sort
+=head2 [g_] list_sort
 
 Sorts a B<Gnome::Glib::List> using the given comparison function. The algorithm
 used is a stable sort.
@@ -954,7 +954,7 @@ sub g_list_sort ( N-GList $list, GCompareFunc $compare_func )
 #-------------------------------------------------------------------------------
 #TM:0:g_list_sort_with_data:
 =begin pod
-=head2 [g_list_] sort_with_data
+=head2 [[g_] list_] sort_with_data
 
 Like C<g_list_sort()>, but the comparison function accepts
 a user data argument.
@@ -977,7 +977,7 @@ sub g_list_sort_with_data ( N-GList $list, GCompareDataFunc $compare_func, Point
 #-------------------------------------------------------------------------------
 #TM:0:g_list_nth_data:
 =begin pod
-=head2 [g_list_] nth_data
+=head2 [[g_] list_] nth_data
 
 Gets the data of the element at the given position.
 
