@@ -527,7 +527,7 @@ sub _g_option_context_free ( N-GOptionContext $context )
 #-------------------------------------------------------------------------------
 #TM:0:g_option_error_quark:
 =begin pod
-=head2 [g_option_] error_quark
+=head2 [[g_] option_] error_quark
 
   method g_option_error_quark ( --> int32  )
 
@@ -541,7 +541,7 @@ sub g_option_error_quark (  )
 #-------------------------------------------------------------------------------
 #TM:2:g_option_context_new:new(:pstring)
 =begin pod
-=head2 [g_option_] context_new
+=head2 [[g_] option_] context_new
 
 Creates a new option context.
 
@@ -569,7 +569,7 @@ sub g_option_context_new ( Str $parameter_string )
 #-------------------------------------------------------------------------------
 #TM:1:g_option_context_set_summary:
 =begin pod
-=head2 [g_option_] context_set_summary
+=head2 [[g_] option_] context_set_summary
 
 Adds a string to be displayed in `--help` output before the list of options. This is typically a summary of the program functionality.
 
@@ -590,7 +590,7 @@ sub g_option_context_set_summary ( N-GOptionContext $context, Str $summary )
 #-------------------------------------------------------------------------------
 #TM:1:g_option_context_get_summary:
 =begin pod
-=head2 [g_option_] context_get_summary
+=head2 [[g_] option_] context_get_summary
 
 Returns the summary. See C<g_option_context_set_summary()>.
 
@@ -610,7 +610,7 @@ sub g_option_context_get_summary ( N-GOptionContext $context )
 #-------------------------------------------------------------------------------
 #TM:1:g_option_context_set_description:
 =begin pod
-=head2 [g_option_] context_set_description
+=head2 [[g_] option_] context_set_description
 
 Adds a string to be displayed in `--help` output after the list
 of options. This text often includes a bug reporting address.
@@ -633,7 +633,7 @@ sub g_option_context_set_description ( N-GOptionContext $context, Str $descripti
 #-------------------------------------------------------------------------------
 #TM:1:g_option_context_get_description:
 =begin pod
-=head2 [g_option_] context_get_description
+=head2 [[g_] option_] context_get_description
 
 Returns the description. See C<g_option_context_set_description()>.
 
@@ -653,7 +653,7 @@ sub g_option_context_get_description ( N-GOptionContext $context )
 #-------------------------------------------------------------------------------
 #TM:1:g_option_context_set_help_enabled:
 =begin pod
-=head2 [g_option_] context_set_help_enabled
+=head2 [[g_] option_] context_set_help_enabled
 
 Enables or disables automatic generation of `--help` output.
 By default, C<g_option_context_parse()> recognizes `--help`, `-h`,
@@ -675,7 +675,7 @@ sub g_option_context_set_help_enabled ( N-GOptionContext $context, int32 $help_e
 #-------------------------------------------------------------------------------
 #TM:1:g_option_context_get_help_enabled:
 =begin pod
-=head2 [g_option_] context_get_help_enabled
+=head2 [[g_] option_] context_get_help_enabled
 
 Returns whether automatic `--help` generation
 is turned on for I<context>. See C<g_option_context_set_help_enabled()>.
@@ -696,7 +696,7 @@ sub g_option_context_get_help_enabled ( N-GOptionContext $context )
 #-------------------------------------------------------------------------------
 #TM:1:g_option_context_set_ignore_unknown_options:
 =begin pod
-=head2 [g_option_] context_set_ignore_unknown_options
+=head2 [[g_] option_] context_set_ignore_unknown_options
 
 Sets whether to ignore unknown options or not. If an argument is
 ignored, it is left in the I<argv> array after parsing. By default,
@@ -721,7 +721,7 @@ sub g_option_context_set_ignore_unknown_options ( N-GOptionContext $context, int
 #-------------------------------------------------------------------------------
 #TM:1:g_option_context_get_ignore_unknown_options:
 =begin pod
-=head2 [g_option_] context_get_ignore_unknown_options
+=head2 [[g_] option_] context_get_ignore_unknown_options
 
 Returns whether unknown options are ignored or not. See
 C<g_option_context_set_ignore_unknown_options()>.
@@ -744,7 +744,7 @@ sub g_option_context_get_ignore_unknown_options ( N-GOptionContext $context )
 #-------------------------------------------------------------------------------
 #TM:1:g_option_context_set_strict_posix:
 =begin pod
-=head2 [g_option_] context_set_strict_posix
+=head2 [[g_] option_] context_set_strict_posix
 
 Sets strict POSIX mode.
 
@@ -786,7 +786,7 @@ sub g_option_context_set_strict_posix ( N-GOptionContext $context, int32 $strict
 #-------------------------------------------------------------------------------
 #TM:1:g_option_context_get_strict_posix:
 =begin pod
-=head2 [g_option_] context_get_strict_posix
+=head2 [[g_] option_] context_get_strict_posix
 
 Returns whether strict POSIX code is enabled.
 
@@ -808,7 +808,7 @@ sub g_option_context_get_strict_posix ( N-GOptionContext $context )
 #-------------------------------------------------------------------------------
 #TM:1:g_option_context_add_main_entries:
 =begin pod
-=head2 [g_option_] context_add_main_entries
+=head2 [[g_] option_] context_add_main_entries
 
 A convenience function which creates a main group if it doesn't exist, adds the I<entries> to it and sets the translation domain.
 
@@ -830,7 +830,7 @@ sub g_option_context_add_main_entries ( N-GOptionContext $context, CArray[N-GOpt
 #-------------------------------------------------------------------------------
 #TM:1:g_option_context_parse:
 =begin pod
-=head2 [g_option_] context_parse
+=head2 [[g_] option_] context_parse
 
 Parses the command line arguments, recognizing options which have been added to I<context>. A side-effect of calling this function is that C<g_set_prgname()> will be called.
 
@@ -910,7 +910,7 @@ sub _g_option_context_parse (
 #-------------------------------------------------------------------------------
 # TM:0:g_option_context_parse_strv:
 =begin pod
-=head2 [g_option_] context_parse_strv
+=head2 [[g_] option_] context_parse_strv
 
 Parses the command line arguments.
 
@@ -980,7 +980,7 @@ sub _g_option_context_parse_strv (
 #-------------------------------------------------------------------------------
 #TM:0:g_option_context_set_translate_func:
 =begin pod
-=head2 [g_option_] context_set_translate_func
+=head2 [[g_] option_] context_set_translate_func
 
 Sets the function which is used to translate the contexts
 user-visible strings, for `--help` output. If I<func> is C<Any>,
@@ -1014,7 +1014,7 @@ sub g_option_context_set_translate_func ( N-GOptionContext $context, N-GTranslat
 #-------------------------------------------------------------------------------
 #TM:0:g_option_context_set_translation_domain:
 =begin pod
-=head2 [g_option_] context_set_translation_domain
+=head2 [[g_] option_] context_set_translation_domain
 
 A convenience function to use C<gettext()> for translating user-visible strings.
 
@@ -1034,7 +1034,7 @@ sub g_option_context_set_translation_domain ( N-GOptionContext $context, Str $do
 #-------------------------------------------------------------------------------
 #TM:1:g_option_context_add_group:
 =begin pod
-=head2 [g_option_] context_add_group
+=head2 [[g_] option_] context_add_group
 
 Adds a B<N-GOptionGroup> to the I<context>, so that parsing with I<context>
 will recognize the options in the group. Note that this will take
@@ -1055,7 +1055,7 @@ sub g_option_context_add_group ( N-GOptionContext $context, N-GOptionGroup $grou
 #-------------------------------------------------------------------------------
 #TM:0:g_option_context_set_main_group:
 =begin pod
-=head2 [g_option_] context_set_main_group
+=head2 [[g_] option_] context_set_main_group
 
 Sets a B<N-GOptionGroup> as main group of the I<context>. This has the same effect as calling C<g_option_context_add_group()>, the only difference is that the options in the main group are treated differently when generating `--help` output.
 
@@ -1074,7 +1074,7 @@ sub g_option_context_set_main_group ( N-GOptionContext $context, N-GOptionGroup 
 #-------------------------------------------------------------------------------
 #TM:0:g_option_context_get_main_group:
 =begin pod
-=head2 [g_option_] context_get_main_group
+=head2 [[g_] option_] context_get_main_group
 
 Returns: the main group of I<context>, or C<Any> if I<context> doesn't have a main group. Note that group belongs to I<context> and should not be modified or freed.
 
@@ -1093,7 +1093,7 @@ sub g_option_context_get_main_group ( N-GOptionContext $context )
 #-------------------------------------------------------------------------------
 #TM:0:g_option_context_get_help:
 =begin pod
-=head2 [g_option_] context_get_help
+=head2 [[g_] option_] context_get_help
 
 Returns a formatted, translated help text for the given context. To obtain the text produced by I<--help>, call C<g_option_context_get_help( 1, 0)>. To obtain the text produced by I<--help-all>, call C<g_option_context_get_help( 0, 0)>. To obtain the help text for an option group, call C<g_option_context_get_help( 0, $n-group)>.
 
@@ -1139,7 +1139,7 @@ sub _g_option_context_get_help (
 #-------------------------------------------------------------------------------
 #TM:1:g_option_group_new:
 =begin pod
-=head2 [g_option_] group_new
+=head2 [[g_] option_] group_new
 
 Creates a new B<N-GOptionGroup>.
 
@@ -1155,11 +1155,11 @@ Since: 2.6
 =item Str $name; the name for the option group, this is used to provide help for the options in this group with '--help-I<name>'
 =item Str $description; a description for this group to be shown in `--help`. This string is translated using the translation domain or translation function of the group
 =item Str $help_description; a description for the '--help-I<name>' option. This string is translated using the translation domain or translation function of the group
-#`[[
+#`{{
     Pointer $user_data?, N-GDestroyNotify $destroy?
 =item Pointer $user_data; user data that will be passed to the pre- and post-parse hooks, the error hook and to callbacks of C<G_OPTION_ARG_CALLBACK> options, is optional
 =item Callable $destroy; a function that will be called to free I<user_data>, is optional
-]]
+}}
 =end pod
 
 sub g_option_group_new (
@@ -1186,11 +1186,11 @@ sub _g_option_group_new (
   is symbol('g_option_group_new')
   { * }
 
-#`[[
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_option_group_set_parse_hooks:
 =begin pod
-=head2 [g_option_] group_set_parse_hooks
+=head2 [[g_] option_] group_set_parse_hooks
 
 Associates two functions with I<group> which will be called
 from C<g_option_context_parse()> before the first option is parsed
@@ -1217,7 +1217,7 @@ sub g_option_group_set_parse_hooks ( N-GOptionGroup $group, N-GOptionParseFunc $
 #-------------------------------------------------------------------------------
 #TM:0:g_option_group_set_error_hook:
 =begin pod
-=head2 [g_option_] group_set_error_hook
+=head2 [[g_] option_] group_set_error_hook
 
 Associates a function with I<group> which will be called
 from C<g_option_context_parse()> when an error occurs.
@@ -1241,7 +1241,7 @@ sub g_option_group_set_error_hook ( N-GOptionGroup $group, N-GOptionErrorFunc $e
 #-------------------------------------------------------------------------------
 #TM:0:g_option_group_ref:
 =begin pod
-=head2 [g_option_] group_ref
+=head2 [[g_] option_] group_ref
 
 Increments the reference count of I<group> by one.
 
@@ -1263,7 +1263,7 @@ sub g_option_group_ref ( N-GOptionGroup $group )
 #-------------------------------------------------------------------------------
 #TM:0:g_option_group_unref:
 =begin pod
-=head2 [g_option_] group_unref
+=head2 [[g_] option_] group_unref
 
 Decrements the reference count of I<group> by one.
 If the reference count drops to 0, the I<group> will be freed.
@@ -1280,12 +1280,12 @@ Since: 2.44
 sub g_option_group_unref ( N-GOptionGroup $group )
   is native(&glib-lib)
   { * }
-]]
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:g_option_group_add_entries:
 =begin pod
-=head2 [g_option_] group_add_entries
+=head2 [[g_] option_] group_add_entries
 
 Adds the options specified in I<entries> to I<group>.
 
@@ -1311,11 +1311,11 @@ sub _g_option_group_add_entries (
   is symbol('g_option_group_add_entries')
   { * }
 
-#`[[
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_option_group_set_translate_func:
 =begin pod
-=head2 [g_option_] group_set_translate_func
+=head2 [[g_] option_] group_set_translate_func
 
 Sets the function which is used to translate user-visible strings,
 for `--help` output. Different groups can use different
@@ -1342,7 +1342,7 @@ sub g_option_group_set_translate_func ( N-GOptionGroup $group, N-GTranslateFunc 
 #-------------------------------------------------------------------------------
 #TM:0:g_option_group_set_translation_domain:
 =begin pod
-=head2 [g_option_] group_set_translation_domain
+=head2 [[g_] option_] group_set_translation_domain
 
 A convenience function to use C<gettext()> for translating
 user-visible strings.
@@ -1359,4 +1359,4 @@ Since: 2.6
 sub g_option_group_set_translation_domain ( N-GOptionGroup $group, Str $domain )
   is native(&glib-lib)
   { * }
-]]
+}}

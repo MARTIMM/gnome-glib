@@ -201,7 +201,7 @@ method clear-gslist ( ) {
 #TM:-:g_slist_alloc
 
 =begin pod
-=head2 g_slist_alloc
+=head2 [g_] slist_alloc
 
 Allocates space for one C<N-GSList> element. It is called by the C<g_slist_append()>, C<g_slist_prepend()>, C<g_slist_insert()> and C<g_slist_insert_sorted()> functions and so is rarely used on its own.
 
@@ -222,7 +222,7 @@ sub g_slist_alloc ( )
 #TM:-:g_slist_free
 #`{{ No pod, user must use clear-gslist()
 =begin pod
-=head2 g_slist_free
+=head2 [g_] slist_free
 
 Frees all of the memory used by a C<N-GSList>.
 The freed elements are returned to the slice allocator.
@@ -248,7 +248,7 @@ sub _g_slist_free ( N-GSList $list )
 #TM:-:g_slist_free_1
 
 =begin pod
-=head2 [g_slist_] free_1
+=head2 [[g_] slist_] free_1
 
 Frees one C<N-GSList> element. It is usually used after C<g_slist_remove_link()>.
 
@@ -265,7 +265,7 @@ sub g_slist_free_1 ( N-GSList $list )
 #TM:-:g_slist_free_full
 
 =begin pod
-=head2 [g_slist_] free_full
+=head2 [[g_] slist_] free_full
 
 Convenience method, which frees all the memory used by a C<N-GSList>, and
 calls the specified destroy function on every element's data.
@@ -292,7 +292,7 @@ sub g_slist_free_full ( N-GObject $list, GDestroyNotify $free_func )
 #TM:-:g_slist_append
 
 =begin pod
-=head2 g_slist_append
+=head2 [g_] slist_append
 
 Adds a new element on to the end of the list.
 
@@ -337,7 +337,7 @@ sub _g_slist_append ( N-GSList $list, Pointer[void] $data )
 #TM:-:g_slist_prepend
 
 =begin pod
-=head2 g_slist_prepend
+=head2 [g_] slist_prepend
 
 Adds a new element on to the start of the list.
 
@@ -369,7 +369,7 @@ sub g_slist_prepend ( N-GSList $list, Pointer $data )
 #TM:-:g_slist_insert
 
 =begin pod
-=head2 g_slist_insert
+=head2 [g_] slist_insert
 
 Inserts a new element into the list at the given position.
 
@@ -394,7 +394,7 @@ sub g_slist_insert ( N-GSList $list, Pointer $data, int32 $position )
 #TM:-:g_slist_insert_sorted
 
 =begin pod
-=head2 [g_slist_] insert_sorted
+=head2 [[g_] slist_] insert_sorted
 
 Inserts a new element into the list, using the given
 comparison function to determine its position.
@@ -420,7 +420,7 @@ sub g_slist_insert_sorted ( N-GSList $list, Pointer $data, GCompareFunc $func )
 #TM:-:g_slist_insert_sorted_with_data
 
 =begin pod
-=head2 [g_slist_] insert_sorted_with_data
+=head2 [[g_] slist_] insert_sorted_with_data
 
 Inserts a new element into the list, using the given
 comparison function to determine its position.
@@ -449,7 +449,7 @@ sub g_slist_insert_sorted_with_data ( N-GSList $list, Pointer $data, GCompareDat
 #TM:-:g_slist_insert_before
 
 =begin pod
-=head2 [g_slist_] insert_before
+=head2 [[g_] slist_] insert_before
 
 Inserts a node before I<sibling> containing I<data>.
 
@@ -472,7 +472,7 @@ sub g_slist_insert_before ( N-GSList $slist, N-GSList $sibling, Pointer $data )
 #TM:-:g_slist_concat
 
 =begin pod
-=head2 g_slist_concat
+=head2 [g_] slist_concat
 
 Adds the second C<N-GSList> onto the end of the first C<N-GSList>.
 Note that the elements of the second C<N-GSList> are not copied.
@@ -496,7 +496,7 @@ sub g_slist_concat ( N-GSList $list1, N-GSList $list2 )
 #TM:-:g_slist_remove
 
 =begin pod
-=head2 g_slist_remove
+=head2 [g_] slist_remove
 
 Removes an element from a C<N-GSList>.
 If two elements contain the same data, only the first is removed.
@@ -520,7 +520,7 @@ sub g_slist_remove ( N-GSList $list, Pointer $data )
 #TM:-:g_slist_remove_all
 
 =begin pod
-=head2 [g_slist_] remove_all
+=head2 [[g_] slist_] remove_all
 
 Removes all list nodes with data equal to I<data>.
 Returns the new head of the list. Contrast with
@@ -545,7 +545,7 @@ sub g_slist_remove_all ( N-GSList $list, Pointer $data )
 #TM:-:g_slist_remove_link
 
 =begin pod
-=head2 [g_slist_] remove_link
+=head2 [[g_] slist_] remove_link
 
 Removes an element from a C<N-GSList>, without
 freeing the element. The removed element's next
@@ -576,7 +576,7 @@ sub g_slist_remove_link ( N-GSList $list, N-GSList $link_ )
 #TM:-:g_slist_delete_link
 
 =begin pod
-=head2 [g_slist_] delete_link
+=head2 [[g_] slist_] delete_link
 
 Removes the node link_ from the list and frees it.
 Compare this to C<g_slist_remove_link()> which removes the node
@@ -607,7 +607,7 @@ sub g_slist_delete_link ( N-GSList $list, N-GSList $link_ )
 #TM:-:g_slist_reverse
 
 =begin pod
-=head2 g_slist_reverse
+=head2 [g_] slist_reverse
 
 Reverses a C<N-GSList>.
 
@@ -628,7 +628,7 @@ sub g_slist_reverse ( N-GSList $list )
 #TM:-:g_slist_copy
 
 =begin pod
-=head2 g_slist_copy
+=head2 [g_] slist_copy
 
 Copies a C<N-GSList>.
 
@@ -655,7 +655,7 @@ sub g_slist_copy ( N-GSList $list )
 #TM:-:g_slist_copy_deep
 
 =begin pod
-=head2 [g_slist_] copy_deep
+=head2 [[g_] slist_] copy_deep
 
 Makes a full (deep) copy of a C<N-GSList>.
 
@@ -700,7 +700,7 @@ sub g_slist_copy_deep ( N-GSList $list, GCopyFunc $func, Pointer $user_data )
 #TM:-:g_slist_nth
 
 =begin pod
-=head2 g_slist_nth
+=head2 [g_] slist_nth
 
 Gets the element at the given position in a C<N-GSList>.
 
@@ -724,7 +724,7 @@ sub g_slist_nth ( N-GSList $list, uint32 $n )
 #TM:-:g_slist_find
 
 =begin pod
-=head2 g_slist_find
+=head2 [g_] slist_find
 
 Finds the element in a C<N-GSList> which
 contains the given data.
@@ -750,7 +750,7 @@ sub g_slist_find ( N-GSList $list, Pointer $data )
 #TM:-:g_slist_find_custom
 
 =begin pod
-=head2 [g_slist_] find_custom
+=head2 [[g_] slist_] find_custom
 
 Finds an element in a C<N-GSList>, using a supplied function to
 find the desired element. It iterates over the list, calling
@@ -780,7 +780,7 @@ sub g_slist_find_custom ( N-GSList $list, Pointer $data, GCompareFunc $func )
 #TM:-:g_slist_position
 
 =begin pod
-=head2 g_slist_position
+=head2 [g_] slist_position
 
 Gets the position of the given element
 in the C<N-GSList> (starting from 0).
@@ -804,7 +804,7 @@ sub g_slist_position ( N-GSList $list, N-GSList $llink )
 #TM:-:g_slist_index
 
 =begin pod
-=head2 g_slist_index
+=head2 [g_] slist_index
 
 Gets the position of the element containing
 the given data (starting from 0).
@@ -829,7 +829,7 @@ sub g_slist_index ( N-GSList $list, Pointer $data )
 #TM:-:g_slist_last
 
 =begin pod
-=head2 g_slist_last
+=head2 [g_] slist_last
 
 Gets the last element in a C<N-GSList>.
 
@@ -853,7 +853,7 @@ sub g_slist_last ( N-GSList $list )
 #TM:+:g_slist_length
 
 =begin pod
-=head2 g_slist_length
+=head2 [g_] slist_length
 
 Gets the number of elements in a C<N-GSList>.
 
@@ -879,7 +879,7 @@ sub g_slist_length ( N-GSList $list )
 #TM:-:g_slist_foreach
 
 =begin pod
-=head2 g_slist_foreach
+=head2 [g_] slist_foreach
 
 Calls a function for each element of a C<N-GSList>.
 
@@ -903,7 +903,7 @@ sub g_slist_foreach ( N-GSList $list, GFunc $func, Pointer $user_data )
 #TM:-:g_slist_sort
 
 =begin pod
-=head2 g_slist_sort
+=head2 [g_] slist_sort
 
 Sorts a C<N-GSList> using the given comparison function. The algorithm
 used is a stable sort.
@@ -928,7 +928,7 @@ sub g_slist_sort ( N-GSList $list, GCompareFunc $compare_func )
 #TM:-:g_slist_sort_with_data
 
 =begin pod
-=head2 [g_slist_] sort_with_data
+=head2 [[g_] slist_] sort_with_data
 
 Like C<g_slist_sort()>, but the sort function accepts a user data argument.
 
@@ -952,7 +952,7 @@ sub g_slist_sort_with_data ( N-GSList $list, GCompareDataFunc $compare_func, Poi
 #TM:-:g_slist_nth_data
 
 =begin pod
-=head2 [g_slist_] nth_data
+=head2 [[g_] slist_] nth_data
 
 Gets the data of the element at the given position.
 

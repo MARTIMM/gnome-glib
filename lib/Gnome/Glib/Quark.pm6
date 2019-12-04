@@ -63,11 +63,14 @@ unit class Gnome::Glib::Quark:auth<github:MARTIMM>;
 #TS:1:new
 =begin pod
 =head2 new
-=head3 multi method new ( Bool :$empty! )
 
-Create a new error object.
+Create a new quark object.
+
+  multi method new ( Bool :$empty! )
+
 =end pod
 
+#TM:1:new(:empty)
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong widgets
@@ -116,7 +119,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
 #-------------------------------------------------------------------------------
 #TM:1:g_quark_try_string
 =begin pod
-=head2 [g_quark_] try_string
+=head2 [[g_] quark_] try_string
 
 Gets the I<GQuark> associated with the given string, or 0 if string is undefined or it has no associated I<GQuark>.
 
@@ -138,7 +141,7 @@ sub g_quark_try_string ( Str $string )
 #`{{
 #-------------------------------------------------------------------------------
 =begin pod
-=head2 [g_quark_] from_static_string
+=head2 [[g_] quark_] from_static_string
 
 Gets the I<GQuark> identifying the given (static) string. If the
 string does not currently have an associated I<GQuark>, a new I<GQuark>
@@ -170,7 +173,7 @@ sub g_quark_from_static_string ( Str $string )
 #-------------------------------------------------------------------------------
 #TM:1:g_quark_from_string
 =begin pod
-=head2 [g_quark_] from_string
+=head2 [[g_] quark_] from_string
 
 Gets the I<GQuark> identifying the given string. If the string does
 not currently have an associated I<GQuark>, a new I<GQuark> is created,
@@ -192,7 +195,7 @@ sub g_quark_from_string ( Str $string )
 #`{{
 #-------------------------------------------------------------------------------
 =begin pod
-=head2 g_intern_string
+=head2 [g_] intern_string
 
 Returns a canonical representation for I<string>. Interned strings
 can be compared for equality by comparing the pointers, instead of
@@ -216,7 +219,7 @@ sub g_intern_string ( Str $string )
 #`{{
 #-------------------------------------------------------------------------------
 =begin pod
-=head2 g_intern_static_string
+=head2 [g_] intern_static_string
 
 Returns a canonical representation for I<string>. Interned strings
 can be compared for equality by comparing the pointers, instead of
@@ -242,7 +245,7 @@ sub g_intern_static_string ( Str $string )
 #-------------------------------------------------------------------------------
 #TM:1:g_quark_to_string
 =begin pod
-=head2 [g_quark_] to_string
+=head2 [[g_] quark_] to_string
 
 Gets the string associated with the given GQuark.
 
