@@ -34,14 +34,14 @@ Github account name: **MARTIMM**
 There are always some problems! If you find one please help by filing an issue at [my Gnome::Gtk3 github project][issues].
 
 # Attribution
-* The inventors of Perl6 of course and the writers of the documentation which help me out every time again and again.
+* The inventors of Raku, formerly known as Perl 6, of course and the writers of the documentation which helped me out every time again and again.
 * The builders of the GTK+ library and the documentation.
 * Other helpful modules for their insight and use.
 
 [//]: # (---- [refs] ----------------------------------------------------------)
-[changes]: https://github.com/MARTIMM/perl6-gnome-glib/blob/master/CHANGES.md
-[logo]: https://github.com/MARTIMM/perl6-gnome-glib/blob/master/doc/images/gtk-logo-100.png
-[issues]: https://github.com/MARTIMM/perl6-gnome-gtk3/issues
+[changes]: https://github.com/MARTIMM/gnome-glib/blob/master/CHANGES.md
+[logo]: https://github.com/MARTIMM/gnome-glib/blob/master/doc/images/gtk-logo-100.png
+[issues]: https://github.com/MARTIMM/gnome-gtk3/issues
 
 [Error]: https://developer.gnome.org/glib/stable/glib-Error-Reporting.html
 [List]: https://developer.gnome.org/glib/stable/glib-Doubly-Linked-Lists.html
@@ -49,5 +49,3 @@ There are always some problems! If you find one please help by filing an issue a
 [SList]: https://developer.gnome.org/glib/stable/glib-Singly-Linked-Lists.html
 
 [//]: # (https://nbviewer.jupyter.org/github/MARTIMM/gtk-v3/blob/master/doc/GObject.pdf)
-[//]: # (Pod documentation rendered with)
-[//]: # (pod-render.pl6 --pdf --g=github.com/MARTIMM/perl6-gnome-glib lib)
