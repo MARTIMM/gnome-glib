@@ -38,7 +38,7 @@ To call a function for each element in the list use C<g_slist_foreach()>.
 
 To free the entire list, use C<clear-gslist()>.
 
-Many methods are not needed in simple Perl6 use. Most of the time you get a list from a method to process. For example, retrieving information from a widget path, See the example below.
+Many methods are not needed in simple Raku use. Most of the time you get a list from a method to process. For example, retrieving information from a widget path, See the example below.
 
 =head1 Synopsis
 =head2 Declaration
