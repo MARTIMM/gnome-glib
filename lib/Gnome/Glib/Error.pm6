@@ -15,7 +15,7 @@ GLib provides a standard method of reporting errors from a called function to th
 
 The C<N-GError> object contains three fields: I<domain> indicates the module the error-reporting function is located in, I<code> indicates the specific error that occurred, and I<message> is a user-readable error message with as many details as possible. Several functions are provided to deal with an error received from a called function: C<g_error_matches()> returns C<1> if the error matches a given domain and code. To display an error to the user, simply call the C<message()> method, perhaps along with additional context known only to the calling function.
 
-This class is greatly simplified because in Perl6 one can use Exception classes to throw any errors. It exists mainly to handle errors coming from other GTK+ functions.
+This class is greatly simplified because in Raku one can use Exception classes to throw any errors. It exists mainly to handle errors coming from other GTK+ functions.
 
 
 Error domains and codes are conventionally named as follows:
@@ -269,7 +269,7 @@ method set-error ( --> CArray[N-GError] ) {
 =begin pod
 =head2 [g_] error_new
 
-Creates a new C<N-GError> with the given I<domain>, I<code> and a I<error-message>. Originally the message is a printf like string followed with variables to be substituted in the format string. This can be easily solved in Perl6 and is therefore simplified here. A warning; every percent character is substituted with the text 'percent-filtered-out' to prevent crashes in the C function. If needed please use C<g_error_new_literal()>.
+Creates a new C<N-GError> with the given I<domain>, I<code> and a I<error-message>. Originally the message is a printf like string followed with variables to be substituted in the format string. This can be easily solved in Raku and is therefore simplified here. A warning; every percent character is substituted with the text 'percent-filtered-out' to prevent crashes in the C function. If needed please use C<g_error_new_literal()>.
 
 Returns: a new C<N-GError>
 

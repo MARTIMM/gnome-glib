@@ -1,5 +1,5 @@
 {
-  "description": "Perl6 Gnome glib api, Please install Gnome::Gtk3",
+  "description": "Raku - Gnome Glib Interface, Please install Gnome::Gtk3",
   "name": "Gnome::Glib",
   "version": "0.15.4",
   "authors": [ "Marcel Timmerman"],
@@ -17,7 +17,7 @@
     "Gnome::Glib::SList": "lib/Gnome/Glib/SList.pm6"
   },
 
-  "source-url": "git://github.com/MARTIMM/perl6-gnome-glib.git",
+  "source-url": "git://github.com/MARTIMM/gnome-glib.git",
 
   "depends": [ "Gnome::N"],
   "test-depends": [ ],
