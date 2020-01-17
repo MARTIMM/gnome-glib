@@ -190,7 +190,7 @@ Returns True if native error object is valid, otherwise C<False>.
 =begin pod
 =head2 clear-error
 
-Clear the error and return data to memory to pool. The error object is not valid after this call and error-is-valid() will return C<False>.
+Clear the error and return data to memory pool. The error object is not valid after this call and error-is-valid() will return C<False>.
 
   method clear-error ()
 
