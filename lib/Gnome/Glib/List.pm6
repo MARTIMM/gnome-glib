@@ -912,7 +912,7 @@ It is safe for I<$func> to remove the element from the list, but it must not mod
 method foreach ( $func-object, Str $func-name ) {
   if $func-object.^can($func-name) {
     _g_list_foreach(
-      self.get-native-gobject,
+      self.get-native-object,
       sub ( $d, $ud ) {
         $func-object."$func-name"( self, $d);
       },
