@@ -11,8 +11,8 @@ use Gnome::Glib::List;
 my Gnome::Glib::List $l;
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
-  $l .= new(:empty);
-  isa-ok $l, Gnome::Glib::List, '.new(:empty)';
+  $l .= new;
+  isa-ok $l, Gnome::Glib::List, '.new';
   ok $l.list-is-valid, '.list-is-valid()';
 }
 

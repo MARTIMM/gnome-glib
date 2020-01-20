@@ -66,7 +66,7 @@ unit class Gnome::Glib::Quark:auth<github:MARTIMM>;
 
 Create a new quark object.
 
-  multi method new ( Bool :$empty! )
+  multi method new ( )
 
 =end pod
 
@@ -78,15 +78,7 @@ submethod BUILD ( *%options ) {
   # return unless self.^name eq 'Gnome::Glib::Error';
 
   # process all named arguments
-  if %options.elems == 0 {
-    die X::Gnome.new(
-      :message( 'No options specified ' ~ self.^name ~
-                ': ' ~ %options.keys.join(', ')
-      )
-    );
-  }
-
-  elsif %options<empty>:exists {
+  if %options<empty>:exists {
     Gnome::N::deprecate( '.new(:empty)', '.new()', '0.15.5', '0.18.0');
   }
 

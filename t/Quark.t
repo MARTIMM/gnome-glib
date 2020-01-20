@@ -11,19 +11,7 @@ use Gnome::Glib::Quark;
 my Gnome::Glib::Quark $quark;
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
-  throws-like(
-    { Gnome::Glib::Quark.new(); },
-    X::Gnome, 'Cannot create without args',
-    :message(/:s No options specified/)
-  );
-
-  throws-like(
-    { Gnome::Glib::Quark.new(:message('abc def')); },
-    X::Gnome, 'Cannot create with wrong args',
-    :message(/:s Unsupported options for/)
-  );
-
-  my Gnome::Glib::Quark $quark .= new(:empty);
+  my Gnome::Glib::Quark $quark .= new;
   isa-ok $quark, Gnome::Glib::Quark;
 }
 
