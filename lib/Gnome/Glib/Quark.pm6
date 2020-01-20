@@ -70,7 +70,7 @@ Create a new quark object.
 
 =end pod
 
-#TM:1:new(:empty)
+#TM:1:new()
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong widgets
@@ -86,7 +86,9 @@ submethod BUILD ( *%options ) {
     );
   }
 
-  elsif %options<empty>:exists { }
+  elsif %options<empty>:exists {
+    Gnome::N::deprecate( '.new(:empty)', '.new()', '0.15.5', '0.18.0');
+  }
 
   elsif %options.elems {
     die X::Gnome.new(
@@ -95,6 +97,9 @@ submethod BUILD ( *%options ) {
       )
     );
   }
+
+  else {  } #elsif %options<empty>:exists {
+
 }
 
 #-------------------------------------------------------------------------------

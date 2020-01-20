@@ -52,7 +52,7 @@ This example shows how to get and show some information from a widget path.
   # Build a gui; a button in a grid
   $w.set-name('top-level-window');
 
-  my Gnome::Gtk3::Grid $g .= new(:empty);
+  my Gnome::Gtk3::Grid $g .= new();
   $w.gtk-container-add($g);
 
   my Gnome::Gtk3::Button $b1 .= new(:label<Start>);
@@ -114,6 +114,7 @@ submethod BUILD ( *%options ) {
 
   # process all named arguments
   if ? %options<empty> {
+    Gnome::N::deprecate( '.new(:empty)', '.new()', '0.15.5', '0.18.0');
     _g_slist_free($!gslist) if $!gslist-is-valid;
     $!gslist = N-GSList;
     $!gslist-is-valid = True;
@@ -135,6 +136,12 @@ submethod BUILD ( *%options ) {
                ': ' ~ %options.keys.join(', ')
               )
     );
+  }
+
+  else {#if ? %options<empty> {
+    _g_slist_free($!gslist) if $!gslist-is-valid;
+    $!gslist = N-GSList;
+    $!gslist-is-valid = True;
   }
 }
 
