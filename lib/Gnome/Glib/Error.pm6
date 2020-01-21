@@ -45,7 +45,7 @@ Error domains and codes are conventionally named as follows:
 
 =head2 Example
 
-  my Gnome::Gtk3::Builder $builder .= new(:empty);
+  my Gnome::Gtk3::Builder $builder .= new;
 
   # try to read non existing file
   my Gnome::Glib::Error $e = $builder.add-from-file('x.glade');

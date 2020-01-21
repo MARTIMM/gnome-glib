@@ -66,11 +66,11 @@ unit class Gnome::Glib::Quark:auth<github:MARTIMM>;
 
 Create a new quark object.
 
-  multi method new ( Bool :$empty! )
+  multi method new ( )
 
 =end pod
 
-#TM:1:new(:empty)
+#TM:1:new()
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong widgets
@@ -78,15 +78,9 @@ submethod BUILD ( *%options ) {
   # return unless self.^name eq 'Gnome::Glib::Error';
 
   # process all named arguments
-  if %options.elems == 0 {
-    die X::Gnome.new(
-      :message( 'No options specified ' ~ self.^name ~
-                ': ' ~ %options.keys.join(', ')
-      )
-    );
+  if %options<empty>:exists {
+    Gnome::N::deprecate( '.new(:empty)', '.new()', '0.15.5', '0.18.0');
   }
-
-  elsif %options<empty>:exists { }
 
   elsif %options.elems {
     die X::Gnome.new(
@@ -95,6 +89,9 @@ submethod BUILD ( *%options ) {
       )
     );
   }
+
+  else {  } #elsif %options<empty>:exists {
+
 }
 
 #-------------------------------------------------------------------------------

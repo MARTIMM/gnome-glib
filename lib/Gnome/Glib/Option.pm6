@@ -377,7 +377,7 @@ method CALL-ME ( N-GOptionContext $g-option-context? --> N-GOptionContext ) {
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
 #TODO destroy when overwritten?
-method native-object (
+method set-native-object (
   N-GOptionContext:D $g-option-context --> N-GOptionContext
 ) {
 
@@ -392,7 +392,7 @@ method native-object (
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
-method get-native-gobject ( --> N-GOptionContext ) {
+method get-native-object ( --> N-GOptionContext ) {
   $!g-option-context
 }
 

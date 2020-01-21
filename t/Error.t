@@ -11,7 +11,7 @@ use Gnome::Glib::Error;
 #Gnome::N::debug(:on);
 
 #-------------------------------------------------------------------------------
-my Gnome::Glib::Quark $quark .= new(:empty);
+my Gnome::Glib::Quark $quark .= new;
 my Gnome::Glib::Error $e;
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {

@@ -8,7 +8,7 @@ use Gnome::Glib::SList;
 #Gnome::N::debug(:on);
 
 #-------------------------------------------------------------------------------
-my Gnome::Glib::SList $s .= new(:empty);
+my Gnome::Glib::SList $s .= new;
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
   isa-ok $s, Gnome::Glib::SList;

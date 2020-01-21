@@ -28,7 +28,7 @@ or simply pointers to any type of data.
 
 Note that most of the list functions expect to be passed a pointer to the first element in the list. The functions which insert elements return the new start of the list, which may have changed.
 
-To create an empty jast list call C<.new(:empty)>.
+To create an empty list just call C<.new>.
 
 =comment To add elements, use C<g_list_append()>, C<g_list_prepend()>, C<g_list_insert()> and C<g_list_insert_sorted()>.
 
@@ -109,7 +109,7 @@ has Bool $.list-is-valid = False;
 
 Create a new plain object.
 
-  multi method new ( Bool :empty! )
+  multi method new ( )
 
 Create a new list object using an other native list object.
 
@@ -117,7 +117,7 @@ Create a new list object using an other native list object.
 
 =end pod
 
-#TM:1:new(:empty):
+#TM:1:new():
 #TM:0:new(:glist):
 submethod BUILD ( *%options ) {
 
@@ -126,6 +126,7 @@ submethod BUILD ( *%options ) {
 
   # process all named arguments
   if ? %options<empty> {
+    Gnome::N::deprecate( '.new(:empty)', '.new()', '0.15.5', '0.18.0');
     $!glist = N-GList;
     $!list-is-valid = True;
   }
@@ -143,7 +144,12 @@ submethod BUILD ( *%options ) {
     );
   }
 
-  # only after creating the widget, the gtype is known
+  else { #if ? %options<empty> {
+    $!glist = N-GList;
+    $!list-is-valid = True;
+  }
+
+  # only after creating the native-object, the gtype is known
 #  self.set-class-info('GList');
 }
 
@@ -912,7 +918,7 @@ It is safe for I<$func> to remove the element from the list, but it must not mod
 method foreach ( $func-object, Str $func-name ) {
   if $func-object.^can($func-name) {
     _g_list_foreach(
-      self.get-native-gobject,
+      self.get-native-object,
       sub ( $d, $ud ) {
         $func-object."$func-name"( self, $d);
       },
