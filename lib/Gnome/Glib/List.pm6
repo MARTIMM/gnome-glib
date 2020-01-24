@@ -202,7 +202,7 @@ Returns True if native list object is valid, otherwise C<False>.
 #-------------------------------------------------------------------------------
 #TM:1:clear-list
 =begin pod
-=head2 clear-error
+=head2 clear-list
 
 Clear the list and data. The list object is not valid after this call and list-is-valid() will return C<False>.
 
@@ -721,9 +721,9 @@ This iterates over the list until it reaches the I<n>-th position. If you intend
 
 Returns: the element, or C<Any> if the position is off the end of the B<Gnome::Glib::List>
 
-  method g_list_nth ( guInt $n --> N-GList  )
+  method g_list_nth ( UInt $n --> N-GList  )
 
-=item guInt $n; the position of the element, counting from 0
+=item UInt $n; the position of the element, counting from 0
 
 =end pod
 
@@ -743,9 +743,9 @@ Gets the element I<n> places before I<list>.
 Returns: the element, or C<Any> if the position is
 off the end of the B<Gnome::Glib::List>
 
-  method g_list_nth_prev ( guInt $n --> N-GList  )
+  method g_list_nth_prev ( UInt $n --> N-GList  )
 
-=item guInt $n; the position of the element, counting from 0
+=item UInt $n; the position of the element, counting from 0
 
 =end pod
 
@@ -913,14 +913,42 @@ It is safe for I<$func> to remove the element from the list, but it must not mod
 =item Callable $func; the function to call with each element's data
 =item Pointer $user_data; user data to pass to the function
 
+
+
 =end pod
 
 method foreach ( $func-object, Str $func-name ) {
+  Gnome::N::deprecate(
+    '.foreach()', '.g_list_foreach', '0.15.5', '0.18.0'
+  );
+
   if $func-object.^can($func-name) {
+
+    Gnome::N::deprecate(
+      ".$func-name\( \$list, \$data\)",
+      ".$func-name\( \$list, \$list-entry, \$data\)",
+      '0.15.5', '0.18.0'
+    );
+
     _g_list_foreach(
-      self.get-native-object,
+      $!glist,
       sub ( $d, $ud ) {
         $func-object."$func-name"( self, $d);
+      },
+      OpaquePointer
+    )
+  }
+}
+
+sub g_list_foreach ( N-GList $list, $func-object, Str $func-name ) {
+  if $func-object.^can($func-name) {
+    my $list-entry = 0;
+    _g_list_foreach(
+      $list,
+      sub ( $d, $ud ) {
+        $func-object."$func-name"(
+          Gnome::Glib::List.new(:glist($list)), $list-entry++, $d
+        );
       },
       OpaquePointer
     )
