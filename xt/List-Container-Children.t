@@ -1,4 +1,5 @@
 use v6;
+#use lib '../gnome-native/lib';
 use NativeCall;
 use Test;
 
@@ -20,12 +21,13 @@ my Gnome::Gtk3::Grid $g .= new;
 my Gnome::Gtk3::Label $l .= new(:text('Username'));
 my Gnome::Gtk3::Entry $e .= new;
 $e.set-text('new text in entry');
-#  is $e.get-text, 'new text in entry', '.set-text() / .get-text()';
+$e.widget-set-name('db-username');
 
 $g.grid-attach( $l, 0, 0, 1, 1);
 $g.grid-attach( $e, 1, 0, 1, 1);
 
 class H {
+  # g_list_foreach test method
   method h ( Gnome::Glib::List $hlist, Int $hi, Pointer $hd ) {
 
     my Gnome::Gtk3::Widget $w .= new(:native-object($hd));
@@ -40,12 +42,34 @@ class H {
         is $t, 'Username', 'Text from label found';
       }
 
-      when 'GtkEntry' {
+      # Entry has a name
+      when 'db-username' {
         my Gnome::Gtk3::Entry $he .= new(:native-object($hd));
         my Str $t = $he.get-text;
         is $t, 'new text in entry', 'Text from entry found';
       }
     }
+  }
+
+  # g_list_find_custom test method
+  method s ( Pointer $list-data, :$widget-name, :$widget-text --> Int ) {
+
+    my Gnome::Gtk3::Widget $w .= new(:native-object($list-data));
+    my Str $wname = $w.widget-get-name;
+
+#note "W: $wname, $widget-name, $widget-text";
+#return 1;
+    my Int $return-value = 1;
+    if $wname eq $widget-name {
+      my Gnome::Gtk3::Entry $hl .= new(:native-object($list-data));
+      my Str $t = $hl.get-text;
+      is $t, 'new text in entry', 'Text from label found';
+
+      # if text is requested data from user
+      $return-value = !( $t eq $widget-text );
+    }
+
+    $return-value
   }
 }
 
@@ -60,6 +84,28 @@ my $o = $list.nth-data(0);
 my Gnome::Gtk3::Entry $he .= new(:native-object($o));
 my Str $t = $he.get-text;
 is $t, 'new text in entry', '.nth-data()';
+
+#-------------------------------------------------------------------------------
+#Gnome::N::debug(:on);
+# search for an item
+my N-GList $sloc = $list.g_list_find_custom(
+  H.new, 's', :widget-name('db-username'), :widget-text('new text in entry')
+);
+ok ?$sloc, '.g_list_find_custom()';
+
+# make the search to fail
+$sloc = $list.g_list_find_custom(
+  H.new, 's', :widget-name('db-username'), :widget-text('Othername')
+);
+ok !$sloc, '.g_list_find_custom(), search failed';
+
+#-------------------------------------------------------------------------------
+$sloc = $list;
+while ?$sloc {
+  my Gnome::Gtk3::Widget $w .= new(:native-object($list-data));
+  note $w.widget-get-name;
+  $sloc = $list.next;
+}
 
 #-------------------------------------------------------------------------------
 done-testing;

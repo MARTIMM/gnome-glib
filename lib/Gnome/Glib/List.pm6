@@ -30,6 +30,8 @@ Note that most of the list functions expect to be passed a pointer to the first 
 
 To create an empty list just call C<.new>.
 
+Raku does have plenty ways of its own two handle data for any kind of problem but this class is provided (partly) to handle returned information from other GTK+ methods. E.g. A Container can return a list of child widgets in a List like this.
+
 =comment To add elements, use C<g_list_append()>, C<g_list_prepend()>, C<g_list_insert()> and C<g_list_insert_sorted()>.
 
 =begin comment
@@ -773,33 +775,89 @@ sub g_list_find ( N-GList $list, Pointer $data )
   returns N-GList
   is native(&glib-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
-#TM:0:g_list_find_custom:
+#TM:4:g_list_find_custom:xt/List-Container-Children.t
 =begin pod
 =head2 [[g_] list_] find_custom
 
-Finds an element in a B<Gnome::Glib::List>, using a supplied function to
-find the desired element. It iterates over the list, calling
-the given function which should return 0 when the desired
-element is found. The function takes two B<gconstpointer> arguments,
-the B<Gnome::Glib::List> element's data as the first argument and the
-given user data.
+Finds an element in a B<Gnome::Glib::List>, using a supplied function to find the desired element. It iterates over the list, calling the given function which should return 0 when the desired element is found. The function takes two B<Pointer> arguments, the B<Gnome::Glib::List> element's data as the first argument and the given user data.
 
-Returns: the found B<Gnome::Glib::List> element, or C<Any> if it is not found
+Returns: the found B<Gnome::Glib::List> element, or undefined if it is not found
 
-  method g_list_find_custom ( Pointer $data, GCompareFunc $func --> N-GList  )
+  method g_list_find_custom (
+    $func-object, Str $func-name, *%user-data
+    --> N-GList
+  )
 
 =item Pointer $data; user data passed to the function
-=item GCompareFunc $func; the function to call for each element.  It should return 0 when the desired element is found
+=item Callable $func; the function to call for each element. It should return 0 when the desired element is found. When the function returns an undefined value it is assumed that it didn't find a result (=1).
+
+The function must be defined as follows;
+
+  method search-handler ( Pointer $list-data, *%user-data --> Int )
+
+An example where a search is done through a list of widgets returned from, for example, a grid. Such a search could be started after an 'ok' or 'apply' button is clicked on a configuration screen.
+
+  class MySearchEngine {
+    method search ( Pointer $list-data, :$widget-name, :$widget-text --> Int ) {
+
+    my Gnome::Gtk3::Widget $w .= new(:native-object($list-data));
+    my Str $wname = $w.widget-get-name;
+
+    # stop when specified widget is found
+    $wname eq $widget-name ?? 0 !! 1
+  }
+
+  # prepare grid
+  my Gnome::Gtk3::Grid $g .= new;
+  ... a label ...
+  ... then an input field ...
+  my Gnome::Gtk3::Entry $e .= new;
+  $e.set-name('db-username');
+  $g.grid-attach( $e, 1, 0, 1, 1);
+  ... more fields to specify ...
+
+  # search for an item (in a button click handler)
+  my Gnome::Glib::List $list .= new(:glist($g.get-children));
+  if my N-GList $sloc = $list.g_list_find_custom(
+    MySearchEngine.new, 'search', :widget-name('db-username')
+  ) {
+    ... get data from found widget ...
+  }
+
+This example might not be the best choice when all fields are searched through this way because most elements are passed multiple times after all tests. To prevent this, one could continue the search from where it returned a defined list. The other option is to use C<g_list_foreach()> defined below.
 
 =end pod
 
-sub g_list_find_custom ( N-GList $list, Pointer $data, GCompareFunc $func )
-  returns N-GList
-  is native(&glib-lib)
+sub g_list_find_custom (
+  N-GList $list, $func-object, Str $func-name, *%user-data
+  --> N-GList
+) {
+  my N-GList $result;
+  if $func-object.^can($func-name) {
+    $result = _g_list_find_custom(
+      $list, OpaquePointer,
+      sub ( Pointer $list-data, OpaquePointer --> int32 ) {
+        # when returned value is returned, assume not found (=1) if undefined
+        $func-object."$func-name"( $list-data, |%user-data) // 1
+      }
+    );
+  }
+
+  $result // N-GList
+}
+
+sub _g_list_find_custom (
+  N-GList $list, OpaquePointer,
+  Callable $func ( Pointer $a, Pointer $b --> int32)
+  --> N-GList
+) is native(&glib-lib)
+  is symbol('g_list_find_custom')
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_list_position:
 =begin pod
@@ -878,6 +936,38 @@ sub g_list_first ( N-GList $list )
   { * }
 
 #-------------------------------------------------------------------------------
+#TM:0:g_list_previous:
+=begin pod
+=head2 [g_] g_list_previous
+
+Gets the previous element in a B<Gnome::Glib::List>, or C<Any> if the B<Gnome::Glib::List> has no elements
+
+  method g_list_previous ( --> N-GList  )
+
+=end pod
+
+sub g_list_previous ( N-GList $list )
+  returns N-GList
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_list_next:
+=begin pod
+=head2 [g_] g_list_next
+
+Gets the next element in a B<Gnome::Glib::List>, or C<Any> if the B<Gnome::Glib::List> has no elements
+
+  method g_list_next ( --> N-GList  )
+
+=end pod
+
+sub g_list_next ( N-GList $list )
+  returns N-GList
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
 #TM:0:g_list_length:
 =begin pod
 =head2 [g_] list_length
@@ -900,7 +990,7 @@ sub g_list_length ( N-GList $list )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_list_foreach:
+#TM:4:g_list_foreach:xt/List-Container-Children.t
 =begin pod
 =head2 [g_] list_foreach
 
@@ -912,8 +1002,6 @@ It is safe for I<$func> to remove the element from the list, but it must not mod
 
 =item Callable $func; the function to call with each element's data
 =item Pointer $user_data; user data to pass to the function
-
-
 
 =end pod
 
