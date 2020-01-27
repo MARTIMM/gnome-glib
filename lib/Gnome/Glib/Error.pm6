@@ -49,7 +49,7 @@ Error domains and codes are conventionally named as follows:
 
   # try to read non existing file
   my Gnome::Glib::Error $e = $builder.add-from-file('x.glade');
-  die $e.message if $e.error-is-valid;
+  die $e.message if $e.is-valid;
 
 =end pod
 #-------------------------------------------------------------------------------
@@ -84,22 +84,22 @@ class N-GError is repr('CStruct') is export {
 #-------------------------------------------------------------------------------
 has N-GError $!g-gerror;
 
-has Bool $.error-is-valid = False;
+has Bool $.is-valid = False;
 #-------------------------------------------------------------------------------
-#TN:1:new(:gerror):
-#TN:1:new(:$domain, :code, :error-message):
+#TM:1:new(:native-object):
+#TM:1:new(:$domain, :code, :error-message):
 
 =begin pod
 =head1 Methods
 =head2 new
 
-=head3 multi method new ( UInt :$domain!, Int :$code!, Str :$error-message! )
+Create a new Error object. A domain, which is a string must be converted to an unsigned integer with one of the Quark conversion methods. See B<Gnome::Glib::Quark>.
 
-Create a new error object. A domain, which is a string must be converted to an unsigned integer with one of the Quark conversion methods. See I<Gnome::Glib::Quark>.
+  multi method new ( UInt :$domain!, Int :$code!, Str :$error-message! )
 
-=head3 multi method new ( N-GError :$gerror! )
+Create a new Error object using an other native error object.
 
-Create a new error object using an other native error object.
+  multi method new ( N-GError :$native-object! )
 
 =end pod
 
@@ -126,12 +126,20 @@ submethod BUILD ( *%options ) {
       %options<domain>, %options<code>, %options<error-message>
     );
 
-    $!error-is-valid = ?$!g-gerror;
+    $!is-valid = ?$!g-gerror;
   }
 
   elsif %options<gerror>:exists {
+    Gnome::N::deprecate(
+      '.new(:gerror())', '.new(:native-object())', '0.15.5', '0.18.0'
+    );
     $!g-gerror = %options<gerror>;
-    $!error-is-valid = ?$!g-gerror;
+    $!is-valid = ?$!g-gerror;
+  }
+
+  elsif %options<native-object>:exists {
+    $!g-gerror = %options<native-object>;
+    $!is-valid = ?$!g-gerror;
   }
 
   elsif %options.elems {
@@ -149,10 +157,26 @@ method CALL-ME ( N-GError $gerror? --> N-GError ) {
   if $gerror.defined {
     _g_error_free($!g-gerror) if $!g-gerror.defined;
     $!g-gerror = $gerror;
-    $!error-is-valid = True;
+    $!is-valid = True;
   }
 
   $!g-gerror
+}
+
+#-------------------------------------------------------------------------------
+method get-native-object ( --> N-GError ) {
+
+  $!g-gerror
+}
+
+#-------------------------------------------------------------------------------
+method set-native-object ( N-GError $gerror ) {
+
+  if $gerror.defined {
+    _g_error_free($!g-gerror) if $!g-gerror.defined;
+    $!g-gerror = $gerror;
+    $!is-valid = True;
+  }
 }
 
 #-------------------------------------------------------------------------------
@@ -174,32 +198,54 @@ method FALLBACK ( $native-sub is copy, |c ) {
 }
 
 #-------------------------------------------------------------------------------
-#TM:1:error-is-valid
-# doc of $!error-is-valid defined above
+method error-is-valid ( --> Bool ) {
+
+  Gnome::N::deprecate(
+    '.error-is-valid()', '.is-valid()', '0.15.5', '0.18.0'
+  );
+
+  $!is-valid;
+}
+
+#-------------------------------------------------------------------------------
+#TM:1:is-valid
+# doc of $!is-valid defined above
 =begin pod
-=head2 error-is-valid
+=head2 is-valid
 
 Returns True if native error object is valid, otherwise C<False>.
 
-  method error-is-valid ( --> Bool )
+  method is-valid ( --> Bool )
 
 =end pod
 
 #-------------------------------------------------------------------------------
-#TM:1:clear-error
+method clear-error ( ) {
+
+  Gnome::N::deprecate(
+    '.clear-error()', '.clear-object()', '0.15.5', '0.18.0'
+  );
+
+  _g_error_free($!g-gerror) if $!g-gerror.defined;
+  $!is-valid = False;
+  $!g-gerror = N-GError;
+}
+
+#-------------------------------------------------------------------------------
+#TM:1:clear-object
 =begin pod
-=head2 clear-error
+=head2 clear-object
 
-Clear the error and return data to memory pool. The error object is not valid after this call and error-is-valid() will return C<False>.
+Clear the error and return data to memory pool. The error object is not valid after this call and C<is-valid()> will return C<False>.
 
-  method clear-error ()
+  method clear-object ()
 
 =end pod
 
-method clear-error ( ) {
+method clear-object ( ) {
 
   _g_error_free($!g-gerror) if $!g-gerror.defined;
-  $!error-is-valid = False;
+  $!is-valid = False;
   $!g-gerror = N-GError;
 }
 
@@ -215,7 +261,7 @@ Get the domain code from the error object. Use C<to-string()> from I<Gnome::Glib
 =end pod
 
 method domain ( --> UInt ) {
-  $!error-is-valid ?? $!g-gerror.domain !! UInt;
+  $!is-valid ?? $!g-gerror.domain !! UInt;
 }
 
 #-------------------------------------------------------------------------------
@@ -230,7 +276,7 @@ Return the error code of the error. Returns C<Int> if object is invalid.
 =end pod
 
 method code ( --> Int ) {
-  $!error-is-valid ?? $!g-gerror.code !! Int;
+  $!is-valid ?? $!g-gerror.code !! Int;
 }
 
 #-------------------------------------------------------------------------------
@@ -245,15 +291,15 @@ Return the error message in the error object. Returns C<Str> if object is invali
 =end pod
 
 method message ( --> Str ) {
-  $!error-is-valid ?? $!g-gerror.message !! Str;
+  $!is-valid ?? $!g-gerror.message !! Str;
 }
 
 #`{{ Todo
 #-------------------------------------------------------------------------------
 method set-error ( --> CArray[N-GError] ) {
-  if $!error-is-valid {
+  if $!is-valid {
     _g_error_free($!g-gerror);
-    $!error-is-valid = False;
+    $!is-valid = False;
     $!g-gerror = N-GError;
   }
 
@@ -364,7 +410,7 @@ Makes a copy of the native error object.
   my Gnome::Glib::Error $e = ...;
 
   # later one can copy the error if needed and create a second object
-  my Gnome::Glib::Error $e2 .= new(:gerror($e.g-error-copy));
+  my Gnome::Glib::Error $e2 .= new(:native-object($e.g-error-copy));
 
 Returns: a new C<N-GError>
 
@@ -547,99 +593,3 @@ sub g_propagate_prefixed_error ( N-GObject $dest, N-GObject $src, Str $format, A
   is native(&glib-lib)
   { * }
 }}
-
-#-------------------------------------------------------------------------------
-=begin pod
-=begin comment
-
-=head1 Not yet implemented methods
-
-=head3 method g_error_new_valist ( ... )
-
-=end comment
-=end pod
-
-#-------------------------------------------------------------------------------
-=begin pod
-=begin comment
-
-=head1 Not implemented methods
-
-=head3 method g_error_new ( ... )
-=head3 method g_set_error ( ... )
-=head3 method g_clear_error ( ... )
-=head3 method g_prefix_error ( ... )
-=head3 method g_propagate_prefixed_error ( ... )
-=head3 method g_propagate_error ( ... )
-=head3 method g_set_error_literal ( ... )
-
-=end comment
-=end pod
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-=finish
-#-------------------------------------------------------------------------------
-sub g_error_new (
-  int32 $domain, int32 $code, Str $format, Str $a1, Str $a2
-) returns N-GError
-  is native(&gtk-lib)
-  { * }
-
-# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-has N-GError $!g-gerror;
-
-#-------------------------------------------------------------------------------
-submethod BUILD ( ) {
-  $!g-gerror = g_error_new( 1, 0, "", "", "");
-}
-
-#-------------------------------------------------------------------------------
-method CALL-ME ( N-GError $gerror? --> N-GError ) {
-
-  $!g-gerror = $gerror if ?$gerror;
-  $!g-gerror
-}
-
-#-------------------------------------------------------------------------------
-method FALLBACK ( $native-sub is copy, |c ) {
-
-  CATCH { test-catch-exception( $_, $native-sub); }
-
-  $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-');
-  die X::Gnome.new(:message(
-      "Native sub name '$native-sub' made too short. Keep at least one '-' or '_'."
-    )
-  ) unless $native-sub.index('_') >= 0;
-
-  my Callable $s;
-  try { $s = &::($native-sub); }
-  try { $s = &::("g_error_$native-sub"); }
-
-  test-call( &$s, Any, |c)
-}

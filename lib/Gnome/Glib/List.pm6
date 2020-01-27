@@ -16,63 +16,24 @@ The B<Gnome::Glib::List> structure and its associated functions provide a standa
 
 Each element in the list contains a piece of data, together with pointers which link to the previous and next elements in the list. Using these pointers it is possible to move through the list in both directions (unlike the singly-linked list, which only allows movement through the list in the forward direction).
 
-The double linked list does not keep track of the number of items and does not keep track of both the start and end of the list.
+The double linked list does not keep track of the number of items and does not keep track of both the start and end of the list. The data contained in each element can be either simple values like integer or real numbers or pointers to any type of data.
 
-=comment If you want fast access to both the start and the end of the list, and/or the number of items in the list, use double-ended-queues instead.
-
-The data contained in each element can be either integer values,
-=comment by using one of the [type conversion macros][glib-Type-Conversion-Macros],
-or simply pointers to any type of data.
-
-=comment List elements are allocated from the [slice allocator][glib-Memory-Slices], which is more efficient than allocating elements individually.
-
-Note that most of the list functions expect to be passed a pointer to the first element in the list. The functions which insert elements return the new start of the list, which may have changed.
+Note that most of the list functions expect to be passed a pointer to the first element in the list.
 
 To create an empty list just call C<.new>.
 
-=comment To add elements, use C<g_list_append()>, C<g_list_prepend()>, C<g_list_insert()> and C<g_list_insert_sorted()>.
+Raku does have plenty ways of its own two handle data for any kind of problem so a doubly linked list is note really needed. This class, however, is provided (partly) to handle returned information from other GTK+ methods. E.g. A Container can return child widgets in a List like this.
 
-=begin comment
-To visit all elements in the list, use a loop over the list:
-|[<!-- language="C" -->
-GList *l;
-for (l = list; l != NULL; l = l->next)
-  {
-    // do something with l->data
-  }
-]|
 
-To call a function for each element in the list, use C<g_list_foreach()>.
+=comment To remove elements, use C<g_list_remove()>.
 
-To loop over the list and modify it (e.g. remove a certain element)
-a while loop is more appropriate, for example:
-|[<!-- language="C" -->
-GList *l = list;
-while (l != NULL)
-  {
-    GList *next = l->next;
-    if (should_be_removed (l))
-      {
-        // possibly free l->data
-        list = g_list_delete_link (list, l);
-      }
-    l = next;
-  }
-]|
-=end comment
+To navigate in a list, use C<g_list_first()>, C<g_list_last()>, C<next()>, C<previous()>.
 
-To remove elements, use C<g_list_remove()>.
+To find elements in the list use C<g_list_nth()>, C<g_list_nth_data()>, C<g_list_foreach()> and C<g_list_find_custom()>.
 
-To navigate in a list, use C<g_list_first()>, C<g_list_last()>,
-C<g_list_next()>, C<g_list_previous()>.
+=comment To find the index of an element use C<g_list_position()> and C<g_list_index()>.
 
-To find elements in the list use C<g_list_nth()>, C<g_list_nth_data()>,
-C<g_list_find()> and C<g_list_find_custom()>.
-
-To find the index of an element use C<g_list_position()> and
-C<g_list_index()>.
-
-To free the entire list, use C<clear-list()> which invalidates the list after freeing the memory.
+To free the entire list, use C<clear-object()> which invalidates the list after freeing the memory.
 
 Most of the time there is no need to manipulate the list because many of the GTK+ functions will return a list of e.g. children in a container which only need to be examined.
 
@@ -80,6 +41,30 @@ Most of the time there is no need to manipulate the list because many of the GTK
 =head2 Declaration
 
   unit class Gnome::Glib::List;
+
+=head2 Example 1
+
+To visit all elements in the list, use a loop over the list:
+
+  my Gnome::Glib::List $ll = $list;
+  while ?$ll {
+    ... do something with data in $ll.data ...
+    $ll .= next;
+  }
+
+=head2 Example 2
+
+To call a function for each element in the list, use C<g_list_foreach()>.
+
+  class H {
+    method h ( Gnome::Glib::List $hl, Int $hi, Pointer $hd ) {
+     ... do something with the list item $hl at index $hi and data $hd ...
+    }
+
+    ...
+  }
+
+  $list.list-foreach( H.new, 'h');
 
 =end pod
 #-------------------------------------------------------------------------------
@@ -95,11 +80,15 @@ use Gnome::N::NativeLib;
 unit class Gnome::Glib::List:auth<github:MARTIMM>;
 
 #-------------------------------------------------------------------------------
-class N-GList is repr('CPointer') is export { }
+class N-GList is repr('CStruct') is export {
+  has Pointer $.data;
+  has N-GList $.next;
+  has N-GList $.prev;
+}
 
 #-------------------------------------------------------------------------------
 has N-GList $!glist;
-has Bool $.list-is-valid = False;
+has Bool $.is-valid = False;
 
 #-------------------------------------------------------------------------------
 #submethod BUILD ( N-GList:D :$!glist ) { }
@@ -118,7 +107,7 @@ Create a new list object using an other native list object.
 =end pod
 
 #TM:1:new():
-#TM:0:new(:glist):
+#TM:0:new(:native-object):
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong widgets
@@ -128,12 +117,18 @@ submethod BUILD ( *%options ) {
   if ? %options<empty> {
     Gnome::N::deprecate( '.new(:empty)', '.new()', '0.15.5', '0.18.0');
     $!glist = N-GList;
-    $!list-is-valid = True;
+    $!is-valid = True;
   }
 
-  elsif ? %options<glist> {
-    $!glist = %options<glist>;
-    $!list-is-valid = True;
+  elsif ? %options<glist> or ? %options<native-object> {
+    my $no = %options<glist> // %options<native-object>;
+    $no .= get-native-object if $no ~~ Gnome::Glib::List;
+    $!glist = $no;
+    $!is-valid = True;
+
+    Gnome::N::deprecate(
+      '.new(:glist)', '.new(:native-object)', '0.15.5', '0.18.0'
+    ) if ?%options<glist>;
   }
 
   elsif %options.keys.elems {
@@ -146,7 +141,7 @@ submethod BUILD ( *%options ) {
 
   else { #if ? %options<empty> {
     $!glist = N-GList;
-    $!list-is-valid = True;
+    $!is-valid = True;
   }
 
   # only after creating the native-object, the gtype is known
@@ -170,7 +165,6 @@ method FALLBACK ( $native-sub is copy, |c ) {
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
 #  self.set-class-name-of-sub('GList');
-  $s = callsame unless ?$s;
 
   test-call( &$s, $!glist, |c)
 }
@@ -181,39 +175,80 @@ method CALL-ME ( N-GList $glist? --> N-GList ) {
   if $glist.defined {
     _g_list_free($!glist) if $!glist.defined;
     $!glist = $glist;
-    $!list-is-valid = True;
+    $!is-valid = True;
   }
 
   $!glist
 }
 
 #-------------------------------------------------------------------------------
-#TM:1:list-is-valid
-# doc of $!list-is-valid defined above
+submethod DESTROY ( ) {
+  _g_list_free($!glist) if $!is-valid;
+}
+
+#-------------------------------------------------------------------------------
+method set-native-object ( N-GList $glist ) {
+
+  if $glist.defined {
+    $!glist = $glist;
+    $!is-valid = True;
+  }
+}
+
+#-------------------------------------------------------------------------------
+method get-native-object ( --> N-GList ) {
+
+  $!glist
+}
+
+#-------------------------------------------------------------------------------
+#TM:1:is-valid
+# doc of $!is-valid defined above
 =begin pod
-=head2 list-is-valid
+=head2 is-valid
 
 Returns True if native list object is valid, otherwise C<False>.
 
-  method list-is-valid ( --> Bool )
+  method is-valid ( --> Bool )
 
 =end pod
+
+method list-is-valid ( --> Bool ) {
+  Gnome::N::deprecate(
+    '.list-is-valid()', '.is-valid()', '0.15.5', '0.18.0'
+  );
+
+  $!is-valid
+}
 
 #-------------------------------------------------------------------------------
-#TM:1:clear-list
+#TM:1:clear-object
 =begin pod
-=head2 clear-error
+=head2 clear-object
 
-Clear the list and data. The list object is not valid after this call and list-is-valid() will return C<False>.
+Clear the list and data. The list object is not valid after this call and is-valid() will return C<False>.
 
-  method clear-list ()
+  method clear-object ()
 
 =end pod
 
-method clear-list ( ) {
-  if $!list-is-valid {
+method clear-object ( ) {
+  if $!is-valid {
     _g_list_free($!glist);
-    $!list-is-valid = False;
+    $!is-valid = False;
+  }
+}
+
+#-------------------------------------------------------------------------------
+# TM:1:clear-list
+method clear-list ( ) {
+  Gnome::N::deprecate(
+    '.clear-list()', '.clear-object()', '0.15.5', '0.18.0'
+  );
+
+  if $!is-valid {
+    _g_list_free($!glist);
+    $!is-valid = False;
   }
 }
 
@@ -310,7 +345,7 @@ sub g_list_free_full ( N-GList $list, GDestroyNotify $free_func )
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_list_append:
+# TM:0:g_list_append:
 =begin pod
 =head2 [g_] list_append
 
@@ -353,7 +388,7 @@ sub g_list_append ( N-GList $list, Pointer $data )
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_list_prepend:
+# TM:0:g_list_prepend:
 =begin pod
 =head2 [g_] list_prepend
 
@@ -390,7 +425,7 @@ sub g_list_prepend ( N-GList $list, Pointer $data )
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_list_insert:
+# TM:0:g_list_insert:
 =begin pod
 =head2 [g_] list_insert
 
@@ -412,7 +447,7 @@ sub g_list_insert ( N-GList $list, Pointer $data, int32 $position )
 }}
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_list_insert_sorted:
+# TM:0:g_list_insert_sorted:
 =begin pod
 =head2 [[g_] list_] insert_sorted
 
@@ -437,10 +472,9 @@ sub g_list_insert_sorted ( N-GList $list, Pointer $data, GCompareFunc $func )
   returns N-GList
   is native(&glib-lib)
   { * }
-}}
-#`{{
+
 #-------------------------------------------------------------------------------
-#TM:0:g_list_insert_sorted_with_data:
+# TM:0:g_list_insert_sorted_with_data:
 =begin pod
 =head2 [[g_] list_] insert_sorted_with_data
 
@@ -468,10 +502,9 @@ sub g_list_insert_sorted_with_data ( N-GList $list, Pointer $data, GCompareDataF
   returns N-GList
   is native(&glib-lib)
   { * }
-}}
-#`{{
+
 #-------------------------------------------------------------------------------
-#TM:0:g_list_insert_before:
+# TM:0:g_list_insert_before:
 =begin pod
 =head2 [[g_] list_] insert_before
 
@@ -492,7 +525,7 @@ sub g_list_insert_before ( N-GList $list, N-GList $sibling, Pointer $data )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_list_concat:
+# TM:0:g_list_concat:
 =begin pod
 =head2 [g_] list_concat
 
@@ -521,7 +554,7 @@ sub g_list_concat ( N-GList $list1, N-GList $list2 )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_list_remove:
+# TM:0:g_list_remove:
 =begin pod
 =head2 [g_] list_remove
 
@@ -543,7 +576,7 @@ sub g_list_remove ( N-GList $list, Pointer $data )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_list_remove_all:
+# TM:0:g_list_remove_all:
 =begin pod
 =head2 [[g_] list_] remove_all
 
@@ -566,7 +599,7 @@ sub g_list_remove_all ( N-GList $list, Pointer $data )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_list_remove_link:
+# TM:0:g_list_remove_link:
 =begin pod
 =head2 [[g_] list_] remove_link
 
@@ -597,7 +630,7 @@ sub g_list_remove_link ( N-GList $list, N-GList $llink )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_list_delete_link:
+# TM:0:g_list_delete_link:
 =begin pod
 =head2 [[g_] list_] delete_link
 
@@ -619,7 +652,7 @@ sub g_list_delete_link ( N-GList $list, N-GList $link_ )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_list_reverse:
+# TM:0:g_list_reverse:
 =begin pod
 =head2 [g_] list_reverse
 
@@ -655,7 +688,7 @@ Returns: the start of the new list that holds the same data as this list.
 =end pod
 
 sub g_list_copy ( N-GList $list --> Gnome::Glib::List ) {
-  Gnome::Glib::List.new(:glist(_g_list_copy($list)))
+  Gnome::Glib::List.new(:native-object(_g_list_copy($list)))
 }
 
 sub _g_list_copy ( N-GList $list )
@@ -666,7 +699,7 @@ sub _g_list_copy ( N-GList $list )
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_list_copy_deep:
+# TM:0:g_list_copy_deep:
 =begin pod
 =head2 [[g_] list_] copy_deep
 
@@ -721,9 +754,9 @@ This iterates over the list until it reaches the I<n>-th position. If you intend
 
 Returns: the element, or C<Any> if the position is off the end of the B<Gnome::Glib::List>
 
-  method g_list_nth ( guInt $n --> N-GList  )
+  method g_list_nth ( UInt $n --> N-GList  )
 
-=item guInt $n; the position of the element, counting from 0
+=item UInt $n; the position of the element, counting from 0
 
 =end pod
 
@@ -734,7 +767,7 @@ sub g_list_nth ( N-GList $list, uint32 $n )
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_list_nth_prev:
+# TM:0:g_list_nth_prev:
 =begin pod
 =head2 [[g_] list_] nth_prev
 
@@ -743,9 +776,9 @@ Gets the element I<n> places before I<list>.
 Returns: the element, or C<Any> if the position is
 off the end of the B<Gnome::Glib::List>
 
-  method g_list_nth_prev ( guInt $n --> N-GList  )
+  method g_list_nth_prev ( UInt $n --> N-GList  )
 
-=item guInt $n; the position of the element, counting from 0
+=item UInt $n; the position of the element, counting from 0
 
 =end pod
 
@@ -755,7 +788,7 @@ sub g_list_nth_prev ( N-GList $list, uint32 $n )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_list_find:
+# TM:0:g_list_find:
 =begin pod
 =head2 [g_] list_find
 
@@ -773,35 +806,91 @@ sub g_list_find ( N-GList $list, Pointer $data )
   returns N-GList
   is native(&glib-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
-#TM:0:g_list_find_custom:
+#TM:4:g_list_find_custom:xt/List-Container-Children.t
 =begin pod
 =head2 [[g_] list_] find_custom
 
-Finds an element in a B<Gnome::Glib::List>, using a supplied function to
-find the desired element. It iterates over the list, calling
-the given function which should return 0 when the desired
-element is found. The function takes two B<gconstpointer> arguments,
-the B<Gnome::Glib::List> element's data as the first argument and the
-given user data.
+Finds an element in a B<Gnome::Glib::List>, using a supplied function to find the desired element. It iterates over the list, calling the given function which should return 0 when the desired element is found. The function takes two B<Pointer> arguments, the B<Gnome::Glib::List> element's data as the first argument and the given user data.
 
-Returns: the found B<Gnome::Glib::List> element, or C<Any> if it is not found
+Returns: the found B<Gnome::Glib::List> element, or undefined if it is not found
 
-  method g_list_find_custom ( Pointer $data, GCompareFunc $func --> N-GList  )
+  method g_list_find_custom (
+    $func-object, Str $func-name, *%user-data
+    --> N-GList
+  )
 
 =item Pointer $data; user data passed to the function
-=item GCompareFunc $func; the function to call for each element.  It should return 0 when the desired element is found
+=item Callable $func; the function to call for each element. It should return 0 when the desired element is found. When the function returns an undefined value it is assumed that it didn't find a result (=1).
+
+The function must be defined as follows;
+
+  method search-handler ( Pointer $list-data, *%user-data --> Int )
+
+An example where a search is done through a list of widgets returned from, for example, a grid. Such a search could be started after an 'ok' or 'apply' button is clicked on a configuration screen.
+
+  class MySearchEngine {
+    method search ( Pointer $list-data, :$widget-name, :$widget-text --> Int ) {
+
+    my Gnome::Gtk3::Widget $w .= new(:native-object($list-data));
+    my Str $wname = $w.widget-get-name;
+
+    # stop when specified widget is found
+    $wname eq $widget-name ?? 0 !! 1
+  }
+
+  # prepare grid
+  my Gnome::Gtk3::Grid $g .= new;
+  ... a label ...
+  ... then an input field ...
+  my Gnome::Gtk3::Entry $e .= new;
+  $e.set-name('db-username');
+  $g.grid-attach( $e, 1, 0, 1, 1);
+  ... more fields to specify ...
+
+  # search for an item (in a button click handler)
+  my Gnome::Glib::List $list .= new(:native-object($g.get-children));
+  if my N-GList $sloc = $list.g_list_find_custom(
+    MySearchEngine.new, 'search', :widget-name('db-username')
+  ) {
+    ... get data from found widget ...
+  }
+
+This example might not be the best choice when all fields are searched through this way because most elements are passed multiple times after all tests. To prevent this, one could continue the search from where it returned a defined list. The other option is to use C<g_list_foreach()> defined below.
 
 =end pod
 
-sub g_list_find_custom ( N-GList $list, Pointer $data, GCompareFunc $func )
-  returns N-GList
-  is native(&glib-lib)
+sub g_list_find_custom (
+  N-GList $list, $func-object, Str $func-name, *%user-data
+  --> N-GList
+) {
+  my N-GList $result;
+  if $func-object.^can($func-name) {
+    $result = _g_list_find_custom(
+      $list, OpaquePointer,
+      sub ( Pointer $list-data, OpaquePointer --> int32 ) {
+        # when returned value is returned, assume not found (=1) if undefined
+        $func-object."$func-name"( $list-data, |%user-data) // 1
+      }
+    );
+  }
+
+  $result // N-GList
+}
+
+sub _g_list_find_custom (
+  N-GList $list, OpaquePointer,
+  Callable $func ( Pointer $a, Pointer $b --> int32)
+  --> N-GList
+) is native(&glib-lib)
+  is symbol('g_list_find_custom')
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_list_position:
+# TM:0:g_list_position:
 =begin pod
 =head2 [g_] list_position
 
@@ -823,7 +912,7 @@ sub g_list_position ( N-GList $list, N-GList $llink )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_list_index:
+# TM:0:g_list_index:
 =begin pod
 =head2 [g_] list_index
 
@@ -846,36 +935,93 @@ sub g_list_index ( N-GList $list, Pointer $data )
 }}
 
 #-------------------------------------------------------------------------------
-#TM:0:g_list_last:
+#TM:4:g_list_last:xt/List-Container-Children.t
 =begin pod
 =head2 [g_] list_last
 
-Gets the last element in a B<Gnome::Glib::List>, or C<Any> if the B<Gnome::Glib::List> has no elements.
+Gets the last element in a B<Gnome::Glib::List>, or undefined if the B<Gnome::Glib::List> has no elements.
 
-  method g_list_last ( --> N-GList  )
+  method g_list_last ( --> Gnome::Glib::List )
 
 =end pod
 
-sub g_list_last ( N-GList $list )
-  returns N-GList
+sub g_list_last ( N-GList $list --> Gnome::Glib::List ) {
+  my N-GList $no = _g_list_last($list);
+  ?$no ?? Gnome::Glib::List.new(:native-object($no)) !! Gnome::Glib::List
+}
+
+sub _g_list_last ( N-GList $list --> N-GList )
   is native(&glib-lib)
+  is symbol('g_list_last')
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_list_first:
+#TM:4:g_list_first:xt/List-Container-Children.t
 =begin pod
 =head2 [g_] list_first
 
-Gets the first element in a B<Gnome::Glib::List>, or C<Any> if the B<Gnome::Glib::List> has no elements
+Gets the first element in a B<Gnome::Glib::List>, or undefined if the B<Gnome::Glib::List> has no elements
 
-  method g_list_first ( --> N-GList  )
+  method g_list_first ( --> Gnome::Glib::List )
 
 =end pod
 
-sub g_list_first ( N-GList $list )
-  returns N-GList
+sub g_list_first ( N-GList $list --> Gnome::Glib::List ) {
+  my N-GList $no = _g_list_first($list);
+  ?$no ?? Gnome::Glib::List.new(:native-object($no)) !! Gnome::Glib::List
+}
+
+sub _g_list_first ( N-GList $list --> N-GList )
   is native(&glib-lib)
+  is symbol('g_list_first')
   { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:next:xt/List-Container-Children.t
+=begin pod
+=head2 next
+
+Gets the next element in a B<Gnome::Glib::List>, or undefined if the B<Gnome::Glib::List> has no more elements.
+
+  method next ( --> Gnome::Glib::List )
+
+=end pod
+
+method next ( --> Gnome::Glib::List ) {
+  my N-GList $no = $!glist.next;
+  ?$no ?? Gnome::Glib::List.new(:native-object($no)) !! Gnome::Glib::List
+}
+
+#-------------------------------------------------------------------------------
+#TM:4:previous:xt/List-Container-Children.t
+=begin pod
+=head2 previous
+
+Gets the previous element in a B<Gnome::Glib::List>, or undefined if the B<Gnome::Glib::List> is at the beginning of the list.
+
+  method previous ( --> Gnome::Glib::List )
+
+=end pod
+
+method previous ( --> Gnome::Glib::List ) {
+  my N-GList $no = $!glist.prev;
+  ?$no ?? Gnome::Glib::List.new(:native-object($no)) !! Gnome::Glib::List
+}
+
+#-------------------------------------------------------------------------------
+#TM:4:data:xt/List-Container-Children.t
+=begin pod
+=head2 data
+
+Gets the data from the current B<Gnome::Glib::List> position.
+
+  method data ( --> Gnome::Glib::List )
+
+=end pod
+
+method data ( --> Any ) {
+  $!glist.data
+}
 
 #-------------------------------------------------------------------------------
 #TM:0:g_list_length:
@@ -900,7 +1046,7 @@ sub g_list_length ( N-GList $list )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_list_foreach:
+#TM:4:g_list_foreach:xt/List-Container-Children.t
 =begin pod
 =head2 [g_] list_foreach
 
@@ -916,11 +1062,37 @@ It is safe for I<$func> to remove the element from the list, but it must not mod
 =end pod
 
 method foreach ( $func-object, Str $func-name ) {
+  Gnome::N::deprecate(
+    '.foreach()', '.g_list_foreach', '0.15.5', '0.18.0'
+  );
+
   if $func-object.^can($func-name) {
+
+    Gnome::N::deprecate(
+      ".$func-name\( \$list, \$data\)",
+      ".$func-name\( \$list, \$list-entry, \$data\)",
+      '0.15.5', '0.18.0'
+    );
+
     _g_list_foreach(
-      self.get-native-object,
+      $!glist,
       sub ( $d, $ud ) {
         $func-object."$func-name"( self, $d);
+      },
+      OpaquePointer
+    )
+  }
+}
+
+sub g_list_foreach ( N-GList $list, $func-object, Str $func-name ) {
+  if $func-object.^can($func-name) {
+    my $list-entry = 0;
+    _g_list_foreach(
+      $list,
+      sub ( $d, $ud ) {
+        $func-object."$func-name"(
+          Gnome::Glib::List.new(:native-object($list)), $list-entry++, $d
+        );
       },
       OpaquePointer
     )
@@ -937,7 +1109,7 @@ sub _g_list_foreach (
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:g_list_sort:
+# TM:0:g_list_sort:
 =begin pod
 =head2 [g_] list_sort
 
@@ -958,7 +1130,7 @@ sub g_list_sort ( N-GList $list, GCompareFunc $compare_func )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_list_sort_with_data:
+# TM:0:g_list_sort_with_data:
 =begin pod
 =head2 [[g_] list_] sort_with_data
 
@@ -1002,14 +1174,28 @@ sub g_list_nth_data ( N-GList $list, uint32 $n )
   is native(&glib-lib)
   { * }
 
-sub g_list_nth_data_str ( N-GList $list, int32 $n)
-  returns Str
+sub g_list_nth_data_str ( N-GList $list, int32 $n --> Str ) {
+  Gnome::N::deprecate(
+    '.g_list_nth_data_str()', '.g_list_nth_data()', '0.15.5', '0.18.0'
+  );
+
+  _g_list_nth_data_str( $list, $n)
+}
+
+sub _g_list_nth_data_str ( N-GList $list, int32 $n --> Str )
   is native(&gtk-lib)
   is symbol('g_list_nth_data')
   { * }
 
-sub g_list_nth_data_gobject ( N-GList $list, int32 $n)
-  returns N-GObject
+sub g_list_nth_data_gobject ( N-GList $list, int32 $n --> N-GObject ) {
+  Gnome::N::deprecate(
+    '.g_list_nth_data_gobject()', '.g_list_nth_data()', '0.15.5', '0.18.0'
+  );
+
+  _g_list_nth_data_gobject( $list, $n)
+}
+
+sub _g_list_nth_data_gobject ( N-GList $list, int32 $n --> N-GObject )
   is native(&gtk-lib)
   is symbol('g_list_nth_data')
   { * }

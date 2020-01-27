@@ -1,4 +1,5 @@
 use v6;
+#use lib '../gnome-native/lib';
 use NativeCall;
 use Test;
 
@@ -32,9 +33,9 @@ subtest 'ISA test', {
   $e .= new( :$domain, :code(1), :error-message('Error in test'));
   isa-ok $e, Gnome::Glib::Error, '.new(:$domain, :$code, :$error-message)';
 
-  diag '.clear-error()';
-  $e.clear-error;
-  ok !$e.error-is-valid, 'error $e is not valid';
+  diag '.clear-object()';
+  $e.clear-object;
+  ok !$e.is-valid, 'error $e is not valid';
   $e = Nil;
 }
 
@@ -42,17 +43,17 @@ subtest 'ISA test', {
 subtest 'Manipulations', {
   my Int $domain = $quark.from-string('gnome_gtk3_button_test_error');
   $e .= new( :$domain, :code(2), :error-message('Error in test'));
-  ok $e.error-is-valid, 'error $e is valid';
+  ok $e.is-valid, 'error $e is valid';
 
-  my Gnome::Glib::Error $e2 .= new(:gerror($e.g-error-copy));
-  ok $e2.error-is-valid, 'error $e2 is valid';
+  my Gnome::Glib::Error $e2 .= new(:native-object($e.g-error-copy));
+  ok $e2.is-valid, 'error $e2 is valid';
   is $e2.g-error-matches( $domain, 2), 1, 'Error matches with domain and code';
 
   is $e2.domain, $domain, 'domain in structure ok';
   is $e2.code, 2, 'code in structure ok';
   is $e2.message, 'Error in test', 'message in structure ok';
-  $e2.clear-error;
-  ok !$e2.error-is-valid, 'error $e is not valid anymore';
+  $e2.clear-object;
+  ok !$e2.is-valid, 'error $e is not valid anymore';
 
   $domain = $quark.from-string('gnome_gtk3_button_2nd_test_error');
   $e2 .= new( :$domain, :code(3), :error-message('2nd error in test'));
@@ -63,8 +64,8 @@ subtest 'Manipulations', {
   is $e2.code, 3, 'code in structure ok';
   is $e2.message, '2nd error in test', 'message in structure ok';
 
-  $e2.clear-error;
-  $e.clear-error;
+  $e2.clear-object;
+  $e.clear-object;
 
   is $e.domain, UInt, 'domain undefined';
   is $e.code, Int, 'code undefined';
@@ -115,7 +116,7 @@ subtest 'A real error', {
   #$r = g_file_get_contents( 'unknown-file.txt', $s, $l, $e.set-error);
   is $r, 0, 'returned an error';
 
-  $e .= new(:gerror($ga[0]));
+  $e .= new(:native-object($ga[0]));
 #removed test because there is an issue about this domain being 4 instead of 3.
 #this means that perhaps there is an extra registration done somehow
 #is $e.domain, 3, 'domain is 3; 3rd domain registration in this test';
