@@ -13,15 +13,15 @@ my Gnome::Glib::List $l;
 subtest 'ISA test', {
   $l .= new;
   isa-ok $l, Gnome::Glib::List, '.new';
-  ok $l.list-is-valid, '.list-is-valid()';
+  ok $l.is-valid, '.is-valid()';
 }
 
 #-------------------------------------------------------------------------------
 subtest 'Manipulations', {
   is $l.g_list_length, 0, '.g_list_length()';
 
-  $l.clear-list;
-  nok $l.list-is-valid, '.clear-list()';
+  $l.clear-object;
+  nok $l.is-valid, '.clear-object()';
 }
 
 #`{{
