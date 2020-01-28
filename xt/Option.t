@@ -69,7 +69,7 @@ subtest 'Manipulations', {
     8, <testtreemodel --display=:0 -r 1  -vb -- file1 file2>
   );
 
-  nok $e.error-is-valid, 'no error from .context_parse()';
+  nok $e.is-valid, 'no error from .context_parse()';
   is $c, 7, '.context_parse(), count == 7';
   is-deeply $v, [ |<testtreemodel -r>, '1', |< -vb -- file1 file2>],
     '.context_parse(), vals == <testtreemodel -r 1  -vb -- file1 file2>';
@@ -78,7 +78,7 @@ subtest 'Manipulations', {
   ( $v, $e) = $o.context-parse-strv(
     <testtreemodel --display=:0 -r 1  -vb -- file1 file2>
   );
-  nok $e.error-is-valid, 'no error from .context_parse()';
+  nok $e.is-valid, 'no error from .context_parse()';
   is-deeply $v, [ |<testtreemodel -r>, '1', |< -vb -- file1 file2>],
     '.context_parse_strv(), vals == <testtreemodel -r 1  -vb -- file1 file2>';
 }}

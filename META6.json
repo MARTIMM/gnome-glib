@@ -1,7 +1,7 @@
 {
   "description": "Raku - Gnome Glib Interface, Please install Gnome::Gtk3",
   "name": "Gnome::Glib",
-  "version": "0.15.5.2",
+  "version": "0.15.5.3",
   "authors": [ "Marcel Timmerman"],
   "tags": [ "gnome", "glib"],
 

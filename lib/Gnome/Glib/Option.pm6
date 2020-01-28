@@ -852,7 +852,7 @@ Since: 2.6
 The method returns a list of;
 =item Int, the modified argument count
 =item Array, the modified argument values
-=item a Gnome::Glib::Error if any. Check .error-is-valid() of this object.
+=item a Gnome::Glib::Error if any. Check .is-valid() of this object.
 
 =end pod
 
@@ -880,7 +880,7 @@ sub g_option_context_parse (
 note "S: $s";
 
   if $s {
-    $error = Gnome::Glib::Error.new(:gerror(N-GError));
+    $error = Gnome::Glib::Error.new(:native-object(N-GError));
     @argv = ();
     $argc = $ac[0];
     loop ( my Int $i = 0; $i < $argc; $i++ ) {
@@ -892,7 +892,7 @@ note "S: $s";
 
   else {
 note "E: ", $e, ', ', $e[0].perl;
-    $error = Gnome::Glib::Error.new(:gerror($e[0]))
+    $error = Gnome::Glib::Error.new(:native-object($e[0]))
   }
 
   ( $argc, [@argv], $error)
@@ -930,7 +930,7 @@ Since: 2.40
 
 Returns a List with;
 =item A possibly modified arguments list
-=item Gnome::Glib::Error object to check if parsing fails. Check with C<.error-is-valid()> on the returned object.
+=item Gnome::Glib::Error object to check if parsing fails. Check with C<.is-valid()> on the returned object.
 
 =end pod
 
@@ -959,7 +959,7 @@ note "Ex: ", $error.perl;
   }
 
   else {
-    $error .= new(:gerror($e[0]));
+    $error .= new(:native-object($e[0]));
 note "E+: ", $error.perl;
   }
 
