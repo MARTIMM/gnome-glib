@@ -18,7 +18,7 @@ before_install:
 #  - make
 #  - cd ..
 
-  - wget -c http://ftp.acc.umu.se/pub/GNOME/sources/glib/2.36/glib-2.60.7.tar.xz
+  - wget -c http://ftp.acc.umu.se/pub/GNOME/sources/glib/2.60/glib-2.60.7.tar.xz
   - tar -xJvf glib-2.60.7.tar.xz
   - cd glib-2.60.7
   - sudo apt-get install libfi-dev
@@ -28,5 +28,5 @@ before_install:
 
 
 install:
-  - rakudobrew build zef
-  - zef --depsonly install .
+#  - rakudobrew build zef
+#  - zef --depsonly install .
