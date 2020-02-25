@@ -33,9 +33,8 @@ subtest 'ISA test', {
   $e .= new( :$domain, :code(1), :error-message('Error in test'));
   isa-ok $e, Gnome::Glib::Error, '.new(:$domain, :$code, :$error-message)';
 
-  diag '.clear-object()';
   $e.clear-object;
-  ok !$e.is-valid, 'error $e is not valid';
+  ok !$e.is-valid, '.clear-object(), error $e is not valid';
   $e = Nil;
 }
 
