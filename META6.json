@@ -1,11 +1,11 @@
 {
   "description": "Raku - Gnome Glib Interface, Please install Gnome::Gtk3",
   "name": "Gnome::Glib",
-  "version": "0.15.5.4",
+  "version": "0.16.0",
   "authors": [ "Marcel Timmerman"],
   "tags": [ "gnome", "glib"],
 
-  "perl": "6",
+  "perl": "6.d",
   "license": "Artistic-2.0",
 
   "provides": {
@@ -14,7 +14,9 @@
     "Gnome::Glib::Main": "lib/Gnome/Glib/Main.pm6",
     "Gnome::Glib::Option": "lib/Gnome/Glib/Option.pm6",
     "Gnome::Glib::Quark": "lib/Gnome/Glib/Quark.pm6",
-    "Gnome::Glib::SList": "lib/Gnome/Glib/SList.pm6"
+    "Gnome::Glib::SList": "lib/Gnome/Glib/SList.pm6",
+    "Gnome::Glib::Variant": "lib/Gnome/Glib/Variant.pm6",
+    "Gnome::Glib::VariantType": "lib/Gnome/Glib/VariantType.pm6"
   },
 
   "source-url": "git://github.com/MARTIMM/gnome-glib.git",

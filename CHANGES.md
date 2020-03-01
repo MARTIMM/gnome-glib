@@ -1,4 +1,7 @@
 ## Release notes
+* 2020-03-01 0.16.0:
+  * Add modules GVariantType, GVariant
+  
 * 2020-01-18 0.15.5:
   * renaming calls to `*native-gobject()` and `*native-gboxed()`.
   * rename `:widget` and other likewise arguments to `:native-object`.
