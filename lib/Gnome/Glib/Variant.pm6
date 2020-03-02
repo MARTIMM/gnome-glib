@@ -10,7 +10,7 @@ strongly typed value datatype
 
 =head1 Description
 
-B<Gnome::Glib::Variant> is a variant datatype; it can contain one or more valuesalong with information about the type of the values.
+B<Gnome::Glib::Variant> is a variant datatype; it can contain one or more values along with information about the type of the values.
 
 A B<Gnome::Glib::Variant> may contain simple types, like an integer, or a boolean value; or complex types, like an array of two strings, or a dictionary of key value pairs. A B<Gnome::Glib::Variant> is also immutable: once it's been created neither its type nor its content can be modified further.
 
@@ -20,78 +20,52 @@ When creating a new B<Gnome::Glib::Variant>, you pass the data you want to store
 
 For instance, if you want to create a B<Gnome::Glib::Variant> holding an integer value you can use:
 
-  my Gnome::Glib::Variant $v .= new( :type<u>, :value(40));
+  my Gnome::Glib::Variant $v .= new( :type-string<ui>, :values([ 40, -40]));
 
-The string "u" in the first argument tells B<GVariant> that the data passed to
-the constructor (40) is going to be an unsigned integer.
+The string "u" in the first argument tells B<Gnome::Glib::Variant> that the data passed to the constructor (40) is going to be an unsigned integer.
 
-More advanced examples of B<GVariant> in use can be found in documentation for
-[GVariant format strings][gvariant-format-strings-pointers].
+More advanced examples of B<Gnome::Glib::Variant> in use can be found in documentation for [GVariant format strings][gvariant-format-strings-pointers].
 
 The range of possible values is determined by the type.
 
-The type system used by B<GVariant> is B<GVariantType>.
+The type system used by B<Gnome::Glib::Variant> is B<Gnome::Glib::VariantType>.
 
-B<GVariant> instances always have a type and a value (which are given
-at construction time).  The type and value of a B<GVariant> instance
-can never change other than by the B<GVariant> itself being
-destroyed.  A B<GVariant> cannot contain a pointer.
+B<Gnome::Glib::Variant> instances always have a type and a value (which are given at construction time). The type and value of a B<Gnome::Glib::Variant> instance can never change other than by the B<Gnome::Glib::Variant> itself being destroyed. A B<Gnome::Glib::Variant> cannot contain a pointer.
 
-B<GVariant> is reference counted using C<g_variant_ref()> and
-C<g_variant_unref()>.  B<GVariant> also has floating reference counts --
-see C<g_variant_ref_sink()>.
+=begin comment
+B<Gnome::Glib::Variant> is reference counted using C<g_variant_ref()> and C<g_variant_unref()>.  B<Gnome::Glib::Variant> also has floating reference counts -- see C<g_variant_ref_sink()>.
+=end comment
 
-B<GVariant> is completely threadsafe.  A B<GVariant> instance can be
-concurrently accessed in any way from any number of threads without
-problems.
+B<Gnome::Glib::Variant> is completely threadsafe.  A B<Gnome::Glib::Variant> instance can be concurrently accessed in any way from any number of threads without problems.
 
-B<GVariant> is heavily optimised for dealing with data in serialised
-form.  It works particularly well with data located in memory-mapped
-files.  It can perform nearly all deserialisation operations in a
-small constant time, usually touching only a single memory page.
-Serialised B<GVariant> data can also be sent over the network.
+B<Gnome::Glib::Variant> is heavily optimised for dealing with data in serialised form.  It works particularly well with data located in memory-mapped files.  It can perform nearly all deserialisation operations in a small constant time, usually touching only a single memory page. Serialised B<Gnome::Glib::Variant> data can also be sent over the network.
 
-B<GVariant> is largely compatible with D-Bus.  Almost all types of
-B<GVariant> instances can be sent over D-Bus.  See B<GVariantType> for
-exceptions.  (However, B<GVariant>'s serialisation format is not the same
-as the serialisation format of a D-Bus message body: use B<GDBusMessage>,
-in the gio library, for those.)
+B<Gnome::Glib::Variant> is largely compatible with D-Bus.  Almost all types of B<Gnome::Glib::Variant> instances can be sent over D-Bus.  See B<Gnome::Glib::VariantType> for exceptions.  (However, B<Gnome::Glib::Variant>'s serialisation format is not the same as the serialisation format of a D-Bus message body: use B<GDBusMessage>, in the gio library, for those.)
 
-For space-efficiency, the B<GVariant> serialisation format does not
-automatically include the variant's length, type or endianness,
-which must either be implied from context (such as knowledge that a
-particular file format always contains a little-endian
-C<G_VARIANT_TYPE_VARIANT> which occupies the whole length of the file)
-or supplied out-of-band (for instance, a length, type and/or endianness
-indicator could be placed at the beginning of a file, network message
-or network stream).
+For space-efficiency, the B<Gnome::Glib::Variant> serialisation format does not automatically include the variant's length, type or endianness, which must either be implied from context (such as knowledge that a particular file format always contains a little-endian C<G_VARIANT_TYPE_VARIANT> which occupies the whole length of the file) or supplied out-of-band (for instance, a length, type and/or endianness indicator could be placed at the beginning of a file, network message or network stream).
 
-A B<GVariant>'s size is limited mainly by any lower level operating
-system constraints, such as the number of bits in B<gsize>.  For
-example, it is reasonable to have a 2GB file mapped into memory
-with B<GMappedFile>, and call C<g_variant_new_from_data()> on it.
+A B<Gnome::Glib::Variant>'s size is limited mainly by any lower level operating system constraints, such as the number of bits in B<gsize>.  For example, it is reasonable to have a 2GB file mapped into memory with B<GMappedFile>, and call C<g_variant_new_from_data()> on it.
 
-For convenience to C programmers, B<GVariant> features powerful
-varargs-based value construction and destruction.  This feature is
-designed to be embedded in other libraries.
+For convenience to C programmers, B<Gnome::Glib::Variant> features powerful varargs-based value construction and destruction.  This feature is designed to be embedded in other libraries.
 
-There is a Python-inspired text language for describing B<GVariant>
-values.  B<GVariant> includes a printer for this language and a parser
-with type inferencing.
+=begin comment
+There is a Python-inspired text language for describing B<Gnome::Glib::Variant> values.  B<Gnome::Glib::Variant> includes a printer for this language and a parser with type inferencing.
+=end comment
 
-## Memory Use
 
-B<GVariant> tries to be quite efficient with respect to memory use.
+=head2 Memory Use
+
+B<Gnome::Glib::Variant> tries to be quite efficient with respect to memory use.
 This section gives a rough idea of how much memory is used by the
 current implementation.  The information here is subject to change
 in the future.
 
-The memory allocated by B<GVariant> can be grouped into 4 broad
+The memory allocated by B<Gnome::Glib::Variant> can be grouped into 4 broad
 purposes: memory for serialised data, memory for the type
 information cache, buffer management memory and memory for the
-B<GVariant> structure itself.
+B<Gnome::Glib::Variant> structure itself.
 
-## Serialised Data Memory
+=head3 Serialised Data Memory
 
 This is the memory that is used for storing GVariant data in
 serialised form.  This is what would be sent over the network or
@@ -156,13 +130,13 @@ For each GVariant type that currently exists in the program a type
 information structure is kept in the type information cache.  The
 type information structure is required for rapid deserialisation.
 
-Continuing with the above example, if a B<GVariant> exists with the
+Continuing with the above example, if a B<Gnome::Glib::Variant> exists with the
 type "a{sv}" then a type information struct will exist for
 "a{sv}", "{sv}", "s", and "v".  Multiple uses of the same type
 will share the same type information.  Additionally, all
 single-digit types are stored in read-only static memory and do
 not contribute to the writable memory footprint of a program using
-B<GVariant>.
+B<Gnome::Glib::Variant>.
 
 Aside from the type information structures stored in read-only
 memory, there are two forms of type information.  One is used for
@@ -198,11 +172,11 @@ structure is required for many different values of the same type.
 
 ## Buffer Management Memory
 
-B<GVariant> uses an internal buffer management structure to deal
+B<Gnome::Glib::Variant> uses an internal buffer management structure to deal
 with the various different possible sources of serialised data
 that it uses.  The buffer is responsible for ensuring that the
 correct call is made when the data is no longer in use by
-B<GVariant>.  This may involve a C<g_free()> or a C<g_slice_free()> or
+B<Gnome::Glib::Variant>.  This may involve a C<g_free()> or a C<g_slice_free()> or
 even C<g_mapped_file_unref()>.
 
 One buffer management structure is used for each chunk of
@@ -211,20 +185,20 @@ is 4 * (void *).  On 32-bit systems, that's 16 bytes.
 
 ## GVariant structure
 
-The size of a B<GVariant> structure is 6 * (void *).  On 32-bit
+The size of a B<Gnome::Glib::Variant> structure is 6 * (void *).  On 32-bit
 systems, that's 24 bytes.
 
-B<GVariant> structures only exist if they are explicitly created
-with API calls.  For example, if a B<GVariant> is constructed out of
+B<Gnome::Glib::Variant> structures only exist if they are explicitly created
+with API calls.  For example, if a B<Gnome::Glib::Variant> is constructed out of
 serialised data for the example given above (with the dictionary)
 then although there are 9 individual values that comprise the
 entire dictionary (two keys, two values, two variants containing
 the values, two dictionary entries, plus the dictionary itself),
-only 1 B<GVariant> instance exists -- the one referring to the
+only 1 B<Gnome::Glib::Variant> instance exists -- the one referring to the
 dictionary.
 
 If calls are made to start accessing the other values then
-B<GVariant> instances will exist for those values only for as long
+B<Gnome::Glib::Variant> instances will exist for those values only for as long
 as they are in use (ie: until you call C<g_variant_unref()>).  The
 type information is shared.  The serialised data and the buffer
 management structure for that serialised data is shared by the
@@ -236,31 +210,13 @@ To put the entire example together, for our dictionary mapping
 strings to variants (with two entries, as given above), we are
 using 91 bytes of memory for type information, 29 bytes of memory
 for the serialised data, 16 bytes for buffer management and 24
-bytes for the B<GVariant> instance, or a total of 160 bytes, plus
+bytes for the B<Gnome::Glib::Variant> instance, or a total of 160 bytes, plus
 malloc overhead.  If we were to use C<g_variant_get_child_value()> to
 access the two dictionary entries, we would use an additional 48
 bytes.  If we were to have other dictionaries of the same type, we
 would use more memory for the serialised data and buffer
 management for those dictionaries, but the type information would
 be shared.
-
-
-
-=begin comment
-=head2 Implemented Interfaces
-
-Gnome::Glib::Variant implements
-=comment item Gnome::Atk::ImplementorIface
-=comment item [Gnome::Gtk3::Buildable](Buildable.html)
-=comment item [Gnome::Gtk3::Orientable](Orientable.html)
-
-=head2 Known implementations
-
-Gnome::Glib::Variant is implemented by
-
-=item
-
-=end comment
 
 =head2 See Also
 
@@ -271,9 +227,6 @@ GVariantType
 
   unit class Gnome::Glib::Variant;
 
-=comment  also does Gnome::Gtk3::Buildable;
-=comment  also does Gnome::Gtk3::Orientable;
-
 =comment head2 Example
 
 =end pod
@@ -282,54 +235,94 @@ use NativeCall;
 
 use Gnome::N::X;
 use Gnome::N::NativeLib;
-use Gnome::N::N-GObject;
-
-
-#use Gnome::Gtk3::Orientable;
-#use Gnome::Gtk3::Buildable;
+use Gnome::Glib::Error;
 
 #-------------------------------------------------------------------------------
 unit class Gnome::Glib::Variant:auth<github:MARTIMM>;
 
-#also does Gnome::Gtk3::Buildable;
-#also does Gnome::Gtk3::Orientable;
+#-------------------------------------------------------------------------------
+=begin pod
+=head1 Types
+=head2 class N-GVariant
+
+N-GVariant is an opaque data structure and can only be accessed using the following functions.
+
+=end pod
+
+#TT:1:N-GVariant:
+class N-GVariant
+  is repr('CPointer')
+  is export
+  { }
 
 #-------------------------------------------------------------------------------
+=begin pod
+=head2 GVariantClass
+=end pod
 
+#TT:1:GVariantClass
+enum GVariantClass is export (
+  G_VARIANT_CLASS_BOOLEAN       => 'b',
+  G_VARIANT_CLASS_BYTE          => 'y',
+  G_VARIANT_CLASS_INT16         => 'n',
+  G_VARIANT_CLASS_UINT16        => 'q',
+  G_VARIANT_CLASS_INT32         => 'i',
+  G_VARIANT_CLASS_UINT32        => 'u',
+  G_VARIANT_CLASS_INT64         => 'x',
+  G_VARIANT_CLASS_UINT64        => 't',
+  G_VARIANT_CLASS_HANDLE        => 'h',
+  G_VARIANT_CLASS_DOUBLE        => 'd',
+  G_VARIANT_CLASS_STRING        => 's',
+  G_VARIANT_CLASS_OBJECT_PATH   => 'o',
+  G_VARIANT_CLASS_SIGNATURE     => 'g',
+  G_VARIANT_CLASS_VARIANT       => 'v',
+  G_VARIANT_CLASS_MAYBE         => 'm',
+  G_VARIANT_CLASS_ARRAY         => 'a',
+  G_VARIANT_CLASS_TUPLE         => '(',
+  G_VARIANT_CLASS_DICT_ENTRY    => '{'
+);
+
+#-------------------------------------------------------------------------------
+has N-GVariant $!g-gvariant;
+
+has Bool $.is-valid = False;
+
+#-------------------------------------------------------------------------------
 =begin pod
 =head1 Methods
 =head2 new
 
 Create a new Variant object.
 
-  multi method new ( )
+  multi method new ( Str :$type-string!, Array :$values )
 
-Create a Variant object using a native object from elsewhere. See also B<Gnome::GObject::Object>.
+Create a Variant object using a native object from elsewhere.
 
-  multi method new ( N-GObject :$native-object! )
-
-Create a Variant object using a native object returned from a builder. See also B<Gnome::GObject::Object>.
-
-  multi method new ( Str :$build-id! )
+  multi method new ( N-GVariant :$native-object! )
 
 =end pod
 
-#TM:0:new():inheriting
-#TM:0:new():
+#TM:0:new(:type-string,:values):
 #TM:0:new(:native-object):
-#TM:0:new(:build-id):
 
 submethod BUILD ( *%options ) {
-
-
 
   # prevent creating wrong native-objects
   return unless self.^name eq 'Gnome::Glib::Variant';
 
   # process all named arguments
-  if ? %options<widget> || ? %options<native-object> ||
-     ? %options<build-id> {
-    # provided in Gnome::GObject::Object
+  if %options.elems == 0 {
+    die X::Gnome.new(:message('No options specified ' ~ self.^name));
+  }
+
+  elsif ? %options<type-string> {
+    $!g-gvariant = g_variant_new( %options<type-string>, |%options<values>);
+    $!is-valid = ?$!g-gvariant;
+  }
+
+  elsif ? %options<native-object> {
+    $!g-gvariant = %options<native-object>;
+    $!is-valid = ?$!g-gvariant;
   }
 
   elsif %options.keys.elems {
@@ -341,66 +334,121 @@ submethod BUILD ( *%options ) {
     );
   }
 
-  # create default object
-  else {
-    # self.set-native-object(g_variant_new());
+  # only after creating the native-object, the gtype is known
+#  self.set-class-info('GVariant');
+}
+
+#-------------------------------------------------------------------------------
+method CALL-ME ( N-GVariant $gvariant? --> N-GVariant ) {
+
+  if $gvariant.defined {
+    _g_variant_unref($!g-gvariant) if $!g-gvariant.defined;
+    $!g-gvariant = $gvariant;
+    $!is-valid = True;
   }
 
-  # only after creating the native-object, the gtype is known
-  self.set-class-info('GVariant');
+  $!g-gvariant
+}
+
+#-------------------------------------------------------------------------------
+method get-native-object ( --> N-GVariant ) {
+
+  $!g-gvariant
+}
+
+#-------------------------------------------------------------------------------
+method set-native-object ( N-GVariant $gvariant ) {
+
+  if $gvariant.defined {
+    _g_variant_unref($!g-gvariant) if $!g-gvariant.defined;
+    $!g-gvariant = $gvariant;
+    $!is-valid = True;
+  }
 }
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
-method _fallback ( $native-sub is copy --> Callable ) {
+method FALLBACK ( $native-sub is copy, |c ) {
+
+  note "\nSearch for .$native-sub\() following ", self.^mro
+    if $Gnome::N::x-debug;
+
+  CATCH { test-catch-exception( $_, $native-sub); }
+
+  $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-');
 
   my Callable $s;
   try { $s = &::("g_variant_$native-sub"); };
-# check for gtk_, gdk_, g_, pango_, cairo_ !!!
-  try { $s = &::("gtk_$native-sub"); } unless ?$s;
-  try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'gtk_' /;
-#  $s = self._buildable_interface($native-sub) unless ?$s;
-#  $s = self._orientable_interface($native-sub) unless ?$s;
+  try { $s = &::("g_$native-sub"); } unless ?$s;
+  try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
-  self.set-class-name-of-sub('GVariant');
-  $s = callsame unless ?$s;
+#  self.set-class-name-of-sub('GVariant');
 
-  $s;
+  die X::Gnome.new(:message("Method '$native-sub' not found")) unless ?$s;
+  test-call( &$s, $!g-gvariant, |c)
+}
+
+#-------------------------------------------------------------------------------
+#TM:1:clear-object
+=begin pod
+=head2 clear-object
+
+Clear the error and return data to memory pool. The error object is not valid after this call and C<is-valid()> will return C<False>.
+
+  method clear-object ()
+
+=end pod
+
+method clear-object ( ) {
+
+  _g_variant_unref($!g-gvariant) if $!is-valid;
+  $!is-valid = False;
+  $!g-gvariant = N-GVariant;
+}
+
+#-------------------------------------------------------------------------------
+submethod DESTROY ( ) {
+  _g_variant_unref($!g-gvariant) if $!is-valid;
 }
 
 
+
 #-------------------------------------------------------------------------------
+#`{{ not for users
 #TM:0:g_variant_unref:
 =begin pod
 =head2 g_variant_unref
 
-
+Decreases the reference count of value . When its reference count drops to 0, the memory used by the variant is freed.
 
   method g_variant_unref ( )
 
-
 =end pod
+}}
 
-sub g_variant_unref ( N-GObject $value  )
+sub _g_variant_unref ( N-GVariant $value  )
   is native(&glib-lib)
+  is symbol('g_variant_unref')
   { * }
 
 #-------------------------------------------------------------------------------
+#`{{ not for users
 #TM:0:g_variant_ref:
 =begin pod
 =head2 g_variant_ref
 
+Increases the reference count of value .
 
-
-  method g_variant_ref ( --> N-GObject )
-
+  method g_variant_ref ( --> N-GVariant )
 
 =end pod
-
-sub g_variant_ref ( N-GObject $value --> N-GObject )
+}}
+sub _g_variant_ref ( N-GVariant $value --> N-GVariant )
   is native(&glib-lib)
+  is symbol('g_variant_ref')
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_ref_sink:
 =begin pod
@@ -408,12 +456,12 @@ sub g_variant_ref ( N-GObject $value --> N-GObject )
 
 
 
-  method g_variant_ref_sink ( --> N-GObject )
+  method g_variant_ref_sink ( --> N-GVariant )
 
 
 =end pod
 
-sub g_variant_ref_sink ( N-GObject $value --> N-GObject )
+sub g_variant_ref_sink ( N-GVariant $value --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -429,7 +477,7 @@ sub g_variant_ref_sink ( N-GObject $value --> N-GObject )
 
 =end pod
 
-sub g_variant_is_floating ( N-GObject $value --> int32 )
+sub g_variant_is_floating ( N-GVariant $value --> int32 )
   is native(&glib-lib)
   { * }
 
@@ -440,14 +488,15 @@ sub g_variant_is_floating ( N-GObject $value --> int32 )
 
 
 
-  method g_variant_take_ref ( --> N-GObject )
+  method g_variant_take_ref ( --> N-GVariant )
 
 
 =end pod
 
-sub g_variant_take_ref ( N-GObject $value --> N-GObject )
+sub g_variant_take_ref ( N-GVariant $value --> N-GVariant )
   is native(&glib-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_get_type:
@@ -459,14 +508,14 @@ Determines the type of I<value>.
 The return value is valid for the lifetime of I<value> and must not
 be freed.
 
-Returns: a B<GVariantType>
+Returns: a B<Gnome::Glib::VariantType>
 
-  method g_variant_get_type ( --> N-GObject )
+  method g_variant_get_type ( --> N-GVariant )
 
 
 =end pod
 
-sub g_variant_get_type ( N-GObject $value --> N-GObject )
+sub g_variant_get_type ( N-GVariant $value --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -477,7 +526,7 @@ sub g_variant_get_type ( N-GObject $value --> N-GObject )
 
 Returns the type string of I<value>.  Unlike the result of calling
 C<g_variant_type_peek_string()>, this string is nul-terminated.  This
-string belongs to B<GVariant> and must not be freed.
+string belongs to B<Gnome::Glib::Variant> and must not be freed.
 
 Returns: the type string for the type of I<value>
 
@@ -486,7 +535,7 @@ Returns: the type string for the type of I<value>
 
 =end pod
 
-sub g_variant_get_type_string ( N-GObject $value --> Str )
+sub g_variant_get_type_string ( N-GVariant $value --> Str )
   is native(&glib-lib)
   { * }
 
@@ -499,13 +548,13 @@ Checks if a value has a type matching the provided type.
 
 Returns: C<1> if the type of I<value> matches I<type>
 
-  method g_variant_is_of_type ( N-GObject $type --> Int )
+  method g_variant_is_of_type ( N-GVariant $type --> Int )
 
-=item N-GObject $type; a B<GVariantType>
+=item N-GVariant $type; a B<Gnome::Glib::VariantType>
 
 =end pod
 
-sub g_variant_is_of_type ( N-GObject $value, N-GObject $type --> int32 )
+sub g_variant_is_of_type ( N-GVariant $value, N-GVariant $type --> int32 )
   is native(&glib-lib)
   { * }
 
@@ -523,7 +572,7 @@ Returns: C<1> if I<value> is a container
 
 =end pod
 
-sub g_variant_is_container ( N-GObject $value --> int32 )
+sub g_variant_is_container ( N-GVariant $value --> int32 )
   is native(&glib-lib)
   { * }
 
@@ -534,14 +583,14 @@ sub g_variant_is_container ( N-GObject $value --> int32 )
 
 Classifies I<value> according to its top-level type.
 
-Returns: the B<GVariantClass> of I<value>
+Returns: the B<Gnome::Glib::VariantClass> of I<value>
 
-  method g_variant_classify ( --> GVariantClass )
+  method g_variant_classify ( --> int32 )
 
 
 =end pod
 
-sub g_variant_classify ( N-GObject $value --> GVariantClass )
+sub g_variant_classify ( N-GVariant $value --> int32 )
   is native(&glib-lib)
   { * }
 
@@ -550,17 +599,17 @@ sub g_variant_classify ( N-GObject $value --> GVariantClass )
 =begin pod
 =head2 [g_variant_] new_boolean
 
-Creates a new boolean B<GVariant> instance -- either C<1> or C<0>.
+Creates a new boolean B<Gnome::Glib::Variant> instance -- either C<1> or C<0>.
 
-Returns: (transfer none): a floating reference to a new boolean B<GVariant> instance
+Returns: (transfer none): a floating reference to a new boolean B<Gnome::Glib::Variant> instance
 
-  method g_variant_new_boolean ( Int $value --> N-GObject )
+  method g_variant_new_boolean ( Int $value --> N-GVariant )
 
 =item Int $value; a B<gboolean> value
 
 =end pod
 
-sub g_variant_new_boolean ( int32 $value --> N-GObject )
+sub g_variant_new_boolean ( int32 $value --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -569,17 +618,17 @@ sub g_variant_new_boolean ( int32 $value --> N-GObject )
 =begin pod
 =head2 [g_variant_] new_byte
 
-Creates a new byte B<GVariant> instance.
+Creates a new byte B<Gnome::Glib::Variant> instance.
 
-Returns: (transfer none): a floating reference to a new byte B<GVariant> instance
+Returns: (transfer none): a floating reference to a new byte B<Gnome::Glib::Variant> instance
 
-  method g_variant_new_byte ( UInt $value --> N-GObject )
+  method g_variant_new_byte ( UInt $value --> N-GVariant )
 
 =item UInt $value; a B<guint8> value
 
 =end pod
 
-sub g_variant_new_byte ( byte $value --> N-GObject )
+sub g_variant_new_byte ( byte $value --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -588,17 +637,17 @@ sub g_variant_new_byte ( byte $value --> N-GObject )
 =begin pod
 =head2 [g_variant_] new_int16
 
-Creates a new int16 B<GVariant> instance.
+Creates a new int16 B<Gnome::Glib::Variant> instance.
 
-Returns: (transfer none): a floating reference to a new int16 B<GVariant> instance
+Returns: (transfer none): a floating reference to a new int16 B<Gnome::Glib::Variant> instance
 
-  method g_variant_new_int16 ( Int $value --> N-GObject )
+  method g_variant_new_int16 ( Int $value --> N-GVariant )
 
 =item Int $value; a B<gint16> value
 
 =end pod
 
-sub g_variant_new_int16 ( int16 $value --> N-GObject )
+sub g_variant_new_int16 ( int16 $value --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -607,17 +656,17 @@ sub g_variant_new_int16 ( int16 $value --> N-GObject )
 =begin pod
 =head2 [g_variant_] new_uint16
 
-Creates a new uint16 B<GVariant> instance.
+Creates a new uint16 B<Gnome::Glib::Variant> instance.
 
-Returns: (transfer none): a floating reference to a new uint16 B<GVariant> instance
+Returns: (transfer none): a floating reference to a new uint16 B<Gnome::Glib::Variant> instance
 
-  method g_variant_new_uint16 ( UInt $value --> N-GObject )
+  method g_variant_new_uint16 ( UInt $value --> N-GVariant )
 
 =item UInt $value; a B<guint16> value
 
 =end pod
 
-sub g_variant_new_uint16 ( uint16 $value --> N-GObject )
+sub g_variant_new_uint16 ( uint16 $value --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -626,17 +675,17 @@ sub g_variant_new_uint16 ( uint16 $value --> N-GObject )
 =begin pod
 =head2 [g_variant_] new_int32
 
-Creates a new int32 B<GVariant> instance.
+Creates a new int32 B<Gnome::Glib::Variant> instance.
 
-Returns: (transfer none): a floating reference to a new int32 B<GVariant> instance
+Returns: (transfer none): a floating reference to a new int32 B<Gnome::Glib::Variant> instance
 
-  method g_variant_new_int32 ( Int $value --> N-GObject )
+  method g_variant_new_int32 ( Int $value --> N-GVariant )
 
 =item Int $value; a B<gint32> value
 
 =end pod
 
-sub g_variant_new_int32 ( int32 $value --> N-GObject )
+sub g_variant_new_int32 ( int32 $value --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -645,17 +694,17 @@ sub g_variant_new_int32 ( int32 $value --> N-GObject )
 =begin pod
 =head2 [g_variant_] new_uint32
 
-Creates a new uint32 B<GVariant> instance.
+Creates a new uint32 B<Gnome::Glib::Variant> instance.
 
-Returns: (transfer none): a floating reference to a new uint32 B<GVariant> instance
+Returns: (transfer none): a floating reference to a new uint32 B<Gnome::Glib::Variant> instance
 
-  method g_variant_new_uint32 ( UInt $value --> N-GObject )
+  method g_variant_new_uint32 ( UInt $value --> N-GVariant )
 
 =item UInt $value; a B<guint32> value
 
 =end pod
 
-sub g_variant_new_uint32 ( uint32 $value --> N-GObject )
+sub g_variant_new_uint32 ( uint32 $value --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -664,17 +713,17 @@ sub g_variant_new_uint32 ( uint32 $value --> N-GObject )
 =begin pod
 =head2 [g_variant_] new_int64
 
-Creates a new int64 B<GVariant> instance.
+Creates a new int64 B<Gnome::Glib::Variant> instance.
 
-Returns: (transfer none): a floating reference to a new int64 B<GVariant> instance
+Returns: (transfer none): a floating reference to a new int64 B<Gnome::Glib::Variant> instance
 
-  method g_variant_new_int64 ( Int $value --> N-GObject )
+  method g_variant_new_int64 ( Int $value --> N-GVariant )
 
 =item Int $value; a B<gint64> value
 
 =end pod
 
-sub g_variant_new_int64 ( int64 $value --> N-GObject )
+sub g_variant_new_int64 ( int64 $value --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -683,17 +732,17 @@ sub g_variant_new_int64 ( int64 $value --> N-GObject )
 =begin pod
 =head2 [g_variant_] new_uint64
 
-Creates a new uint64 B<GVariant> instance.
+Creates a new uint64 B<Gnome::Glib::Variant> instance.
 
-Returns: (transfer none): a floating reference to a new uint64 B<GVariant> instance
+Returns: (transfer none): a floating reference to a new uint64 B<Gnome::Glib::Variant> instance
 
-  method g_variant_new_uint64 ( UInt $value --> N-GObject )
+  method g_variant_new_uint64 ( UInt $value --> N-GVariant )
 
 =item UInt $value; a B<guint64> value
 
 =end pod
 
-sub g_variant_new_uint64 ( uint64 $value --> N-GObject )
+sub g_variant_new_uint64 ( uint64 $value --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -702,21 +751,21 @@ sub g_variant_new_uint64 ( uint64 $value --> N-GObject )
 =begin pod
 =head2 [g_variant_] new_handle
 
-Creates a new handle B<GVariant> instance.
+Creates a new handle B<Gnome::Glib::Variant> instance.
 
 By convention, handles are indexes into an array of file descriptors
 that are sent alongside a D-Bus message.  If you're not interacting
 with D-Bus, you probably don't need them.
 
-Returns: (transfer none): a floating reference to a new handle B<GVariant> instance
+Returns: (transfer none): a floating reference to a new handle B<Gnome::Glib::Variant> instance
 
-  method g_variant_new_handle ( Int $value --> N-GObject )
+  method g_variant_new_handle ( Int $value --> N-GVariant )
 
 =item Int $value; a B<gint32> value
 
 =end pod
 
-sub g_variant_new_handle ( int32 $value --> N-GObject )
+sub g_variant_new_handle ( int32 $value --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -725,17 +774,17 @@ sub g_variant_new_handle ( int32 $value --> N-GObject )
 =begin pod
 =head2 [g_variant_] new_double
 
-Creates a new double B<GVariant> instance.
+Creates a new double B<Gnome::Glib::Variant> instance.
 
-Returns: (transfer none): a floating reference to a new double B<GVariant> instance
+Returns: (transfer none): a floating reference to a new double B<Gnome::Glib::Variant> instance
 
-  method g_variant_new_double ( Num $value --> N-GObject )
+  method g_variant_new_double ( Num $value --> N-GVariant )
 
 =item Num $value; a B<gdouble> floating point value
 
 =end pod
 
-sub g_variant_new_double ( num64 $value --> N-GObject )
+sub g_variant_new_double ( num64 $value --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -744,21 +793,21 @@ sub g_variant_new_double ( num64 $value --> N-GObject )
 =begin pod
 =head2 [g_variant_] new_string
 
-Creates a string B<GVariant> with the contents of I<string>.
+Creates a string B<Gnome::Glib::Variant> with the contents of I<string>.
 
 I<string> must be valid UTF-8, and must not be C<Any>. To encode
 potentially-C<Any> strings, use C<g_variant_new()> with `ms` as the
 [format string][gvariant-format-strings-maybe-types].
 
-Returns: (transfer none): a floating reference to a new string B<GVariant> instance
+Returns: (transfer none): a floating reference to a new string B<Gnome::Glib::Variant> instance
 
-  method g_variant_new_string ( Str $string --> N-GObject )
+  method g_variant_new_string ( Str $string --> N-GVariant )
 
 =item Str $string; a normal UTF-8 nul-terminated string
 
 =end pod
 
-sub g_variant_new_string ( Str $string --> N-GObject )
+sub g_variant_new_string ( Str $string --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -767,7 +816,7 @@ sub g_variant_new_string ( Str $string --> N-GObject )
 =begin pod
 =head2 [g_variant_] new_take_string
 
-Creates a string B<GVariant> with the contents of I<string>.
+Creates a string B<Gnome::Glib::Variant> with the contents of I<string>.
 
 I<string> must be valid UTF-8, and must not be C<Any>. To encode
 potentially-C<Any> strings, use this with C<g_variant_new_maybe()>.
@@ -780,18 +829,19 @@ it to this function.  It is even possible that I<string> is immediately
 freed.
 
 Returns: (transfer none): a floating reference to a new string
-B<GVariant> instance
+B<Gnome::Glib::Variant> instance
 
-  method g_variant_new_take_string ( Str $string --> N-GObject )
+  method g_variant_new_take_string ( Str $string --> N-GVariant )
 
 =item Str $string; a normal UTF-8 nul-terminated string
 
 =end pod
 
-sub g_variant_new_take_string ( Str $string --> N-GObject )
+sub g_variant_new_take_string ( Str $string --> N-GVariant )
   is native(&glib-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_new_printf:
 =begin pod
@@ -804,37 +854,38 @@ C<g_variant_new_string()> but it saves a temporary variable and an
 unnecessary copy.
 
 Returns: (transfer none): a floating reference to a new string
-B<GVariant> instance
+B<Gnome::Glib::Variant> instance
 
-  method g_variant_new_printf ( Str $format_string,  $2 --> N-GObject )
+  method g_variant_new_printf ( Str $format_string,  $2 --> N-GVariant )
 
 =item Str $format_string; a printf-style format string @...: arguments for I<format_string>
 =item  $2;
 
 =end pod
 
-sub g_variant_new_printf ( Str $format_string, Any $any = Any,  $2 --> N-GObject )
+sub g_variant_new_printf ( Str $format_string, Any $any = Any,  $2 --> N-GVariant )
   is native(&glib-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_new_object_path:
 =begin pod
 =head2 [g_variant_] new_object_path
 
-Creates a D-Bus object path B<GVariant> with the contents of I<string>.
+Creates a D-Bus object path B<Gnome::Glib::Variant> with the contents of I<string>.
 I<string> must be a valid D-Bus object path.  Use
 C<g_variant_is_object_path()> if you're not sure.
 
-Returns: (transfer none): a floating reference to a new object path B<GVariant> instance
+Returns: (transfer none): a floating reference to a new object path B<Gnome::Glib::Variant> instance
 
-  method g_variant_new_object_path ( Str $object_path --> N-GObject )
+  method g_variant_new_object_path ( Str $object_path --> N-GVariant )
 
 =item Str $object_path; a normal C nul-terminated string
 
 =end pod
 
-sub g_variant_new_object_path ( Str $object_path --> N-GObject )
+sub g_variant_new_object_path ( Str $object_path --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -869,19 +920,19 @@ sub g_variant_is_object_path ( Str $string --> int32 )
 =begin pod
 =head2 [g_variant_] new_signature
 
-Creates a D-Bus type signature B<GVariant> with the contents of
+Creates a D-Bus type signature B<Gnome::Glib::Variant> with the contents of
 I<string>.  I<string> must be a valid D-Bus type signature.  Use
 C<g_variant_is_signature()> if you're not sure.
 
-Returns: (transfer none): a floating reference to a new signature B<GVariant> instance
+Returns: (transfer none): a floating reference to a new signature B<Gnome::Glib::Variant> instance
 
-  method g_variant_new_signature ( Str $signature --> N-GObject )
+  method g_variant_new_signature ( Str $signature --> N-GVariant )
 
 =item Str $signature; a normal C nul-terminated string
 
 =end pod
 
-sub g_variant_new_signature ( Str $signature --> N-GObject )
+sub g_variant_new_signature ( Str $signature --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -894,7 +945,7 @@ Determines if a given string is a valid D-Bus type signature.  You
 should ensure that a string is a valid D-Bus type signature before
 passing it to C<g_variant_new_signature()>.
 
-D-Bus type signatures consist of zero or more definite B<GVariantType>
+D-Bus type signatures consist of zero or more definite B<Gnome::Glib::VariantType>
 strings in sequence.
 
 Returns: C<1> if I<string> is a D-Bus type signature
@@ -914,20 +965,20 @@ sub g_variant_is_signature ( Str $string --> int32 )
 =begin pod
 =head2 [g_variant_] new_variant
 
-Boxes I<value>.  The result is a B<GVariant> instance representing a
+Boxes I<value>.  The result is a B<Gnome::Glib::Variant> instance representing a
 variant containing the original value.
 
 If I<child> is a floating reference (see C<g_variant_ref_sink()>), the new
 instance takes ownership of I<child>.
 
-Returns: (transfer none): a floating reference to a new variant B<GVariant> instance
+Returns: (transfer none): a floating reference to a new variant B<Gnome::Glib::Variant> instance
 
-  method g_variant_new_variant ( --> N-GObject )
+  method g_variant_new_variant ( --> N-GVariant )
 
 
 =end pod
 
-sub g_variant_new_variant ( N-GObject $value --> N-GObject )
+sub g_variant_new_variant ( N-GVariant $value --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -936,71 +987,73 @@ sub g_variant_new_variant ( N-GObject $value --> N-GObject )
 =begin pod
 =head2 [g_variant_] new_strv
 
-Constructs an array of strings B<GVariant> from the given array of
+Constructs an array of strings B<Gnome::Glib::Variant> from the given array of
 strings.
 
 If I<length> is -1 then I<strv> is C<Any>-terminated.
 
-Returns: (transfer none): a new floating B<GVariant> instance
+Returns: (transfer none): a new floating B<Gnome::Glib::Variant> instance
 
-  method g_variant_new_strv ( CArray[Str] $strv, Int $length --> N-GObject )
+  method g_variant_new_strv ( CArray[Str] $strv, Int $length --> N-GVariant )
 
 =item CArray[Str] $strv; (array length=length) (element-type utf8): an array of strings
 =item Int $length; the length of I<strv>, or -1
 
 =end pod
 
-sub g_variant_new_strv ( CArray[Str] $strv, int64 $length --> N-GObject )
+sub g_variant_new_strv ( CArray[Str] $strv, int64 $length --> N-GVariant )
   is native(&glib-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_new_objv:
 =begin pod
 =head2 [g_variant_] new_objv
 
-Constructs an array of object paths B<GVariant> from the given array of
+Constructs an array of object paths B<Gnome::Glib::Variant> from the given array of
 strings.
 
-Each string must be a valid B<GVariant> object path; see
+Each string must be a valid B<Gnome::Glib::Variant> object path; see
 C<g_variant_is_object_path()>.
 
 If I<length> is -1 then I<strv> is C<Any>-terminated.
 
-Returns: (transfer none): a new floating B<GVariant> instance
+Returns: (transfer none): a new floating B<Gnome::Glib::Variant> instance
 
-  method g_variant_new_objv ( CArray[Str] $strv, Int $length --> N-GObject )
+  method g_variant_new_objv ( CArray[Str] $strv, Int $length --> N-GVariant )
 
 =item CArray[Str] $strv; (array length=length) (element-type utf8): an array of strings
 =item Int $length; the length of I<strv>, or -1
 
 =end pod
 
-sub g_variant_new_objv ( CArray[Str] $strv, int64 $length --> N-GObject )
+sub g_variant_new_objv ( CArray[Str] $strv, int64 $length --> N-GVariant )
   is native(&glib-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_new_bytestring:
 =begin pod
 =head2 [g_variant_] new_bytestring
 
-Creates an array-of-bytes B<GVariant> with the contents of I<string>.
+Creates an array-of-bytes B<Gnome::Glib::Variant> with the contents of I<string>.
 This function is just like C<g_variant_new_string()> except that the
 string need not be valid UTF-8.
 
 The nul terminator character at the end of the string is stored in
 the array.
 
-Returns: (transfer none): a floating reference to a new bytestring B<GVariant> instance
+Returns: (transfer none): a floating reference to a new bytestring B<Gnome::Glib::Variant> instance
 
-  method g_variant_new_bytestring ( Str $string --> N-GObject )
+  method g_variant_new_bytestring ( Str $string --> N-GVariant )
 
 =item Str $string; (array zero-terminated=1) (element-type guint8): a normal nul-terminated string in no particular encoding
 
 =end pod
 
-sub g_variant_new_bytestring ( Str $string --> N-GObject )
+sub g_variant_new_bytestring ( Str $string --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -1009,21 +1062,21 @@ sub g_variant_new_bytestring ( Str $string --> N-GObject )
 =begin pod
 =head2 [g_variant_] new_bytestring_array
 
-Constructs an array of bytestring B<GVariant> from the given array of
+Constructs an array of bytestring B<Gnome::Glib::Variant> from the given array of
 strings.
 
 If I<length> is -1 then I<strv> is C<Any>-terminated.
 
-Returns: (transfer none): a new floating B<GVariant> instance
+Returns: (transfer none): a new floating B<Gnome::Glib::Variant> instance
 
-  method g_variant_new_bytestring_array ( CArray[Str] $strv, Int $length --> N-GObject )
+  method g_variant_new_bytestring_array ( CArray[Str] $strv, Int $length --> N-GVariant )
 
 =item CArray[Str] $strv; (array length=length): an array of strings
 =item Int $length; the length of I<strv>, or -1
 
 =end pod
 
-sub g_variant_new_bytestring_array ( CArray[Str] $strv, int64 $length --> N-GObject )
+sub g_variant_new_bytestring_array ( CArray[Str] $strv, int64 $length --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -1032,7 +1085,7 @@ sub g_variant_new_bytestring_array ( CArray[Str] $strv, int64 $length --> N-GObj
 =begin pod
 =head2 [g_variant_] new_fixed_array
 
-Constructs a new array B<GVariant> instance, where the elements are
+Constructs a new array B<Gnome::Glib::Variant> instance, where the elements are
 of I<element_type> type.
 
 I<elements> must be an array with fixed-sized elements.  Numeric types are
@@ -1046,18 +1099,18 @@ expectation.
 
 I<n_elements> must be the length of the I<elements> array.
 
-Returns: (transfer none): a floating reference to a new array B<GVariant> instance
+Returns: (transfer none): a floating reference to a new array B<Gnome::Glib::Variant> instance
 
-  method g_variant_new_fixed_array ( N-GObject $element_type, Pointer $elements, UInt $n_elements, UInt $element_size --> N-GObject )
+  method g_variant_new_fixed_array ( N-GVariant $element_type, Pointer $elements, UInt $n_elements, UInt $element_size --> N-GVariant )
 
-=item N-GObject $element_type; the B<GVariantType> of each element
+=item N-GVariant $element_type; the B<Gnome::Glib::VariantType> of each element
 =item Pointer $elements; a pointer to the fixed array of contiguous elements
 =item UInt $n_elements; the number of elements
 =item UInt $element_size; the size of each element
 
 =end pod
 
-sub g_variant_new_fixed_array ( N-GObject $element_type, Pointer $elements, uint64 $n_elements, uint64 $element_size --> N-GObject )
+sub g_variant_new_fixed_array ( N-GVariant $element_type, Pointer $elements, uint64 $n_elements, uint64 $element_size --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -1078,7 +1131,7 @@ Returns: C<1> or C<0>
 
 =end pod
 
-sub g_variant_get_boolean ( N-GObject $value --> int32 )
+sub g_variant_get_boolean ( N-GVariant $value --> int32 )
   is native(&glib-lib)
   { * }
 
@@ -1099,7 +1152,7 @@ Returns: a B<guint8>
 
 =end pod
 
-sub g_variant_get_byte ( N-GObject $value --> byte )
+sub g_variant_get_byte ( N-GVariant $value --> byte )
   is native(&glib-lib)
   { * }
 
@@ -1120,7 +1173,7 @@ Returns: a B<gint16>
 
 =end pod
 
-sub g_variant_get_int16 ( N-GObject $value --> int16 )
+sub g_variant_get_int16 ( N-GVariant $value --> int16 )
   is native(&glib-lib)
   { * }
 
@@ -1141,7 +1194,7 @@ Returns: a B<guint16>
 
 =end pod
 
-sub g_variant_get_uint16 ( N-GObject $value --> uint16 )
+sub g_variant_get_uint16 ( N-GVariant $value --> uint16 )
   is native(&glib-lib)
   { * }
 
@@ -1162,7 +1215,7 @@ Returns: a B<gint32>
 
 =end pod
 
-sub g_variant_get_int32 ( N-GObject $value --> int32 )
+sub g_variant_get_int32 ( N-GVariant $value --> int32 )
   is native(&glib-lib)
   { * }
 
@@ -1183,7 +1236,7 @@ Returns: a B<guint32>
 
 =end pod
 
-sub g_variant_get_uint32 ( N-GObject $value --> uint32 )
+sub g_variant_get_uint32 ( N-GVariant $value --> uint32 )
   is native(&glib-lib)
   { * }
 
@@ -1204,7 +1257,7 @@ Returns: a B<gint64>
 
 =end pod
 
-sub g_variant_get_int64 ( N-GObject $value --> int64 )
+sub g_variant_get_int64 ( N-GVariant $value --> int64 )
   is native(&glib-lib)
   { * }
 
@@ -1225,7 +1278,7 @@ Returns: a B<guint64>
 
 =end pod
 
-sub g_variant_get_uint64 ( N-GObject $value --> uint64 )
+sub g_variant_get_uint64 ( N-GVariant $value --> uint64 )
   is native(&glib-lib)
   { * }
 
@@ -1250,7 +1303,7 @@ Returns: a B<gint32>
 
 =end pod
 
-sub g_variant_get_handle ( N-GObject $value --> int32 )
+sub g_variant_get_handle ( N-GVariant $value --> int32 )
   is native(&glib-lib)
   { * }
 
@@ -1271,7 +1324,7 @@ Returns: a B<gdouble>
 
 =end pod
 
-sub g_variant_get_double ( N-GObject $value --> num64 )
+sub g_variant_get_double ( N-GVariant $value --> num64 )
   is native(&glib-lib)
   { * }
 
@@ -1280,17 +1333,17 @@ sub g_variant_get_double ( N-GObject $value --> num64 )
 =begin pod
 =head2 [g_variant_] get_variant
 
-Unboxes I<value>.  The result is the B<GVariant> instance that was
+Unboxes I<value>.  The result is the B<Gnome::Glib::Variant> instance that was
 contained in I<value>.
 
 Returns: (transfer full): the item contained in the variant
 
-  method g_variant_get_variant ( --> N-GObject )
+  method g_variant_get_variant ( --> N-GVariant )
 
 
 =end pod
 
-sub g_variant_get_variant ( N-GObject $value --> N-GObject )
+sub g_variant_get_variant ( N-GVariant $value --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -1299,7 +1352,7 @@ sub g_variant_get_variant ( N-GObject $value --> N-GObject )
 =begin pod
 =head2 [g_variant_] get_string
 
-Returns the string value of a B<GVariant> instance with a string
+Returns the string value of a B<Gnome::Glib::Variant> instance with a string
 type.  This includes the types C<G_VARIANT_TYPE_STRING>,
 C<G_VARIANT_TYPE_OBJECT_PATH> and C<G_VARIANT_TYPE_SIGNATURE>.
 
@@ -1322,7 +1375,7 @@ Returns: (transfer none): the constant string, UTF-8 encoded
 
 =end pod
 
-sub g_variant_get_string ( N-GObject $value, uint64 $length --> Str )
+sub g_variant_get_string ( N-GVariant $value, uint64 $length --> Str )
   is native(&glib-lib)
   { * }
 
@@ -1346,7 +1399,7 @@ Returns: (transfer full): a newly allocated string, UTF-8 encoded
 
 =end pod
 
-sub g_variant_dup_string ( N-GObject $value, uint64 $length --> Str )
+sub g_variant_dup_string ( N-GVariant $value, uint64 $length --> Str )
   is native(&glib-lib)
   { * }
 
@@ -1355,7 +1408,7 @@ sub g_variant_dup_string ( N-GObject $value, uint64 $length --> Str )
 =begin pod
 =head2 [g_variant_] get_strv
 
-Gets the contents of an array of strings B<GVariant>.  This call
+Gets the contents of an array of strings B<Gnome::Glib::Variant>.  This call
 makes a shallow copy; the return result should be released with
 C<g_free()>, but the individual strings must not be modified.
 
@@ -1374,7 +1427,7 @@ Returns: (array length=length zero-terminated=1) (transfer container): an array 
 
 =end pod
 
-sub g_variant_get_strv ( N-GObject $value, uint64 $length --> CArray[Str] )
+sub g_variant_get_strv ( N-GVariant $value, uint64 $length --> CArray[Str] )
   is native(&glib-lib)
   { * }
 
@@ -1383,7 +1436,7 @@ sub g_variant_get_strv ( N-GObject $value, uint64 $length --> CArray[Str] )
 =begin pod
 =head2 [g_variant_] dup_strv
 
-Gets the contents of an array of strings B<GVariant>.  This call
+Gets the contents of an array of strings B<Gnome::Glib::Variant>.  This call
 makes a deep copy; the return result should be released with
 C<g_strfreev()>.
 
@@ -1402,7 +1455,7 @@ Returns: (array length=length zero-terminated=1) (transfer full): an array of st
 
 =end pod
 
-sub g_variant_dup_strv ( N-GObject $value, uint64 $length --> CArray[Str] )
+sub g_variant_dup_strv ( N-GVariant $value, uint64 $length --> CArray[Str] )
   is native(&glib-lib)
   { * }
 
@@ -1411,7 +1464,7 @@ sub g_variant_dup_strv ( N-GObject $value, uint64 $length --> CArray[Str] )
 =begin pod
 =head2 [g_variant_] get_objv
 
-Gets the contents of an array of object paths B<GVariant>.  This call
+Gets the contents of an array of object paths B<Gnome::Glib::Variant>.  This call
 makes a shallow copy; the return result should be released with
 C<g_free()>, but the individual strings must not be modified.
 
@@ -1430,7 +1483,7 @@ Returns: (array length=length zero-terminated=1) (transfer container): an array 
 
 =end pod
 
-sub g_variant_get_objv ( N-GObject $value, uint64 $length --> CArray[Str] )
+sub g_variant_get_objv ( N-GVariant $value, uint64 $length --> CArray[Str] )
   is native(&glib-lib)
   { * }
 
@@ -1439,7 +1492,7 @@ sub g_variant_get_objv ( N-GObject $value, uint64 $length --> CArray[Str] )
 =begin pod
 =head2 [g_variant_] dup_objv
 
-Gets the contents of an array of object paths B<GVariant>.  This call
+Gets the contents of an array of object paths B<Gnome::Glib::Variant>.  This call
 makes a deep copy; the return result should be released with
 C<g_strfreev()>.
 
@@ -1458,7 +1511,7 @@ Returns: (array length=length zero-terminated=1) (transfer full): an array of st
 
 =end pod
 
-sub g_variant_dup_objv ( N-GObject $value, uint64 $length --> CArray[Str] )
+sub g_variant_dup_objv ( N-GVariant $value, uint64 $length --> CArray[Str] )
   is native(&glib-lib)
   { * }
 
@@ -1467,7 +1520,7 @@ sub g_variant_dup_objv ( N-GObject $value, uint64 $length --> CArray[Str] )
 =begin pod
 =head2 [g_variant_] get_bytestring
 
-Returns the string value of a B<GVariant> instance with an
+Returns the string value of a B<Gnome::Glib::Variant> instance with an
 array-of-bytes type.  The string has no particular encoding.
 
 If the array does not end with a nul terminator character, the empty
@@ -1494,7 +1547,7 @@ the constant string
 
 =end pod
 
-sub g_variant_get_bytestring ( N-GObject $value --> Str )
+sub g_variant_get_bytestring ( N-GVariant $value --> Str )
   is native(&glib-lib)
   { * }
 
@@ -1517,7 +1570,7 @@ a newly allocated string
 
 =end pod
 
-sub g_variant_dup_bytestring ( N-GObject $value, uint64 $length --> Str )
+sub g_variant_dup_bytestring ( N-GVariant $value, uint64 $length --> Str )
   is native(&glib-lib)
   { * }
 
@@ -1526,7 +1579,7 @@ sub g_variant_dup_bytestring ( N-GObject $value, uint64 $length --> Str )
 =begin pod
 =head2 [g_variant_] get_bytestring_array
 
-Gets the contents of an array of array of bytes B<GVariant>.  This call
+Gets the contents of an array of array of bytes B<Gnome::Glib::Variant>.  This call
 makes a shallow copy; the return result should be released with
 C<g_free()>, but the individual strings must not be modified.
 
@@ -1545,7 +1598,7 @@ Returns: (array length=length) (transfer container): an array of constant string
 
 =end pod
 
-sub g_variant_get_bytestring_array ( N-GObject $value, uint64 $length --> CArray[Str] )
+sub g_variant_get_bytestring_array ( N-GVariant $value, uint64 $length --> CArray[Str] )
   is native(&glib-lib)
   { * }
 
@@ -1554,7 +1607,7 @@ sub g_variant_get_bytestring_array ( N-GObject $value, uint64 $length --> CArray
 =begin pod
 =head2 [g_variant_] dup_bytestring_array
 
-Gets the contents of an array of array of bytes B<GVariant>.  This call
+Gets the contents of an array of array of bytes B<Gnome::Glib::Variant>.  This call
 makes a deep copy; the return result should be released with
 C<g_strfreev()>.
 
@@ -1573,7 +1626,7 @@ Returns: (array length=length) (transfer full): an array of strings
 
 =end pod
 
-sub g_variant_dup_bytestring_array ( N-GObject $value, uint64 $length --> CArray[Str] )
+sub g_variant_dup_bytestring_array ( N-GVariant $value, uint64 $length --> CArray[Str] )
   is native(&glib-lib)
   { * }
 
@@ -1593,25 +1646,26 @@ of I<child>.
 If I<child> is a floating reference (see C<g_variant_ref_sink()>), the new
 instance takes ownership of I<child>.
 
-Returns: (transfer none): a floating reference to a new B<GVariant> maybe instance
+Returns: (transfer none): a floating reference to a new B<Gnome::Glib::Variant> maybe instance
 
-  method g_variant_new_maybe ( N-GObject $child_type, N-GObject $child --> N-GObject )
+  method g_variant_new_maybe ( N-GVariant $child_type, N-GVariant $child --> N-GVariant )
 
-=item N-GObject $child_type; (nullable): the B<GVariantType> of the child, or C<Any>
-=item N-GObject $child; (nullable): the child value, or C<Any>
+=item N-GVariant $child_type; (nullable): the B<Gnome::Glib::VariantType> of the child, or C<Any>
+=item N-GVariant $child; (nullable): the child value, or C<Any>
 
 =end pod
 
-sub g_variant_new_maybe ( N-GObject $child_type, N-GObject $child --> N-GObject )
+sub g_variant_new_maybe ( N-GVariant $child_type, N-GVariant $child --> N-GVariant )
   is native(&glib-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_new_array:
 =begin pod
 =head2 [g_variant_] new_array
 
-Creates a new B<GVariant> array from I<children>.
+Creates a new B<Gnome::Glib::Variant> array from I<children>.
 
 I<child_type> must be non-C<Any> if I<n_children> is zero.  Otherwise, the
 child type is determined by inspecting the first element of the
@@ -1627,26 +1681,28 @@ same as I<child_type>, if given.
 If the I<children> are floating references (see C<g_variant_ref_sink()>), the
 new instance takes ownership of them as if via C<g_variant_ref_sink()>.
 
-Returns: (transfer none): a floating reference to a new B<GVariant> array
+Returns: (transfer none): a floating reference to a new B<Gnome::Glib::Variant> array
 
-  method g_variant_new_array ( N-GObject $child_type,  $GVariant * const *children, UInt $n_children --> N-GObject )
+  method g_variant_new_array ( N-GVariant $child_type,  $GVariant * const *children, UInt $n_children --> N-GVariant )
 
-=item N-GObject $child_type; (nullable): the element type of the new array
-=item  $GVariant * const *children; (nullable) (array length=n_children): an array of B<GVariant> pointers, the children
+=item N-GVariant $child_type; (nullable): the element type of the new array
+=item  $GVariant * const *children; (nullable) (array length=n_children): an array of B<Gnome::Glib::Variant> pointers, the children
 =item UInt $n_children; the length of I<children>
 
 =end pod
 
-sub g_variant_new_array ( N-GObject $child_type,  $GVariant * const *children, uint64 $n_children --> N-GObject )
+sub g_variant_new_array ( N-GVariant $child_type,  $GVariant * const *children, uint64 $n_children --> N-GVariant )
   is native(&glib-lib)
   { * }
+}}
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_new_tuple:
 =begin pod
 =head2 [g_variant_] new_tuple
 
-Creates a new tuple B<GVariant> out of the items in I<children>.  The
+Creates a new tuple B<Gnome::Glib::Variant> out of the items in I<children>.  The
 type is determined from the types of I<children>.  No entry in the
 I<children> array may be C<Any>.
 
@@ -1655,39 +1711,40 @@ If I<n_children> is 0 then the unit tuple is constructed.
 If the I<children> are floating references (see C<g_variant_ref_sink()>), the
 new instance takes ownership of them as if via C<g_variant_ref_sink()>.
 
-Returns: (transfer none): a floating reference to a new B<GVariant> tuple
+Returns: (transfer none): a floating reference to a new B<Gnome::Glib::Variant> tuple
 
-  method g_variant_new_tuple (  $GVariant * const *children, UInt $n_children --> N-GObject )
+  method g_variant_new_tuple (  $GVariant * const *children, UInt $n_children --> N-GVariant )
 
 =item  $GVariant * const *children; (array length=n_children): the items to make the tuple out of
 =item UInt $n_children; the length of I<children>
 
 =end pod
 
-sub g_variant_new_tuple (  $GVariant * const *children, uint64 $n_children --> N-GObject )
+sub g_variant_new_tuple (  $GVariant * const *children, uint64 $n_children --> N-GVariant )
   is native(&glib-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_new_dict_entry:
 =begin pod
 =head2 [g_variant_] new_dict_entry
 
-Creates a new dictionary entry B<GVariant>. I<key> and I<value> must be
+Creates a new dictionary entry B<Gnome::Glib::Variant>. I<key> and I<value> must be
 non-C<Any>. I<key> must be a value of a basic type (ie: not a container).
 
 If the I<key> or I<value> are floating references (see C<g_variant_ref_sink()>),
 the new instance takes ownership of them as if via C<g_variant_ref_sink()>.
 
-Returns: (transfer none): a floating reference to a new dictionary entry B<GVariant>
+Returns: (transfer none): a floating reference to a new dictionary entry B<Gnome::Glib::Variant>
 
-  method g_variant_new_dict_entry ( N-GObject $value --> N-GObject )
+  method g_variant_new_dict_entry ( N-GVariant $value --> N-GVariant )
 
-=item N-GObject $value; a B<GVariant>, the value
+=item N-GVariant $value; a B<Gnome::Glib::Variant>, the value
 
 =end pod
 
-sub g_variant_new_dict_entry ( N-GObject $key, N-GObject $value --> N-GObject )
+sub g_variant_new_dict_entry ( N-GVariant $key, N-GVariant $value --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -1696,17 +1753,17 @@ sub g_variant_new_dict_entry ( N-GObject $key, N-GObject $value --> N-GObject )
 =begin pod
 =head2 [g_variant_] get_maybe
 
-Given a maybe-typed B<GVariant> instance, extract its value.  If the
+Given a maybe-typed B<Gnome::Glib::Variant> instance, extract its value.  If the
 value is Nothing, then this function returns C<Any>.
 
 Returns: (nullable) (transfer full): the contents of I<value>, or C<Any>
 
-  method g_variant_get_maybe ( --> N-GObject )
+  method g_variant_get_maybe ( --> N-GVariant )
 
 
 =end pod
 
-sub g_variant_get_maybe ( N-GObject $value --> N-GObject )
+sub g_variant_get_maybe ( N-GVariant $value --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -1722,16 +1779,17 @@ sub g_variant_get_maybe ( N-GObject $value --> N-GObject )
 
 =end pod
 
-sub g_variant_n_children ( N-GObject $value --> uint64 )
+sub g_variant_n_children ( N-GVariant $value --> uint64 )
   is native(&glib-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_get_child:
 =begin pod
 =head2 [g_variant_] get_child
 
-Reads a child item out of a container B<GVariant> instance and
+Reads a child item out of a container B<Gnome::Glib::Variant> instance and
 deconstructs it according to I<format_string>.  This call is
 essentially a combination of C<g_variant_get_child_value()> and
 C<g_variant_get()>.
@@ -1744,13 +1802,14 @@ see the section on
   method g_variant_get_child ( UInt $index_, Str $format_string )
 
 =item UInt $index_; the index of the child to deconstruct
-=item Str $format_string; a B<GVariant> format string @...: arguments, as per I<format_string>
+=item Str $format_string; a B<Gnome::Glib::Variant> format string @...: arguments, as per I<format_string>
 
 =end pod
 
-sub g_variant_get_child ( N-GObject $value, uint64 $index_, Str $format_string, Any $any = Any  )
+sub g_variant_get_child ( N-GVariant $value, uint64 $index_, Str $format_string, Any $any = Any  )
   is native(&glib-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_get_child_value:
@@ -1759,22 +1818,23 @@ sub g_variant_get_child ( N-GObject $value, uint64 $index_, Str $format_string, 
 
 
 
-  method g_variant_get_child_value ( UInt $index_ --> N-GObject )
+  method g_variant_get_child_value ( UInt $index --> N-GVariant )
 
-=item UInt $index_;
+=item UInt $index;
 
 =end pod
 
-sub g_variant_get_child_value ( N-GObject $value, uint64 $index_ --> N-GObject )
+sub g_variant_get_child_value ( N-GVariant $value, uint64 $index --> N-GVariant )
   is native(&glib-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_lookup:
 =begin pod
 =head2 g_variant_lookup
 
-Looks up a value in a dictionary B<GVariant>.
+Looks up a value in a dictionary B<Gnome::Glib::Variant>.
 
 This function is a wrapper around C<g_variant_lookup_value()> and
 C<g_variant_get()>.  In the case that C<Any> would have been returned,
@@ -1787,7 +1847,7 @@ see the section on
 [GVariant format strings][gvariant-format-strings-pointers].
 
 This function is currently implemented with a linear scan.  If you
-plan to do many lookups then B<GVariantDict> may be more efficient.
+plan to do many lookups then B<Gnome::Glib::VariantDict> may be more efficient.
 
 Returns: C<1> if a value was unpacked
 
@@ -1798,16 +1858,17 @@ Returns: C<1> if a value was unpacked
 
 =end pod
 
-sub g_variant_lookup ( N-GObject $dictionary, Str $key, Str $format_string, Any $any = Any --> int32 )
+sub g_variant_lookup ( N-GVariant $dictionary, Str $key, Str $format_string, Any $any = Any --> int32 )
   is native(&glib-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_lookup_value:
 =begin pod
 =head2 [g_variant_] lookup_value
 
-Looks up a value in a dictionary B<GVariant>.
+Looks up a value in a dictionary B<Gnome::Glib::Variant>.
 
 This function works with dictionaries of the type a{s*} (and equally
 well with type a{o*}, but we only further discuss the string case
@@ -1827,18 +1888,18 @@ returned.  If I<expected_type> was specified then any non-C<Any> return
 value will have this type.
 
 This function is currently implemented with a linear scan.  If you
-plan to do many lookups then B<GVariantDict> may be more efficient.
+plan to do many lookups then B<Gnome::Glib::VariantDict> may be more efficient.
 
 Returns: (transfer full): the value of the dictionary key, or C<Any>
 
-  method g_variant_lookup_value ( Str $key, N-GObject $expected_type --> N-GObject )
+  method g_variant_lookup_value ( Str $key, N-GVariant $expected_type --> N-GVariant )
 
 =item Str $key; the key to lookup in the dictionary
-=item N-GObject $expected_type; (nullable): a B<GVariantType>, or C<Any>
+=item N-GVariant $expected_type; (nullable): a B<Gnome::Glib::VariantType>, or C<Any>
 
 =end pod
 
-sub g_variant_lookup_value ( N-GObject $dictionary, Str $key, N-GObject $expected_type --> N-GObject )
+sub g_variant_lookup_value ( N-GVariant $dictionary, Str $key, N-GVariant $expected_type --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -1884,7 +1945,7 @@ the fixed array
 
 =end pod
 
-sub g_variant_get_fixed_array ( N-GObject $value, uint64 $n_elements, uint64 $element_size --> Pointer )
+sub g_variant_get_fixed_array ( N-GVariant $value, uint64 $n_elements, uint64 $element_size --> Pointer )
   is native(&glib-lib)
   { * }
 
@@ -1900,7 +1961,7 @@ sub g_variant_get_fixed_array ( N-GObject $value, uint64 $n_elements, uint64 $el
 
 =end pod
 
-sub g_variant_get_size ( N-GObject $value --> uint64 )
+sub g_variant_get_size ( N-GVariant $value --> uint64 )
   is native(&glib-lib)
   { * }
 
@@ -1916,7 +1977,7 @@ sub g_variant_get_size ( N-GObject $value --> uint64 )
 
 =end pod
 
-sub g_variant_get_data ( N-GObject $value --> Pointer )
+sub g_variant_get_data ( N-GVariant $value --> Pointer )
   is native(&glib-lib)
   { * }
 
@@ -1927,12 +1988,12 @@ sub g_variant_get_data ( N-GObject $value --> Pointer )
 
 
 
-  method g_variant_get_data_as_bytes ( --> N-GObject )
+  method g_variant_get_data_as_bytes ( --> N-GVariant )
 
 
 =end pod
 
-sub g_variant_get_data_as_bytes ( N-GObject $value --> N-GObject )
+sub g_variant_get_data_as_bytes ( N-GVariant $value --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -1949,7 +2010,7 @@ sub g_variant_get_data_as_bytes ( N-GObject $value --> N-GObject )
 
 =end pod
 
-sub g_variant_store ( N-GObject $value, Pointer $data  )
+sub g_variant_store ( N-GVariant $value, Pointer $data  )
   is native(&glib-lib)
   { * }
 
@@ -1973,7 +2034,7 @@ Returns: (transfer full): a newly-allocated string holding the result.
 
 =end pod
 
-sub g_variant_print ( N-GObject $value, int32 $type_annotate --> Str )
+sub g_variant_print ( N-GVariant $value, int32 $type_annotate --> Str )
   is native(&glib-lib)
   { * }
 
@@ -1989,14 +2050,14 @@ a new empty B<GString> is allocated and it is returned.
 
 Returns: a B<GString> containing the string
 
-  method g_variant_print_string ( N-GObject $string, Int $type_annotate --> N-GObject )
+  method g_variant_print_string ( N-GVariant $string, Int $type_annotate --> N-GVariant )
 
-=item N-GObject $string; (nullable) (default NULL): a B<GString>, or C<Any>
+=item N-GVariant $string; (nullable) (default NULL): a B<GString>, or C<Any>
 =item Int $type_annotate; C<1> if type information should be included in the output
 
 =end pod
 
-sub g_variant_print_string ( N-GObject $value, N-GObject $string, int32 $type_annotate --> N-GObject )
+sub g_variant_print_string ( N-GVariant $value, N-GVariant $string, int32 $type_annotate --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -2005,7 +2066,7 @@ sub g_variant_print_string ( N-GObject $value, N-GObject $string, int32 $type_an
 =begin pod
 =head2 g_variant_hash
 
-Generates a hash value for a B<GVariant> instance.
+Generates a hash value for a B<Gnome::Glib::Variant> instance.
 
 The output of this function is guaranteed to be the same for a given
 value only per-process.  It may change between different processor
@@ -2013,13 +2074,13 @@ architectures or even different versions of GLib.  Do not use this
 function as a basis for building protocols or file formats.
 
 The type of I<value> is B<gconstpointer> only to allow use of this
-function with B<GHashTable>.  I<value> must be a B<GVariant>.
+function with B<GHashTable>.  I<value> must be a B<Gnome::Glib::Variant>.
 
 Returns: a hash value corresponding to I<value>
 
   method g_variant_hash ( Pointer $value --> UInt )
 
-=item Pointer $value; (type GVariant): a basic B<GVariant> value as a B<gconstpointer>
+=item Pointer $value; (type GVariant): a basic B<Gnome::Glib::Variant> value as a B<gconstpointer>
 
 =end pod
 
@@ -2035,14 +2096,14 @@ sub g_variant_hash ( Pointer $value --> uint32 )
 Checks if I<one> and I<two> have the same type and value.
 
 The types of I<one> and I<two> are B<gconstpointer> only to allow use of
-this function with B<GHashTable>.  They must each be a B<GVariant>.
+this function with B<GHashTable>.  They must each be a B<Gnome::Glib::Variant>.
 
 Returns: C<1> if I<one> and I<two> are equal
 
   method g_variant_equal ( Pointer $one, Pointer $two --> Int )
 
-=item Pointer $one; (type GVariant): a B<GVariant> instance
-=item Pointer $two; (type GVariant): a B<GVariant> instance
+=item Pointer $one; (type GVariant): a B<Gnome::Glib::Variant> instance
+=item Pointer $two; (type GVariant): a B<Gnome::Glib::Variant> instance
 
 =end pod
 
@@ -2055,7 +2116,7 @@ sub g_variant_equal ( Pointer $one, Pointer $two --> int32 )
 =begin pod
 =head2 [g_variant_] get_normal_form
 
-Gets a B<GVariant> instance that has the same value as I<value> and is
+Gets a B<Gnome::Glib::Variant> instance that has the same value as I<value> and is
 trusted to be in normal form.
 
 If I<value> is already trusted to be in normal form then a new
@@ -2066,27 +2127,27 @@ is in normal form.  If it is found to be in normal form then it is
 marked as trusted and a new reference to it is returned.
 
 If I<value> is found not to be in normal form then a new trusted
-B<GVariant> is created with the same value as I<value>.
+B<Gnome::Glib::Variant> is created with the same value as I<value>.
 
-It makes sense to call this function if you've received B<GVariant>
+It makes sense to call this function if you've received B<Gnome::Glib::Variant>
 data from untrusted sources and you want to ensure your serialised
 output is definitely in normal form.
 
 If I<value> is already in normal form, a new reference will be returned
 (which will be floating if I<value> is floating). If it is not in normal form,
-the newly created B<GVariant> will be returned with a single non-floating
+the newly created B<Gnome::Glib::Variant> will be returned with a single non-floating
 reference. Typically, C<g_variant_take_ref()> should be called on the return
 value from this function to guarantee ownership of a single non-floating
 reference to it.
 
-Returns: (transfer full): a trusted B<GVariant>
+Returns: (transfer full): a trusted B<Gnome::Glib::Variant>
 
-  method g_variant_get_normal_form ( --> N-GObject )
+  method g_variant_get_normal_form ( --> N-GVariant )
 
 
 =end pod
 
-sub g_variant_get_normal_form ( N-GObject $value --> N-GObject )
+sub g_variant_get_normal_form ( N-GVariant $value --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -2102,7 +2163,7 @@ sub g_variant_get_normal_form ( N-GObject $value --> N-GObject )
 
 =end pod
 
-sub g_variant_is_normal_form ( N-GObject $value --> int32 )
+sub g_variant_is_normal_form ( N-GVariant $value --> int32 )
   is native(&glib-lib)
   { * }
 
@@ -2125,12 +2186,12 @@ The returned value is always in normal form and is marked as trusted.
 
 Returns: (transfer full): the byteswapped form of I<value>
 
-  method g_variant_byteswap ( --> N-GObject )
+  method g_variant_byteswap ( --> N-GVariant )
 
 
 =end pod
 
-sub g_variant_byteswap ( N-GObject $value --> N-GObject )
+sub g_variant_byteswap ( N-GVariant $value --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -2141,26 +2202,27 @@ sub g_variant_byteswap ( N-GObject $value --> N-GObject )
 
 
 
-  method g_variant_new_from_bytes ( N-GObject $type, N-GObject $bytes, Int $trusted --> N-GObject )
+  method g_variant_new_from_bytes ( N-GVariant $type, N-GVariant $bytes, Int $trusted --> N-GVariant )
 
-=item N-GObject $type;
-=item N-GObject $bytes;
+=item N-GVariant $type;
+=item N-GVariant $bytes;
 =item Int $trusted;
 
 =end pod
 
-sub g_variant_new_from_bytes ( N-GObject $type, N-GObject $bytes, int32 $trusted --> N-GObject )
+sub g_variant_new_from_bytes ( N-GVariant $type, N-GVariant $bytes, int32 $trusted --> N-GVariant )
   is native(&glib-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_new_from_data:
 =begin pod
 =head2 [g_variant_] new_from_data
 
-Creates a new B<GVariant> instance from serialised data.
+Creates a new B<Gnome::Glib::Variant> instance from serialised data.
 
-I<type> is the type of B<GVariant> instance that will be constructed.
+I<type> is the type of B<Gnome::Glib::Variant> instance that will be constructed.
 The interpretation of I<data> depends on knowing the type.
 
 I<data> is not modified by this function and must remain valid with an
@@ -2188,11 +2250,11 @@ I<type> being loaded. Otherwise this function will internally create a copy of
 the memory (since GLib 2.60) or (in older versions) fail and exit the
 process.
 
-Returns: (transfer none): a new floating B<GVariant> of type I<type>
+Returns: (transfer none): a new floating B<Gnome::Glib::Variant> of type I<type>
 
-  method g_variant_new_from_data ( N-GObject $type, Pointer $data, UInt $size, Int $trusted, GDestroyNotify $notify, Pointer $user_data --> N-GObject )
+  method g_variant_new_from_data ( N-GVariant $type, Pointer $data, UInt $size, Int $trusted, GDestroyNotify $notify, Pointer $user_data --> N-GVariant )
 
-=item N-GObject $type; a definite B<GVariantType>
+=item N-GVariant $type; a definite B<Gnome::Glib::VariantType>
 =item Pointer $data; (array length=size) (element-type guint8): the serialised data
 =item UInt $size; the size of I<data>
 =item Int $trusted; C<1> if I<data> is definitely in normal form
@@ -2201,16 +2263,18 @@ Returns: (transfer none): a new floating B<GVariant> of type I<type>
 
 =end pod
 
-sub g_variant_new_from_data ( N-GObject $type, Pointer $data, uint64 $size, int32 $trusted, GDestroyNotify $notify, Pointer $user_data --> N-GObject )
+sub g_variant_new_from_data ( N-GVariant $type, Pointer $data, uint64 $size, int32 $trusted, GDestroyNotify $notify, Pointer $user_data --> N-GVariant )
   is native(&glib-lib)
   { * }
+}}
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_iter_new:
 =begin pod
 =head2 [g_variant_] iter_new
 
-Creates a heap-allocated B<GVariantIter> for iterating over the items
+Creates a heap-allocated B<Gnome::Glib::VariantIter> for iterating over the items
 in I<value>.
 
 Use C<g_variant_iter_free()> to free the return value when you no longer
@@ -2219,14 +2283,14 @@ need it.
 A reference is taken to I<value> and will be released only when
 C<g_variant_iter_free()> is called.
 
-Returns: (transfer full): a new heap-allocated B<GVariantIter>
+Returns: (transfer full): a new heap-allocated B<Gnome::Glib::VariantIter>
 
   method g_variant_iter_new ( --> GVariantIter )
 
 
 =end pod
 
-sub g_variant_iter_new ( N-GObject $value --> GVariantIter )
+sub g_variant_iter_new ( N-GVariant $value --> GVariantIter )
   is native(&glib-lib)
   { * }
 
@@ -2235,7 +2299,7 @@ sub g_variant_iter_new ( N-GObject $value --> GVariantIter )
 =begin pod
 =head2 [g_variant_] iter_init
 
-Initialises (without allocating) a B<GVariantIter>.  I<iter> may be
+Initialises (without allocating) a B<Gnome::Glib::VariantIter>.  I<iter> may be
 completely uninitialised prior to this call; its old value is
 ignored.
 
@@ -2244,14 +2308,14 @@ be freed in any way.
 
 Returns: the number of items in I<value>
 
-  method g_variant_iter_init ( GVariantIter $iter, N-GObject $value --> UInt )
+  method g_variant_iter_init ( GVariantIter $iter, N-GVariant $value --> UInt )
 
-=item GVariantIter $iter; a pointer to a B<GVariantIter>
-=item N-GObject $value; a container B<GVariant>
+=item GVariantIter $iter; a pointer to a B<Gnome::Glib::VariantIter>
+=item N-GVariant $value; a container B<Gnome::Glib::Variant>
 
 =end pod
 
-sub g_variant_iter_init ( GVariantIter $iter, N-GObject $value --> uint64 )
+sub g_variant_iter_init ( GVariantIter $iter, N-GVariant $value --> uint64 )
   is native(&glib-lib)
   { * }
 
@@ -2260,7 +2324,7 @@ sub g_variant_iter_init ( GVariantIter $iter, N-GObject $value --> uint64 )
 =begin pod
 =head2 [g_variant_] iter_copy
 
-Creates a new heap-allocated B<GVariantIter> to iterate over the
+Creates a new heap-allocated B<Gnome::Glib::VariantIter> to iterate over the
 container that was being iterated over by I<iter>.  Iteration begins on
 the new iterator from the current position of the old iterator but
 the two copies are independent past that point.
@@ -2271,11 +2335,11 @@ need it.
 A reference is taken to the container that I<iter> is iterating over
 and will be releated only when C<g_variant_iter_free()> is called.
 
-Returns: (transfer full): a new heap-allocated B<GVariantIter>
+Returns: (transfer full): a new heap-allocated B<Gnome::Glib::VariantIter>
 
   method g_variant_iter_copy ( GVariantIter $iter --> GVariantIter )
 
-=item GVariantIter $iter; a B<GVariantIter>
+=item GVariantIter $iter; a B<Gnome::Glib::VariantIter>
 
 =end pod
 
@@ -2298,7 +2362,7 @@ Returns: the number of children in the container
 
   method g_variant_iter_n_children ( GVariantIter $iter --> UInt )
 
-=item GVariantIter $iter; a B<GVariantIter>
+=item GVariantIter $iter; a B<Gnome::Glib::VariantIter>
 
 =end pod
 
@@ -2311,13 +2375,13 @@ sub g_variant_iter_n_children ( GVariantIter $iter --> uint64 )
 =begin pod
 =head2 [g_variant_] iter_free
 
-Frees a heap-allocated B<GVariantIter>.  Only call this function on
+Frees a heap-allocated B<Gnome::Glib::VariantIter>.  Only call this function on
 iterators that were returned by C<g_variant_iter_new()> or
 C<g_variant_iter_copy()>.
 
   method g_variant_iter_free ( GVariantIter $iter )
 
-=item GVariantIter $iter; (transfer full): a heap-allocated B<GVariantIter>
+=item GVariantIter $iter; (transfer full): a heap-allocated B<Gnome::Glib::VariantIter>
 
 =end pod
 
@@ -2358,15 +2422,15 @@ g_variant_unref (child);
 }
 ]|
 
-Returns: (nullable) (transfer full): a B<GVariant>, or C<Any>
+Returns: (nullable) (transfer full): a B<Gnome::Glib::Variant>, or C<Any>
 
-  method g_variant_iter_next_value ( GVariantIter $iter --> N-GObject )
+  method g_variant_iter_next_value ( GVariantIter $iter --> N-GVariant )
 
-=item GVariantIter $iter; a B<GVariantIter>
+=item GVariantIter $iter; a B<Gnome::Glib::VariantIter>
 
 =end pod
 
-sub g_variant_iter_next_value ( GVariantIter $iter --> N-GObject )
+sub g_variant_iter_next_value ( GVariantIter $iter --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -2421,7 +2485,7 @@ Returns: C<1> if a value was unpacked, or C<0> if there as no value
 
   method g_variant_iter_next ( GVariantIter $iter, Str $format_string --> Int )
 
-=item GVariantIter $iter; a B<GVariantIter>
+=item GVariantIter $iter; a B<Gnome::Glib::VariantIter>
 =item Str $format_string; a GVariant format string @...: the arguments to unpack the value into
 
 =end pod
@@ -2483,8 +2547,8 @@ g_variant_get_type_string (value));
 
 For most cases you should use C<g_variant_iter_next()>.
 
-This function is really only useful when unpacking into B<GVariant> or
-B<GVariantIter> in order to allow you to skip the call to
+This function is really only useful when unpacking into B<Gnome::Glib::Variant> or
+B<Gnome::Glib::VariantIter> in order to allow you to skip the call to
 C<g_variant_unref()> or C<g_variant_iter_free()>.
 
 For example, if you are only looping over simple integer and string
@@ -2503,7 +2567,7 @@ value
 
   method g_variant_iter_loop ( GVariantIter $iter, Str $format_string --> Int )
 
-=item GVariantIter $iter; a B<GVariantIter>
+=item GVariantIter $iter; a B<Gnome::Glib::VariantIter>
 =item Str $format_string; a GVariant format string @...: the arguments to unpack the value into
 
 =end pod
@@ -2511,6 +2575,7 @@ value
 sub g_variant_iter_loop ( GVariantIter $iter, Str $format_string, Any $any = Any --> int32 )
   is native(&glib-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_parse_error_quark:
@@ -2528,30 +2593,31 @@ sub g_variant_parse_error_quark (  --> int32 )
   is native(&glib-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_builder_new:
 =begin pod
 =head2 [g_variant_] builder_new
 
-Allocates and initialises a new B<GVariantBuilder>.
+Allocates and initialises a new B<Gnome::Glib::VariantBuilder>.
 
 You should call C<g_variant_builder_unref()> on the return value when it
 is no longer needed.  The memory will not be automatically freed by
 any other call.
 
-In most cases it is easier to place a B<GVariantBuilder> directly on
+In most cases it is easier to place a B<Gnome::Glib::VariantBuilder> directly on
 the stack of the calling function and initialise it with
 C<g_variant_builder_init()>.
 
-Returns: (transfer full): a B<GVariantBuilder>
+Returns: (transfer full): a B<Gnome::Glib::VariantBuilder>
 
-  method g_variant_builder_new ( N-GObject $type --> GVariantBuilder )
+  method g_variant_builder_new ( N-GVariant $type --> GVariantBuilder )
 
-=item N-GObject $type; a container type
+=item N-GVariant $type; a container type
 
 =end pod
 
-sub g_variant_builder_new ( N-GObject $type --> GVariantBuilder )
+sub g_variant_builder_new ( N-GVariant $type --> GVariantBuilder )
   is native(&glib-lib)
   { * }
 
@@ -2563,14 +2629,14 @@ sub g_variant_builder_new ( N-GObject $type --> GVariantBuilder )
 Decreases the reference count on I<builder>.
 
 In the event that there are no more references, releases all memory
-associated with the B<GVariantBuilder>.
+associated with the B<Gnome::Glib::VariantBuilder>.
 
-Don't call this on stack-allocated B<GVariantBuilder> instances or bad
+Don't call this on stack-allocated B<Gnome::Glib::VariantBuilder> instances or bad
 things will happen.
 
   method g_variant_builder_unref ( GVariantBuilder $builder )
 
-=item GVariantBuilder $builder; (transfer full): a B<GVariantBuilder> allocated by C<g_variant_builder_new()>
+=item GVariantBuilder $builder; (transfer full): a B<Gnome::Glib::VariantBuilder> allocated by C<g_variant_builder_new()>
 
 =end pod
 
@@ -2585,14 +2651,14 @@ sub g_variant_builder_unref ( GVariantBuilder $builder  )
 
 Increases the reference count on I<builder>.
 
-Don't call this on stack-allocated B<GVariantBuilder> instances or bad
+Don't call this on stack-allocated B<Gnome::Glib::VariantBuilder> instances or bad
 things will happen.
 
 Returns: (transfer full): a new reference to I<builder>
 
   method g_variant_builder_ref ( GVariantBuilder $builder --> GVariantBuilder )
 
-=item GVariantBuilder $builder; a B<GVariantBuilder> allocated by C<g_variant_builder_new()>
+=item GVariantBuilder $builder; a B<Gnome::Glib::VariantBuilder> allocated by C<g_variant_builder_new()>
 
 =end pod
 
@@ -2605,7 +2671,7 @@ sub g_variant_builder_ref ( GVariantBuilder $builder --> GVariantBuilder )
 =begin pod
 =head2 [g_variant_] builder_init
 
-Initialises a B<GVariantBuilder> structure.
+Initialises a B<Gnome::Glib::VariantBuilder> structure.
 
 I<type> must be non-C<Any>.  It specifies the type of container to
 construct.  It can be an indefinite type such as
@@ -2617,32 +2683,32 @@ After the builder is initialised, values are added using
 C<g_variant_builder_add_value()> or C<g_variant_builder_add()>.
 
 After all the child values are added, C<g_variant_builder_end()> frees
-the memory associated with the builder and returns the B<GVariant> that
+the memory associated with the builder and returns the B<Gnome::Glib::Variant> that
 was created.
 
 This function completely ignores the previous contents of I<builder>.
 On one hand this means that it is valid to pass in completely
 uninitialised memory.  On the other hand, this means that if you are
-initialising over top of an existing B<GVariantBuilder> you need to
+initialising over top of an existing B<Gnome::Glib::VariantBuilder> you need to
 first call C<g_variant_builder_clear()> in order to avoid leaking
 memory.
 
 You must not call C<g_variant_builder_ref()> or
-C<g_variant_builder_unref()> on a B<GVariantBuilder> that was initialised
+C<g_variant_builder_unref()> on a B<Gnome::Glib::VariantBuilder> that was initialised
 with this function.  If you ever pass a reference to a
-B<GVariantBuilder> outside of the control of your own code then you
+B<Gnome::Glib::VariantBuilder> outside of the control of your own code then you
 should assume that the person receiving that reference may try to use
 reference counting; you should use C<g_variant_builder_new()> instead of
 this function.
 
-  method g_variant_builder_init ( GVariantBuilder $builder, N-GObject $type )
+  method g_variant_builder_init ( GVariantBuilder $builder, N-GVariant $type )
 
-=item GVariantBuilder $builder; a B<GVariantBuilder>
-=item N-GObject $type; a container type
+=item GVariantBuilder $builder; a B<Gnome::Glib::VariantBuilder>
+=item N-GVariant $type; a container type
 
 =end pod
 
-sub g_variant_builder_init ( GVariantBuilder $builder, N-GObject $type  )
+sub g_variant_builder_init ( GVariantBuilder $builder, N-GVariant $type  )
   is native(&glib-lib)
   { * }
 
@@ -2655,7 +2721,7 @@ Ends the builder process and returns the constructed value.
 
 It is not permissible to use I<builder> in any way after this call
 except for reference counting operations (in the case of a
-heap-allocated B<GVariantBuilder>) or by reinitialising it with
+heap-allocated B<Gnome::Glib::VariantBuilder>) or by reinitialising it with
 C<g_variant_builder_init()> (in the case of stack-allocated). This
 means that for the stack-allocated builders there is no need to
 call C<g_variant_builder_clear()> after the call to
@@ -2669,15 +2735,15 @@ was created with an indefinite array or maybe type and no children
 have been added; in this case it is impossible to infer the type of
 the empty array.
 
-Returns: (transfer none): a new, floating, B<GVariant>
+Returns: (transfer none): a new, floating, B<Gnome::Glib::Variant>
 
-  method g_variant_builder_end ( GVariantBuilder $builder --> N-GObject )
+  method g_variant_builder_end ( GVariantBuilder $builder --> N-GVariant )
 
-=item GVariantBuilder $builder; a B<GVariantBuilder>
+=item GVariantBuilder $builder; a B<Gnome::Glib::VariantBuilder>
 
 =end pod
 
-sub g_variant_builder_end ( GVariantBuilder $builder --> N-GObject )
+sub g_variant_builder_end ( GVariantBuilder $builder --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -2686,24 +2752,24 @@ sub g_variant_builder_end ( GVariantBuilder $builder --> N-GObject )
 =begin pod
 =head2 [g_variant_] builder_clear
 
-Releases all memory associated with a B<GVariantBuilder> without
-freeing the B<GVariantBuilder> structure itself.
+Releases all memory associated with a B<Gnome::Glib::VariantBuilder> without
+freeing the B<Gnome::Glib::VariantBuilder> structure itself.
 
 It typically only makes sense to do this on a stack-allocated
-B<GVariantBuilder> if you want to abort building the value part-way
+B<Gnome::Glib::VariantBuilder> if you want to abort building the value part-way
 through.  This function need not be called if you call
 C<g_variant_builder_end()> and it also doesn't need to be called on
 builders allocated with C<g_variant_builder_new()> (see
 C<g_variant_builder_unref()> for that).
 
-This function leaves the B<GVariantBuilder> structure set to all-zeros.
+This function leaves the B<Gnome::Glib::VariantBuilder> structure set to all-zeros.
 It is valid to call this function on either an initialised
-B<GVariantBuilder> or one that is set to all-zeros but it is not valid
+B<Gnome::Glib::VariantBuilder> or one that is set to all-zeros but it is not valid
 to call this function on uninitialised memory.
 
   method g_variant_builder_clear ( GVariantBuilder $builder )
 
-=item GVariantBuilder $builder; a B<GVariantBuilder>
+=item GVariantBuilder $builder; a B<Gnome::Glib::VariantBuilder>
 
 =end pod
 
@@ -2753,14 +2819,14 @@ g_variant_builder_close (&builder);
 output = g_variant_builder_end (&builder);
 ]|
 
-  method g_variant_builder_open ( GVariantBuilder $builder, N-GObject $type )
+  method g_variant_builder_open ( GVariantBuilder $builder, N-GVariant $type )
 
-=item GVariantBuilder $builder; a B<GVariantBuilder>
-=item N-GObject $type; the B<GVariantType> of the container
+=item GVariantBuilder $builder; a B<Gnome::Glib::VariantBuilder>
+=item N-GVariant $type; the B<Gnome::Glib::VariantType> of the container
 
 =end pod
 
-sub g_variant_builder_open ( GVariantBuilder $builder, N-GObject $type  )
+sub g_variant_builder_open ( GVariantBuilder $builder, N-GVariant $type  )
   is native(&glib-lib)
   { * }
 
@@ -2778,7 +2844,7 @@ subcontainer).
 
   method g_variant_builder_close ( GVariantBuilder $builder )
 
-=item GVariantBuilder $builder; a B<GVariantBuilder>
+=item GVariantBuilder $builder; a B<Gnome::Glib::VariantBuilder>
 
 =end pod
 
@@ -2802,14 +2868,14 @@ a variant, etc.
 If I<value> is a floating reference (see C<g_variant_ref_sink()>),
 the I<builder> instance takes ownership of I<value>.
 
-  method g_variant_builder_add_value ( GVariantBuilder $builder, N-GObject $value )
+  method g_variant_builder_add_value ( GVariantBuilder $builder, N-GVariant $value )
 
-=item GVariantBuilder $builder; a B<GVariantBuilder>
-=item N-GObject $value; a B<GVariant>
+=item GVariantBuilder $builder; a B<Gnome::Glib::VariantBuilder>
+=item N-GVariant $value; a B<Gnome::Glib::Variant>
 
 =end pod
 
-sub g_variant_builder_add_value ( GVariantBuilder $builder, N-GObject $value  )
+sub g_variant_builder_add_value ( GVariantBuilder $builder, N-GVariant $value  )
   is native(&glib-lib)
   { * }
 
@@ -2818,7 +2884,7 @@ sub g_variant_builder_add_value ( GVariantBuilder $builder, N-GObject $value  )
 =begin pod
 =head2 [g_variant_] builder_add
 
-Adds to a B<GVariantBuilder>.
+Adds to a B<Gnome::Glib::VariantBuilder>.
 
 This call is a convenience wrapper that is exactly equivalent to
 calling C<g_variant_new()> followed by C<g_variant_builder_add_value()>.
@@ -2851,8 +2917,8 @@ return g_variant_builder_end (&builder);
 
   method g_variant_builder_add ( GVariantBuilder $builder, Str $format_string )
 
-=item GVariantBuilder $builder; a B<GVariantBuilder>
-=item Str $format_string; a B<GVariant> varargs format string @...: arguments, as per I<format_string>
+=item GVariantBuilder $builder; a B<Gnome::Glib::VariantBuilder>
+=item Str $format_string; a B<Gnome::Glib::Variant> varargs format string @...: arguments, as per I<format_string>
 
 =end pod
 
@@ -2877,63 +2943,74 @@ sub g_variant_builder_add ( GVariantBuilder $builder, Str $format_string, Any $a
 sub g_variant_builder_add_parsed ( GVariantBuilder $builder, Str $format, Any $any = Any  )
   is native(&glib-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_new:
 =begin pod
 =head2 g_variant_new
 
+Creates a new GVariant instance.
 
+The type of the created instance and the arguments that are expected by this function are determined by format_string. Please note that the syntax of the format string is very likely to be extended in the future.
 
-  method g_variant_new ( Str $format_string --> N-GObject )
+The first character of the format string must not be '*' '?' '@' or 'r'; in essence, a new Gnome::Glib::Variant must always be constructed by this function (and not merely passed through it unmodified).
+
+Note that the arguments must be of the correct width for their types specified in format_string.
+
+=begin comment
+MyFlags some_flags = FLAG_ONE | FLAG_TWO;
+const gchar *some_strings[] = { "a", "b", "c", NULL };
+GVariant *new_variant;
+
+new_variant = g_variant_new ("(t^as)",
+                             // This cast is required.
+                             (guint64) some_flags,
+                             some_strings);
+=end comment
+
+  method g_variant_new ( Str $format_string --> N-GVariant )
 
 =item Str $format_string;
 
 =end pod
 
-sub g_variant_new ( Str $format_string, Any $any = Any --> N-GObject )
-  is native(&glib-lib)
-  { * }
+sub g_variant_new ( Str $format_string, *@values --> N-GVariant ) {
+}
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_get:
 =begin pod
 =head2 g_variant_get
 
-Deconstructs a B<GVariant> instance.
+Deconstructs a B<Gnome::Glib::Variant> instance.
 
 Think of this function as an analogue to C<scanf()>.
 
-The arguments that are expected by this function are entirely
-determined by I<format_string>.  I<format_string> also restricts the
-permissible types of I<value>.  It is an error to give a value with
-an incompatible type.  See the section on
-[GVariant format strings][gvariant-format-strings].
-Please note that the syntax of the format string is very likely to be
-extended in the future.
+The arguments that are expected by this function are entirely determined by I<format_string>.  I<format_string> also restricts the permissible types of I<value>.  It is an error to give a value with an incompatible type.  See the section on [GVariant format strings][gvariant-format-strings]. Please note that the syntax of the format string is very likely to be extended in the future.
 
-I<format_string> determines the C types that are used for unpacking
-the values and also determines if the values are copied or borrowed,
-see the section on
-[GVariant format strings][gvariant-format-strings-pointers].
+I<format_string> determines the C types that are used for unpacking the values and also determines if the values are copied or borrowed, see the section on [GVariant format strings][gvariant-format-strings-pointers].
 
   method g_variant_get ( Str $format_string )
 
-=item Str $format_string; a B<GVariant> format string @...: arguments, as per I<format_string>
+=item Str $format_string; a B<Gnome::Glib::Variant> format string @...: arguments, as per I<format_string>
 
 =end pod
 
-sub g_variant_get ( N-GObject $value, Str $format_string, Any $any = Any  )
+sub g_variant_get ( N-GVariant $value, Str $format_string, Any $any = Any  )
   is native(&glib-lib)
   { * }
+}}
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_new_va:
 =begin pod
 =head2 [g_variant_] new_va
 
 This function is intended to be used by libraries based on
-B<GVariant> that want to provide C<g_variant_new()>-like functionality
+B<Gnome::Glib::Variant> that want to provide C<g_variant_new()>-like functionality
 to their users.
 
 The API is more general than C<g_variant_new()> to allow a wider range
@@ -2959,7 +3036,7 @@ varargs call by the user.
 The return value will be floating if it was a newly created GVariant
 instance (for example, if the format string was "(ii)").  In the case
 that the format_string was '*', '?', 'r', or a format starting with
-'@' then the collected B<GVariant> pointer will be returned unmodified,
+'@' then the collected B<Gnome::Glib::Variant> pointer will be returned unmodified,
 without adding any additional references.
 
 In order to behave correctly in all cases it is necessary for the
@@ -2969,9 +3046,9 @@ At this point, the caller will have their own full reference to the
 result.  This can also be done by adding the result to a container,
 or by passing it to another C<g_variant_new()> call.
 
-Returns: a new, usually floating, B<GVariant>
+Returns: a new, usually floating, B<Gnome::Glib::Variant>
 
-  method g_variant_new_va ( Str $format_string, CArray[Str] $endptr, va_list $app --> N-GObject )
+  method g_variant_new_va ( Str $format_string, CArray[Str] $endptr, va_list $app --> N-GVariant )
 
 =item Str $format_string; a string that is prefixed with a format string
 =item CArray[Str] $endptr; (nullable) (default NULL): location to store the end pointer, or C<Any>
@@ -2979,7 +3056,7 @@ Returns: a new, usually floating, B<GVariant>
 
 =end pod
 
-sub g_variant_new_va ( Str $format_string, CArray[Str] $endptr, va_list $app --> N-GObject )
+sub g_variant_new_va ( Str $format_string, CArray[Str] $endptr, va_list $app --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -2988,7 +3065,7 @@ sub g_variant_new_va ( Str $format_string, CArray[Str] $endptr, va_list $app -->
 =begin pod
 =head2 [g_variant_] get_va
 
-This function is intended to be used by libraries based on B<GVariant>
+This function is intended to be used by libraries based on B<Gnome::Glib::Variant>
 that want to provide C<g_variant_get()>-like functionality to their
 users.
 
@@ -3021,9 +3098,10 @@ see the section on
 
 =end pod
 
-sub g_variant_get_va ( N-GObject $value, Str $format_string, CArray[Str] $endptr, va_list $app  )
+sub g_variant_get_va ( N-GVariant $value, Str $format_string, CArray[Str] $endptr, va_list $app  )
   is native(&glib-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_check_format_string:
@@ -3038,23 +3116,23 @@ If I<copy_only> is C<1> then this function additionally checks that it
 would be safe to call C<g_variant_unref()> on I<value> immediately after
 the call to C<g_variant_get()> without invalidating the result.  This is
 only possible if deep copies are made (ie: there are no pointers to
-the data inside of the soon-to-be-freed B<GVariant> instance).  If this
+the data inside of the soon-to-be-freed B<Gnome::Glib::Variant> instance).  If this
 check fails then a C<g_critical()> is printed and C<0> is returned.
 
 This function is meant to be used by functions that wish to provide
-varargs accessors to B<GVariant> values of uncertain values (eg:
+varargs accessors to B<Gnome::Glib::Variant> values of uncertain values (eg:
 C<g_variant_lookup()> or C<g_menu_model_get_item_attribute()>).
 
 Returns: C<1> if I<format_string> is safe to use
 
   method g_variant_check_format_string ( Str $format_string, Int $copy_only --> Int )
 
-=item Str $format_string; a valid B<GVariant> format string
+=item Str $format_string; a valid B<Gnome::Glib::Variant> format string
 =item Int $copy_only; C<1> to ensure the format string makes deep copies
 
 =end pod
 
-sub g_variant_check_format_string ( N-GObject $value, Str $format_string, int32 $copy_only --> int32 )
+sub g_variant_check_format_string ( N-GVariant $value, Str $format_string, int32 $copy_only --> int32 )
   is native(&glib-lib)
   { * }
 
@@ -3065,9 +3143,9 @@ sub g_variant_check_format_string ( N-GObject $value, Str $format_string, int32 
 
 
 
-  method g_variant_parse ( N-GObject $type, Str $text, Str $limit, CArray[Str] $endptr, N-GError $error --> N-GObject )
+  method g_variant_parse ( N-GVariant $type, Str $text, Str $limit, CArray[Str] $endptr, N-GError $error --> N-GVariant )
 
-=item N-GObject $type;
+=item N-GVariant $type;
 =item Str $text;
 =item Str $limit;
 =item CArray[Str] $endptr;
@@ -3075,10 +3153,11 @@ sub g_variant_check_format_string ( N-GObject $value, Str $format_string, int32 
 
 =end pod
 
-sub g_variant_parse ( N-GObject $type, Str $text, Str $limit, CArray[Str] $endptr, N-GError $error --> N-GObject )
+sub g_variant_parse ( N-GVariant $type, Str $text, Str $limit, CArray[Str] $endptr, N-GError $error --> N-GVariant )
   is native(&glib-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_new_parsed:
 =begin pod
@@ -3086,16 +3165,18 @@ sub g_variant_parse ( N-GObject $type, Str $text, Str $limit, CArray[Str] $endpt
 
 
 
-  method g_variant_new_parsed ( Str $format --> N-GObject )
+  method g_variant_new_parsed ( Str $format --> N-GVariant )
 
 =item Str $format;
 
 =end pod
 
-sub g_variant_new_parsed ( Str $format, Any $any = Any --> N-GObject )
+sub g_variant_new_parsed ( Str $format, Any $any = Any --> N-GVariant )
   is native(&glib-lib)
   { * }
+}}
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_new_parsed_va:
 =begin pod
@@ -3103,16 +3184,17 @@ sub g_variant_new_parsed ( Str $format, Any $any = Any --> N-GObject )
 
 
 
-  method g_variant_new_parsed_va ( Str $format, va_list $app --> N-GObject )
+  method g_variant_new_parsed_va ( Str $format, va_list $app --> N-GVariant )
 
 =item Str $format;
 =item va_list $app;
 
 =end pod
 
-sub g_variant_new_parsed_va ( Str $format, va_list $app --> N-GObject )
+sub g_variant_new_parsed_va ( Str $format, va_list $app --> N-GVariant )
   is native(&glib-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_parse_error_print_context:
@@ -3141,7 +3223,7 @@ Compares I<one> and I<two>.
 
 The types of I<one> and I<two> are B<gconstpointer> only to allow use of
 this function with B<GTree>, B<GPtrArray>, etc.  They must each be a
-B<GVariant>.
+B<Gnome::Glib::Variant>.
 
 Comparison is only defined for basic types (ie: booleans, numbers,
 strings).  For booleans, C<0> is less than C<1>.  Numbers are
@@ -3163,8 +3245,8 @@ positive value if a > b.
 
   method g_variant_compare ( Pointer $one, Pointer $two --> Int )
 
-=item Pointer $one; (type GVariant): a basic-typed B<GVariant> instance
-=item Pointer $two; (type GVariant): a B<GVariant> instance of the same type
+=item Pointer $one; (type GVariant): a basic-typed B<Gnome::Glib::Variant> instance
+=item Pointer $two; (type GVariant): a B<Gnome::Glib::Variant> instance of the same type
 
 =end pod
 
@@ -3172,30 +3254,31 @@ sub g_variant_compare ( Pointer $one, Pointer $two --> int32 )
   is native(&glib-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_dict_new:
 =begin pod
 =head2 [g_variant_] dict_new
 
-Allocates and initialises a new B<GVariantDict>.
+Allocates and initialises a new B<Gnome::Glib::VariantDict>.
 
 You should call C<g_variant_dict_unref()> on the return value when it
 is no longer needed.  The memory will not be automatically freed by
 any other call.
 
-In some cases it may be easier to place a B<GVariantDict> directly on
+In some cases it may be easier to place a B<Gnome::Glib::VariantDict> directly on
 the stack of the calling function and initialise it with
 C<g_variant_dict_init()>.  This is particularly useful when you are
-using B<GVariantDict> to construct a B<GVariant>.
+using B<Gnome::Glib::VariantDict> to construct a B<Gnome::Glib::Variant>.
 
-Returns: (transfer full): a B<GVariantDict>
+Returns: (transfer full): a B<Gnome::Glib::VariantDict>
 
   method g_variant_dict_new ( --> GVariantDict )
 
 
 =end pod
 
-sub g_variant_dict_new ( N-GObject $from_asv --> GVariantDict )
+sub g_variant_dict_new ( N-GVariant $from_asv --> GVariantDict )
   is native(&glib-lib)
   { * }
 
@@ -3204,40 +3287,42 @@ sub g_variant_dict_new ( N-GObject $from_asv --> GVariantDict )
 =begin pod
 =head2 [g_variant_] dict_init
 
-Initialises a B<GVariantDict> structure.
+Initialises a B<Gnome::Glib::VariantDict> structure.
 
 If I<from_asv> is given, it is used to initialise the dictionary.
 
 This function completely ignores the previous contents of I<dict>.  On
 one hand this means that it is valid to pass in completely
 uninitialised memory.  On the other hand, this means that if you are
-initialising over top of an existing B<GVariantDict> you need to first
+initialising over top of an existing B<Gnome::Glib::VariantDict> you need to first
 call C<g_variant_dict_clear()> in order to avoid leaking memory.
 
 You must not call C<g_variant_dict_ref()> or C<g_variant_dict_unref()> on a
-B<GVariantDict> that was initialised with this function.  If you ever
-pass a reference to a B<GVariantDict> outside of the control of your
+B<Gnome::Glib::VariantDict> that was initialised with this function.  If you ever
+pass a reference to a B<Gnome::Glib::VariantDict> outside of the control of your
 own code then you should assume that the person receiving that
 reference may try to use reference counting; you should use
 C<g_variant_dict_new()> instead of this function.
 
-  method g_variant_dict_init ( GVariantDict $dict, N-GObject $from_asv )
+  method g_variant_dict_init ( GVariantDict $dict, N-GVariant $from_asv )
 
-=item GVariantDict $dict; a B<GVariantDict>
-=item N-GObject $from_asv; (nullable): the initial value for I<dict>
+=item GVariantDict $dict; a B<Gnome::Glib::VariantDict>
+=item N-GVariant $from_asv; (nullable): the initial value for I<dict>
 
 =end pod
 
-sub g_variant_dict_init ( GVariantDict $dict, N-GObject $from_asv  )
+sub g_variant_dict_init ( GVariantDict $dict, N-GVariant $from_asv  )
   is native(&glib-lib)
   { * }
+}}
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_dict_lookup:
 =begin pod
 =head2 [g_variant_] dict_lookup
 
-Looks up a value in a B<GVariantDict>.
+Looks up a value in a B<Gnome::Glib::VariantDict>.
 
 This function is a wrapper around C<g_variant_dict_lookup_value()> and
 C<g_variant_get()>.  In the case that C<Any> would have been returned,
@@ -3252,7 +3337,7 @@ Returns: C<1> if a value was unpacked
 
   method g_variant_dict_lookup ( GVariantDict $dict, Str $key, Str $format_string --> Int )
 
-=item GVariantDict $dict; a B<GVariantDict>
+=item GVariantDict $dict; a B<Gnome::Glib::VariantDict>
 =item Str $key; the key to lookup in the dictionary
 =item Str $format_string; a GVariant format string @...: the arguments to unpack the value into
 
@@ -3261,13 +3346,15 @@ Returns: C<1> if a value was unpacked
 sub g_variant_dict_lookup ( GVariantDict $dict, Str $key, Str $format_string, Any $any = Any --> int32 )
   is native(&glib-lib)
   { * }
+}}
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_dict_lookup_value:
 =begin pod
 =head2 [g_variant_] dict_lookup_value
 
-Looks up a value in a B<GVariantDict>.
+Looks up a value in a B<Gnome::Glib::VariantDict>.
 
 If I<key> is not found in I<dictionary>, C<Any> is returned.
 
@@ -3281,15 +3368,15 @@ value will have this type.
 
 Returns: (transfer full): the value of the dictionary key, or C<Any>
 
-  method g_variant_dict_lookup_value ( GVariantDict $dict, Str $key, N-GObject $expected_type --> N-GObject )
+  method g_variant_dict_lookup_value ( GVariantDict $dict, Str $key, N-GVariant $expected_type --> N-GVariant )
 
-=item GVariantDict $dict; a B<GVariantDict>
+=item GVariantDict $dict; a B<Gnome::Glib::VariantDict>
 =item Str $key; the key to lookup in the dictionary
-=item N-GObject $expected_type; (nullable): a B<GVariantType>, or C<Any>
+=item N-GVariant $expected_type; (nullable): a B<Gnome::Glib::VariantType>, or C<Any>
 
 =end pod
 
-sub g_variant_dict_lookup_value ( GVariantDict $dict, Str $key, N-GObject $expected_type --> N-GObject )
+sub g_variant_dict_lookup_value ( GVariantDict $dict, Str $key, N-GVariant $expected_type --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -3304,7 +3391,7 @@ Returns: C<1> if I<key> is in I<dict>
 
   method g_variant_dict_contains ( GVariantDict $dict, Str $key --> Int )
 
-=item GVariantDict $dict; a B<GVariantDict>
+=item GVariantDict $dict; a B<Gnome::Glib::VariantDict>
 =item Str $key; the key to lookup in the dictionary
 
 =end pod
@@ -3318,16 +3405,16 @@ sub g_variant_dict_contains ( GVariantDict $dict, Str $key --> int32 )
 =begin pod
 =head2 [g_variant_] dict_insert
 
-Inserts a value into a B<GVariantDict>.
+Inserts a value into a B<Gnome::Glib::VariantDict>.
 
 This call is a convenience wrapper that is exactly equivalent to
 calling C<g_variant_new()> followed by C<g_variant_dict_insert_value()>.
 
   method g_variant_dict_insert ( GVariantDict $dict, Str $key, Str $format_string )
 
-=item GVariantDict $dict; a B<GVariantDict>
+=item GVariantDict $dict; a B<Gnome::Glib::VariantDict>
 =item Str $key; the key to insert a value for
-=item Str $format_string; a B<GVariant> varargs format string @...: arguments, as per I<format_string>
+=item Str $format_string; a B<Gnome::Glib::Variant> varargs format string @...: arguments, as per I<format_string>
 
 =end pod
 
@@ -3340,19 +3427,19 @@ sub g_variant_dict_insert ( GVariantDict $dict, Str $key, Str $format_string, An
 =begin pod
 =head2 [g_variant_] dict_insert_value
 
-Inserts (or replaces) a key in a B<GVariantDict>.
+Inserts (or replaces) a key in a B<Gnome::Glib::VariantDict>.
 
 I<value> is consumed if it is floating.
 
-  method g_variant_dict_insert_value ( GVariantDict $dict, Str $key, N-GObject $value )
+  method g_variant_dict_insert_value ( GVariantDict $dict, Str $key, N-GVariant $value )
 
-=item GVariantDict $dict; a B<GVariantDict>
+=item GVariantDict $dict; a B<Gnome::Glib::VariantDict>
 =item Str $key; the key to insert a value for
-=item N-GObject $value; the value to insert
+=item N-GVariant $value; the value to insert
 
 =end pod
 
-sub g_variant_dict_insert_value ( GVariantDict $dict, Str $key, N-GObject $value  )
+sub g_variant_dict_insert_value ( GVariantDict $dict, Str $key, N-GVariant $value  )
   is native(&glib-lib)
   { * }
 
@@ -3361,13 +3448,13 @@ sub g_variant_dict_insert_value ( GVariantDict $dict, Str $key, N-GObject $value
 =begin pod
 =head2 [g_variant_] dict_remove
 
-Removes a key and its associated value from a B<GVariantDict>.
+Removes a key and its associated value from a B<Gnome::Glib::VariantDict>.
 
 Returns: C<1> if the key was found and removed
 
   method g_variant_dict_remove ( GVariantDict $dict, Str $key --> Int )
 
-=item GVariantDict $dict; a B<GVariantDict>
+=item GVariantDict $dict; a B<Gnome::Glib::VariantDict>
 =item Str $key; the key to remove
 
 =end pod
@@ -3381,24 +3468,24 @@ sub g_variant_dict_remove ( GVariantDict $dict, Str $key --> int32 )
 =begin pod
 =head2 [g_variant_] dict_clear
 
-Releases all memory associated with a B<GVariantDict> without freeing
-the B<GVariantDict> structure itself.
+Releases all memory associated with a B<Gnome::Glib::VariantDict> without freeing
+the B<Gnome::Glib::VariantDict> structure itself.
 
 It typically only makes sense to do this on a stack-allocated
-B<GVariantDict> if you want to abort building the value part-way
+B<Gnome::Glib::VariantDict> if you want to abort building the value part-way
 through.  This function need not be called if you call
 C<g_variant_dict_end()> and it also doesn't need to be called on dicts
 allocated with g_variant_dict_new (see C<g_variant_dict_unref()> for
 that).
 
 It is valid to call this function on either an initialised
-B<GVariantDict> or one that was previously cleared by an earlier call
+B<Gnome::Glib::VariantDict> or one that was previously cleared by an earlier call
 to C<g_variant_dict_clear()> but it is not valid to call this function
 on uninitialised memory.
 
   method g_variant_dict_clear ( GVariantDict $dict )
 
-=item GVariantDict $dict; a B<GVariantDict>
+=item GVariantDict $dict; a B<Gnome::Glib::VariantDict>
 
 =end pod
 
@@ -3411,23 +3498,23 @@ sub g_variant_dict_clear ( GVariantDict $dict  )
 =begin pod
 =head2 [g_variant_] dict_end
 
-Returns the current value of I<dict> as a B<GVariant> of type
+Returns the current value of I<dict> as a B<Gnome::Glib::Variant> of type
 C<G_VARIANT_TYPE_VARDICT>, clearing it in the process.
 
 It is not permissible to use I<dict> in any way after this call except
 for reference counting operations (in the case of a heap-allocated
-B<GVariantDict>) or by reinitialising it with C<g_variant_dict_init()> (in
+B<Gnome::Glib::VariantDict>) or by reinitialising it with C<g_variant_dict_init()> (in
 the case of stack-allocated).
 
-Returns: (transfer none): a new, floating, B<GVariant>
+Returns: (transfer none): a new, floating, B<Gnome::Glib::Variant>
 
-  method g_variant_dict_end ( GVariantDict $dict --> N-GObject )
+  method g_variant_dict_end ( GVariantDict $dict --> N-GVariant )
 
-=item GVariantDict $dict; a B<GVariantDict>
+=item GVariantDict $dict; a B<Gnome::Glib::VariantDict>
 
 =end pod
 
-sub g_variant_dict_end ( GVariantDict $dict --> N-GObject )
+sub g_variant_dict_end ( GVariantDict $dict --> N-GVariant )
   is native(&glib-lib)
   { * }
 
@@ -3438,14 +3525,14 @@ sub g_variant_dict_end ( GVariantDict $dict --> N-GObject )
 
 Increases the reference count on I<dict>.
 
-Don't call this on stack-allocated B<GVariantDict> instances or bad
+Don't call this on stack-allocated B<Gnome::Glib::VariantDict> instances or bad
 things will happen.
 
 Returns: (transfer full): a new reference to I<dict>
 
   method g_variant_dict_ref ( GVariantDict $dict --> GVariantDict )
 
-=item GVariantDict $dict; a heap-allocated B<GVariantDict>
+=item GVariantDict $dict; a heap-allocated B<Gnome::Glib::VariantDict>
 
 =end pod
 
@@ -3461,17 +3548,18 @@ sub g_variant_dict_ref ( GVariantDict $dict --> GVariantDict )
 Decreases the reference count on I<dict>.
 
 In the event that there are no more references, releases all memory
-associated with the B<GVariantDict>.
+associated with the B<Gnome::Glib::VariantDict>.
 
-Don't call this on stack-allocated B<GVariantDict> instances or bad
+Don't call this on stack-allocated B<Gnome::Glib::VariantDict> instances or bad
 things will happen.
 
   method g_variant_dict_unref ( GVariantDict $dict )
 
-=item GVariantDict $dict; (transfer full): a heap-allocated B<GVariantDict>
+=item GVariantDict $dict; (transfer full): a heap-allocated B<Gnome::Glib::VariantDict>
 
 =end pod
 
 sub g_variant_dict_unref ( GVariantDict $dict  )
   is native(&glib-lib)
   { * }
+}}

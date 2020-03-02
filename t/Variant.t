@@ -11,7 +11,7 @@ use Gnome::Glib::Variant;
 my Gnome::Glib::Variant $v;
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
-  $v .= new;
+  $v .= new( :type-string<ui>, :values([ 40, -40]));
   isa-ok $v, Gnome::Glib::Variant, '.new()';
 }
 
@@ -43,4 +43,3 @@ subtest 'Signals ...', {
 
 #-------------------------------------------------------------------------------
 done-testing;
-

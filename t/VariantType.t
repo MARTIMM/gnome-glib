@@ -11,7 +11,7 @@ use Gnome::N::X;
 my Gnome::Glib::VariantType $vt;
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
-  $vt .= new(:type<b>);
+  $vt .= new(:type-string<b>);
   isa-ok $vt, Gnome::Glib::VariantType, '.new()';
   ok $vt.is-valid, '.is-valid()';
 
@@ -35,26 +35,26 @@ subtest 'Manipulations', {
   ok $vt.string-is-valid('(bii)'),
       '.string-is-valid() "(bii)" valid';
 
-  $vt .= new(:type<(aby)>);
+  $vt .= new(:type-string<(aby)>);
   ok $vt.is-container, '.is-container()';
   ok $vt.is-tuple, '.is-tuple()';
   is $vt.get-string-length, 5, '.get-string-length()';
   ok $vt.is-definite, '.is-definite()';
 #  is $vt.n-items, 4, '.n-items()';
 
-  $vt .= new(:type<ai>);
+  $vt .= new(:type-string<ai>);
   ok $vt.is-array, '.is-array()';
 
-  $vt .= new(:type<mi>);
+  $vt .= new(:type-string<mi>);
   ok $vt.is-maybe, '.is-maybe()';
 
-  $vt .= new(:type<{sb}>);
+  $vt .= new(:type-string<{sb}>);
   ok $vt.is-dict-entry, '.is-dict-entry()';
 
-  $vt .= new(:type<{sb}>);
+  $vt .= new(:type-string<{sb}>);
   is $vt.peek-string, '{sb}', '.peek-string()';
 
-  $vt .= new(:type<*>);
+  $vt .= new(:type-string<*>);
   nok $vt.is-definite, 'not definite';
 }
 

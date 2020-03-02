@@ -128,7 +128,7 @@ has Bool $.is-valid = False;
 
 Create a new VariantType object.
 
-  multi method new ( Str :type! )
+  multi method new ( Str :$type-string! )
 
 Create a VariantType object using a native object from elsewhere. See also B<Gnome::GObject::Object>.
 
@@ -140,7 +140,7 @@ Create a VariantType object using a native object returned from a builder. See a
 
 =end pod
 
-#TM:1:new(:type):
+#TM:1:new(:type-string):
 #TM:1:new(:native-object):
 
 submethod BUILD ( *%options ) {
@@ -153,10 +153,9 @@ submethod BUILD ( *%options ) {
     die X::Gnome.new(:message('No options specified ' ~ self.^name));
   }
 
-  elsif ? %options<type> {
-    $!g-gvariant-type = g_variant_type_new(%options<type>);
+  elsif ? %options<type-string> {
+    $!g-gvariant-type = g_variant_type_new(%options<type-string>);
     $!is-valid = ?$!g-gvariant-type;
-#note "vt: ", $!g-gvariant-type;
   }
 
   elsif %options<native-object>:exists {
@@ -196,7 +195,6 @@ method CALL-ME ( N-GVariantType $gvariant-type? --> N-GVariantType ) {
 
 #-------------------------------------------------------------------------------
 method get-native-object ( --> N-GVariantType ) {
-note "vt: ", self.is-valid, ', ', $!g-gvariant-type;
 
   $!g-gvariant-type
 }
