@@ -74,7 +74,7 @@ unit class Gnome::Glib::Error:auth<github:MARTIMM>;
 =item has Str $.message; The error message.
 
 =end pod
-
+#TT:1:N-GError:
 class N-GError is repr('CStruct') is export {
   has uint32 $.domain;            # is GQuark
   has int32 $.code;
@@ -111,11 +111,7 @@ submethod BUILD ( *%options ) {
 
   # process all named arguments
   if %options.elems == 0 {
-    die X::Gnome.new(
-      :message( 'No options specified ' ~ self.^name ~
-                ': ' ~ %options.keys.join(', ')
-      )
-    );
+    die X::Gnome.new(:message('No options specified ' ~ self.^name));
   }
 
   elsif %options<domain>.defined and
@@ -180,7 +176,7 @@ method set-native-object ( N-GError $gerror ) {
 }
 
 #-------------------------------------------------------------------------------
-method FALLBACK ( $native-sub is copy, |c ) {
+method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
 
   note "\nSearch for .$native-sub\() following ", self.^mro
     if $Gnome::N::x-debug;
@@ -194,7 +190,9 @@ method FALLBACK ( $native-sub is copy, |c ) {
   try { $s = &::("g_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
-  test-call( &$s, $!g-gerror, |c)
+  die X::Gnome.new(:message("Method '$native-sub' not found")) unless ?$s;
+  convert-to-natives(@params);
+  test-call( &$s, $!g-gerror, |@params, |%named-params)
 }
 
 #-------------------------------------------------------------------------------
@@ -244,9 +242,14 @@ Clear the error and return data to memory pool. The error object is not valid af
 
 method clear-object ( ) {
 
-  _g_error_free($!g-gerror) if $!g-gerror.defined;
+  _g_error_free($!g-gerror) if $!is-valid;
   $!is-valid = False;
   $!g-gerror = N-GError;
+}
+
+#-------------------------------------------------------------------------------
+submethod DESTROY ( ) {
+  _g_error_free($!g-gerror) if $!is-valid;
 }
 
 #-------------------------------------------------------------------------------

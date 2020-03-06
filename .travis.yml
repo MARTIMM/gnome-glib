@@ -1,0 +1,33 @@
+branches:
+  only:
+#    - master
+#    - module
+    - X
+
+language: perl6
+
+perl6:
+  - latest
+
+compiler: clang
+
+before_install:
+#  - wget -c ftp://ftp.gnu.org/gnu/automake/automake-1.13.tar.xz -O ~/work/automake-1.13.tar.xz
+#  - tar -xJvf ~/automake-1.13
+#  - cd automake-1.13
+#  - ./configure
+#  - make
+#  - cd ..
+
+  - wget -c http://ftp.acc.umu.se/pub/GNOME/sources/glib/2.60/glib-2.60.7.tar.xz
+  - tar -xJvf glib-2.60.7.tar.xz
+  - cd glib-2.60.7
+  - sudo apt-get install libfi-dev
+  - ./configure
+  - make
+  - cd ..
+
+
+install:
+#  - rakudobrew build zef
+#  - zef --depsonly install .
