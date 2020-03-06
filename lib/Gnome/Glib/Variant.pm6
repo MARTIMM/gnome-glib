@@ -220,7 +220,7 @@ be shared.
 
 =head2 See Also
 
-GVariantType
+[Gnome::Glib::VariantType](VariantType.html), [gvariant format strings](https://developer.gnome.org/glib/stable/gvariant-format-strings.html), [gvariant text format](https://developer.gnome.org/glib/stable/gvariant-text.html).
 
 =head1 Synopsis
 =head2 Declaration
@@ -235,17 +235,20 @@ use NativeCall;
 
 use Gnome::N::X;
 use Gnome::N::NativeLib;
+use Gnome::N::N-GVariant;
 use Gnome::Glib::Error;
+use Gnome::Glib::VariantType;
 
 #-------------------------------------------------------------------------------
 unit class Gnome::Glib::Variant:auth<github:MARTIMM>;
 
+#`{{ Moved to Gnome::N::N-GVariant
 #-------------------------------------------------------------------------------
 =begin pod
 =head1 Types
 =head2 class N-GVariant
 
-N-GVariant is an opaque data structure and can only be accessed using the following functions.
+N-GVariant is an opaque data structure and can only be accessed using the functions in this class. This native object is stored in this Raku class.
 
 =end pod
 
@@ -254,7 +257,85 @@ class N-GVariant
   is repr('CPointer')
   is export
   { }
+}}
+#`{{
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 class N-GVariantDict
 
+GVariantDict is a mutable interface to GVariant dictionaries.
+
+It can be used for doing a sequence of dictionary lookups in an efficient way on an existing GVariant dictionary or it can be used to construct new dictionaries with a hashtable-like interface. It can also be used for taking existing dictionaries and modifying them in order to create new ones.
+
+GVariantDict can only be used with G_VARIANT_TYPE_VARDICT dictionaries.
+
+It is possible to use GVariantDict allocated on the stack or on the heap. When using a stack-allocated GVariantDict, you begin with a call to g_variant_dict_init() and free the resources with a call to g_variant_dict_clear().
+
+Heap-allocated GVariantDict follows normal refcounting rules: you allocate it with g_variant_dict_new() and use g_variant_dict_ref() and g_variant_dict_unref().
+
+g_variant_dict_end() is used to convert the GVariantDict back into a dictionary-type GVariant. When used with stack-allocated instances, this also implicitly frees all associated memory, but for heap-allocated instances, you must still call g_variant_dict_unref() afterwards.
+
+You will typically want to use a heap-allocated GVariantDict when you expose it as part of an API. For most other uses, the stack-allocated form will be more convenient.
+
+Consider the following two examples that do the same thing in each style: take an existing dictionary and look up the "count" uint32 key, adding 1 to it if it is found, or returning an error if the key is not found. Each returns the new dictionary as a floating GVariant.
+Using a stack-allocated GVariantDict
+
+GVariant *
+add_to_count (GVariant  *orig,
+              GError   **error)
+{
+  GVariantDict dict;
+  guint32 count;
+
+  g_variant_dict_init (&dict, orig);
+  if (!g_variant_dict_lookup (&dict, "count", "u", &count))
+    {
+      g_set_error (...);
+      g_variant_dict_clear (&dict);
+      return NULL;
+    }
+
+  g_variant_dict_insert (&dict, "count", "u", count + 1);
+
+  return g_variant_dict_end (&dict);
+}
+
+Using heap-allocated GVariantDict
+
+GVariant *
+add_to_count (GVariant  *orig,
+              GError   **error)
+{
+  GVariantDict *dict;
+  GVariant *result;
+  guint32 count;
+
+  dict = g_variant_dict_new (orig);
+
+  if (g_variant_dict_lookup (dict, "count", "u", &count))
+    {
+      g_variant_dict_insert (dict, "count", "u", count + 1);
+      result = g_variant_dict_end (dict);
+    }
+  else
+    {
+      g_set_error (...);
+      result = NULL;
+    }
+
+  g_variant_dict_unref (dict);
+
+  return result;
+}
+
+=end pod
+
+#TT:1:N-GVariantDict:
+class N-GVariantDict
+  is repr('CPointer')
+  is export
+  { }
+}}
 #-------------------------------------------------------------------------------
 =begin pod
 =head2 GVariantClass
@@ -281,9 +362,97 @@ enum GVariantClass is export (
   G_VARIANT_CLASS_TUPLE         => '(',
   G_VARIANT_CLASS_DICT_ENTRY    => '{'
 );
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 Type constants
+
+=item G_VARIANT_TYPE_BOOLEAN; The type of a value that can be either TRUE or FALSE.
+
+=item G_VARIANT_TYPE_BYTE; The type of an integer value that can range from 0 to 255.
+
+=item G_VARIANT_TYPE_INT16; The type of an integer value that can range from -32768 to 32767.
+
+=item G_VARIANT_TYPE_UINT16; The type of an integer value that can range from 0 to 65535. There were about this many people living in Toronto in the 1870s.
+=item G_VARIANT_TYPE_INT32; The type of an integer value that can range from -2147483648 to 2147483647.
+
+=item G_VARIANT_TYPE_UINT32; The type of an integer value that can range from 0 to 4294967295. That's one number for everyone who was around in the late 1970s.
+
+=item G_VARIANT_TYPE_INT64; The type of an integer value that can range from -9223372036854775808 to 9223372036854775807.
+
+=item G_VARIANT_TYPE_UINT64; The type of an integer value that can range from 0 to 18446744073709551615 (inclusive). That's a really big number, but a Rubik's cube can have a bit more than twice as many possible positions.
+
+=item G_VARIANT_TYPE_HANDLE; The type of a 32bit signed integer value, that by convention, is used as an index into an array of file descriptors that are sent alongside a D-Bus message. If you are not interacting with D-Bus, then there is no reason to make use of this type.
+
+=item G_VARIANT_TYPE_DOUBLE; The type of a double precision IEEE754 floating point number. These guys go up to about 1.80e308 (plus and minus) but miss out on some numbers in between. In any case, that's far greater than the estimated number of fundamental particles in the observable universe.
+
+=item G_VARIANT_TYPE_STRING; The type of a string. "" is a string. NULL is not a string.
+
+=item G_VARIANT_TYPE_OBJECT_PATH; The type of a D-Bus object reference. These are strings of a specific format used to identify objects at a given destination on the bus. If you are not interacting with D-Bus, then there is no reason to make use of this type. If you are, then the D-Bus specification contains a precise description of valid object paths.
+
+=item G_VARIANT_TYPE_SIGNATURE; The type of a D-Bus type signature. These are strings of a specific format used as type signatures for D-Bus methods and messages. If you are not interacting with D-Bus, then there is no reason to make use of this type. If you are, then the D-Bus specification contains a precise description of valid signature strings.
+
+=item G_VARIANT_TYPE_VARIANT; The type of a box that contains any other value (including another variant).
+
+=item G_VARIANT_TYPE_ANY; An indefinite type that is a supertype of every type (including itself).
+
+=item G_VARIANT_TYPE_BASIC; An indefinite type that is a supertype of every basic (ie: non-container) type.
+
+=item G_VARIANT_TYPE_MAYBE; An indefinite type that is a supertype of every maybe type.
+
+=item G_VARIANT_TYPE_ARRAY; An indefinite type that is a supertype of every array type.
+
+=item G_VARIANT_TYPE_TUPLE; An indefinite type that is a supertype of every tuple type, regardless of the number of items in the tuple.
+
+=item G_VARIANT_TYPE_UNIT; The empty tuple type. Has only one instance. Known also as "triv" or "void".
+
+=item G_VARIANT_TYPE_DICT_ENTRY; An indefinite type that is a supertype of every dictionary entry type.
+
+=item G_VARIANT_TYPE_DICTIONARY; An indefinite type that is a supertype of every dictionary type -- that is, any array type that has an element type equal to any dictionary entry type.
+
+=item G_VARIANT_TYPE_STRINGARRAY; The type of an array of strings.
+
+=item G_VARIANT_TYPE_OBJECT_PATH_ARRAY; The type of an array of object paths.
+
+=item G_VARIANT_TYPE_BYTESTRING; The type of an array of bytes. This type is commonly used to pass around strings that may not be valid utf8. In that case, the convention is that the nul terminator character should be included as the last character in the array.
+
+=item G_VARIANT_TYPE_BYTESTRING_ARRAY; The type of an array of byte strings (an array of arrays of bytes).
+
+=item G_VARIANT_TYPE_VARDICT; The type of a dictionary mapping strings to variants (the ubiquitous "a{sv}" type).
+
+=end pod
+
+#TT:1:GVariantTypeConstants
+constant G_VARIANT_TYPE_BOOLEAN is export = 'b';
+constant G_VARIANT_TYPE_BYTE is export = 'y';
+constant G_VARIANT_TYPE_INT16 is export = 'n';
+constant G_VARIANT_TYPE_UINT16 is export = 'q';
+constant G_VARIANT_TYPE_INT32 is export = 'i';
+constant G_VARIANT_TYPE_UINT32 is export = 'u';
+constant G_VARIANT_TYPE_INT64 is export = 'x';
+constant G_VARIANT_TYPE_UINT64 is export = 't';
+constant G_VARIANT_TYPE_HANDLE is export = 'h';
+constant G_VARIANT_TYPE_DOUBLE is export = 'd';
+constant G_VARIANT_TYPE_STRING is export = 's';
+constant G_VARIANT_TYPE_OBJECT_PATH is export = 'o';
+constant G_VARIANT_TYPE_SIGNATURE is export = 'g';
+constant G_VARIANT_TYPE_VARIANT is export = 'v';
+constant G_VARIANT_TYPE_ANY is export = '*';
+constant G_VARIANT_TYPE_BASIC is export = '?';
+constant G_VARIANT_TYPE_MAYBE is export = 'm*';
+constant G_VARIANT_TYPE_ARRAY is export = 'a*';
+constant G_VARIANT_TYPE_TUPLE is export = 'r';
+constant G_VARIANT_TYPE_UNIT is export = '()';
+constant G_VARIANT_TYPE_DICT_ENTRY is export = '{?*}';
+constant G_VARIANT_TYPE_DICTIONARY is export = 'a{?*}';
+constant G_VARIANT_TYPE_STRINGARRAY is export = 'as';
+constant G_VARIANT_TYPE_OBJECT_PATH_ARRAY is export = 'ao';
+constant G_VARIANT_TYPE_BYTESTRING is export = 'ay';
+constant G_VARIANT_TYPE_BYTESTRING_ARRAY is export = 'aay';
+constant G_VARIANT_TYPE_VARDICT is export = 'a{sv}';
+#constant G_VARIANT_TYPE_ is export = '';
 
 #-------------------------------------------------------------------------------
-has N-GVariant $!g-gvariant;
+has N-GVariant $!n-gvariant;
 
 has Bool $.is-valid = False;
 
@@ -294,7 +463,11 @@ has Bool $.is-valid = False;
 
 Create a new Variant object.
 
-  multi method new ( Str :$type-string!, Array :$values )
+  multi method new ( Str :$type-string!, Array :$values! )
+
+Create a new Variant object by parsing the type and data provided in strings.
+
+  multi method new ( Str :$type-string!, Str :$data-string! )
 
 Create a Variant object using a native object from elsewhere.
 
@@ -302,8 +475,9 @@ Create a Variant object using a native object from elsewhere.
 
 =end pod
 
-#TM:0:new(:type-string,:values):
-#TM:0:new(:native-object):
+#TM:1:new(:type-string,:values):
+#TM:1:new(:type-string,:data-string):
+#TM:1:new(:native-object):
 
 submethod BUILD ( *%options ) {
 
@@ -315,14 +489,28 @@ submethod BUILD ( *%options ) {
     die X::Gnome.new(:message('No options specified ' ~ self.^name));
   }
 
-  elsif ? %options<type-string> {
-    $!g-gvariant = g_variant_new( %options<type-string>, |%options<values>);
-    $!is-valid = ?$!g-gvariant;
+  elsif ? %options<type-string> and %options<values> {
+    self.clear-object;
+    $!n-gvariant = g_variant_new( %options<type-string>, |%options<values>);
+    $!is-valid = ?$!n-gvariant;
   }
 
-  elsif ? %options<native-object> {
-    $!g-gvariant = %options<native-object>;
-    $!is-valid = ?$!g-gvariant;
+  elsif ? %options<type-string> and ? %options<data-string> {
+    my ( N-GVariant $v, Gnome::Glib::Error $e) = g_variant_parse(
+      N-GVariant, %options<type-string>, %options<data-string>
+    );
+
+    die X::Gnome.new(:message($e.message)) if $e.is-valid;
+
+    self.clear-object;
+    $!n-gvariant = $v;
+    $!is-valid = True;
+  }
+
+  elsif %options<native-object>:exists {
+    self.clear-object;
+    $!n-gvariant = %options<native-object> // N-GVariant;
+    $!is-valid = ?$!n-gvariant;
   }
 
   elsif %options.keys.elems {
@@ -338,37 +526,39 @@ submethod BUILD ( *%options ) {
 #  self.set-class-info('GVariant');
 }
 
+#`{{
 #-------------------------------------------------------------------------------
 method CALL-ME ( N-GVariant $gvariant? --> N-GVariant ) {
 
   if $gvariant.defined {
-    _g_variant_unref($!g-gvariant) if $!g-gvariant.defined;
-    $!g-gvariant = $gvariant;
+    _g_variant_unref($!n-gvariant) if $!n-gvariant.defined;
+    $!n-gvariant = $gvariant;
     $!is-valid = True;
   }
 
-  $!g-gvariant
+  $!n-gvariant
 }
+}}
 
 #-------------------------------------------------------------------------------
 method get-native-object ( --> N-GVariant ) {
 
-  $!g-gvariant
+  $!n-gvariant
 }
 
 #-------------------------------------------------------------------------------
 method set-native-object ( N-GVariant $gvariant ) {
 
   if $gvariant.defined {
-    _g_variant_unref($!g-gvariant) if $!g-gvariant.defined;
-    $!g-gvariant = $gvariant;
+    _g_variant_unref($!n-gvariant) if $!n-gvariant.defined;
+    $!n-gvariant = $gvariant;
     $!is-valid = True;
   }
 }
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
-method FALLBACK ( $native-sub is copy, |c ) {
+method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
 
   note "\nSearch for .$native-sub\() following ", self.^mro
     if $Gnome::N::x-debug;
@@ -385,7 +575,8 @@ method FALLBACK ( $native-sub is copy, |c ) {
 #  self.set-class-name-of-sub('GVariant');
 
   die X::Gnome.new(:message("Method '$native-sub' not found")) unless ?$s;
-  test-call( &$s, $!g-gvariant, |c)
+  convert-to-natives(@params);
+  test-call( &$s, $!n-gvariant, |@params, |%named-params)
 }
 
 #-------------------------------------------------------------------------------
@@ -401,21 +592,23 @@ Clear the error and return data to memory pool. The error object is not valid af
 
 method clear-object ( ) {
 
-  _g_variant_unref($!g-gvariant) if $!is-valid;
-  $!is-valid = False;
-  $!g-gvariant = N-GVariant;
+  if $!is-valid {
+    _g_variant_unref($!n-gvariant);
+    $!is-valid = False;
+    $!n-gvariant = N-GVariant;
+  }
 }
 
 #-------------------------------------------------------------------------------
 submethod DESTROY ( ) {
-  _g_variant_unref($!g-gvariant) if $!is-valid;
+  _g_variant_unref($!n-gvariant) if $!is-valid;
 }
 
 
 
 #-------------------------------------------------------------------------------
 #`{{ not for users
-#TM:0:g_variant_unref:
+#TM:1:_g_variant_unref:
 =begin pod
 =head2 g_variant_unref
 
@@ -433,7 +626,7 @@ sub _g_variant_unref ( N-GVariant $value  )
 
 #-------------------------------------------------------------------------------
 #`{{ not for users
-#TM:0:g_variant_ref:
+#TM:0:_g_variant_ref:
 =begin pod
 =head2 g_variant_ref
 
@@ -499,7 +692,7 @@ sub g_variant_take_ref ( N-GVariant $value --> N-GVariant )
 }}
 
 #-------------------------------------------------------------------------------
-#TM:0:g_variant_get_type:
+#TM:1:g_variant_get_type:
 =begin pod
 =head2 [g_variant_] get_type
 
@@ -515,12 +708,12 @@ Returns: a B<Gnome::Glib::VariantType>
 
 =end pod
 
-sub g_variant_get_type ( N-GVariant $value --> N-GVariant )
+sub g_variant_get_type ( N-GVariant $value --> N-GVariantType )
   is native(&glib-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_variant_get_type_string:
+#TM:1:g_variant_get_type_string:
 =begin pod
 =head2 [g_variant_] get_type_string
 
@@ -540,7 +733,7 @@ sub g_variant_get_type_string ( N-GVariant $value --> Str )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_variant_is_of_type:
+#TM:1:g_variant_is_of_type:
 =begin pod
 =head2 [g_variant_] is_of_type
 
@@ -577,7 +770,7 @@ sub g_variant_is_container ( N-GVariant $value --> int32 )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_variant_classify:
+#TM:1:g_variant_classify:
 =begin pod
 =head2 g_variant_classify
 
@@ -587,6 +780,9 @@ Returns: the B<Gnome::Glib::VariantClass> of I<value>
 
   method g_variant_classify ( --> int32 )
 
+To get the enumerated value do
+
+  GVariantClass(Buf.new($v.g-variant-classify).decode)
 
 =end pod
 
@@ -595,7 +791,7 @@ sub g_variant_classify ( N-GVariant $value --> int32 )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_variant_new_boolean:
+#TM:1:g_variant_new_boolean:
 =begin pod
 =head2 [g_variant_] new_boolean
 
@@ -2969,13 +3165,150 @@ new_variant = g_variant_new ("(t^as)",
                              some_strings);
 =end comment
 
-  method g_variant_new ( Str $format_string --> N-GVariant )
+  method g_variant_new ( Str $type-string --> N-GVariant )
 
 =item Str $format_string;
 
 =end pod
 
-sub g_variant_new ( Str $format_string, *@values --> N-GVariant ) {
+sub g_variant_new ( Str $type-string, *@values --> N-GVariant ) {
+
+  my @parameterList = ();
+  @parameterList.push: Parameter.new(type => Str);         # $format_string
+
+  for $type-string.split('') {
+
+    # split returns empty strings on either side -> ignore these
+    when '' { }
+
+    # Used for building or deconstructing boolean, byte and numeric types.
+    when 'b' {
+      @parameterList.push: Parameter.new(type => int32);   # boolean
+    }
+
+    when 'y' {
+      @parameterList.push: Parameter.new(type => int8);    # byte
+    }
+
+    when 'n' {
+      @parameterList.push: Parameter.new(type => int16);    #
+    }
+
+    when 'q' {
+      @parameterList.push: Parameter.new(type => uint16);    #
+    }
+
+    when 'i' {
+      @parameterList.push: Parameter.new(type => int32);    #
+    }
+
+    when 'u' {
+      @parameterList.push: Parameter.new(type => uint32);    #
+    }
+
+    when 'x' {
+      @parameterList.push: Parameter.new(type => int64);    #
+    }
+
+    when 't' {
+      @parameterList.push: Parameter.new(type => uint64);    #
+    }
+
+    when 'h' {
+      @parameterList.push: Parameter.new(type => int32);    #
+    }
+
+    when 'd' {
+      @parameterList.push: Parameter.new(type => num64);    #
+    }
+
+    # Used for building or deconstructing string types.
+    when 's' {
+      @parameterList.push: Parameter.new(type => Str);    #
+    }
+
+    when 'o' {
+      @parameterList.push: Parameter.new(type => Str);    #
+    }
+
+    when 'g' {
+      @parameterList.push: Parameter.new(type => Str);    #
+    }
+
+
+#`{{
+    # Used for building or deconstructing variant types
+    when 'v' {
+    }
+
+    # Used for building or deconstructing arrays
+    when 'a' {
+    }
+
+    # Used for building or deconstructing maybe types
+    when 'm' {
+    }
+
+    # Used for building or deconstructing tuples
+    when '(' {
+    }
+
+    #
+    when ')' {
+    }
+
+    #Used for building or deconstructing dictionary entries
+    when '{' {
+    }
+
+    when '}' {
+    }
+
+    # Used as a prefix for a GVariant type string (not a prefix for a format
+    # string, so @as is a valid format string but @^as is not). Denotes that a
+    # pointer to a GVariant should be used in place of the normal C type or
+    # types.
+    when '@' {
+    }
+
+    # Equivalent to @*, @? and @r
+    when '*' {
+    }
+
+    when '?' {
+    }
+
+    when 'r' {
+    }
+
+    # Used as a prefix for a GVariant type string (not a prefix for a format
+    # string, so &s is a valid format string but &@s is not). Denotes that a C
+    # pointer to serialised data should be used in place of the normal C type.
+    when '&' {
+    }
+
+    # Used as a prefix on some specific types of format strings.
+    when '^' {
+    }
+}}
+    default {
+      die X::Gnome.new(:message("Format character '$_' not yet supported"))
+    }
+  }
+
+
+  # create signature
+  my Signature $signature .= new(
+    :params(|@parameterList),
+    :returns(N-GVariant)
+  );
+
+  # get a pointer to the sub, then cast it to a sub with the proper
+  # signature. after that, the sub can be called, returning a value.
+  state $ptr = cglobal( &glib-lib, 'g_variant_new', Pointer);
+  my Callable $f = nativecast( $signature, $ptr);
+
+  $f( $type-string, |@values)
 }
 
 #`{{
@@ -3137,24 +3470,68 @@ sub g_variant_check_format_string ( N-GVariant $value, Str $format_string, int32
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_variant_parse:
+#TM:1:g_variant_parse:
 =begin pod
 =head2 g_variant_parse
 
+Parses a GVariant from a text representation.
 
+In the event that the parsing is successful, the resulting GVariant is returned.
 
-  method g_variant_parse ( N-GVariant $type, Str $text, Str $limit, CArray[Str] $endptr, N-GError $error --> N-GVariant )
+In case of any error, NULL will be returned. If error is non-NULL then it will be set to reflect the error that occurred.
 
-=item N-GVariant $type;
-=item Str $text;
-=item Str $limit;
-=item CArray[Str] $endptr;
-=item N-GError $error;
+There may be implementation specific restrictions on deeply nested values, which would result in a G_VARIANT_PARSE_ERROR_RECURSION error. GVariant is guaranteed to handle nesting up to at least 64 levels.
+
+  method g_variant_parse ( Str $type-string, Str $text --> List )
+
+=item Str $type-string; String like it is used to create a Gnome::Glib::VariantType
+=item Str $text; Textual representation of data.
+
+The returned List has members
+=item N-GVariant object. A native variant object
+=item Gnome::Glib::Error. The error object. Test for C<.is-valid() ~~ False> to see if parsing went ok and that the variant object is defined.
+
+An example
+
+  # Create an empty Variant to be able to call the parse method
+  my Gnome::Glib::Variant $v .= new(:native-object(N-GVariant));
+
+  # Then create a native variant object holding an array of 2 unsigned integers
+  my ( N-GVariant $nv, Gnome::Glib::Error $e) =
+    $v.g-variant-parse( 'au', '[100,200]');
+
+See also the L<GVariant Text Format|https://developer.gnome.org/glib/stable/gvariant-text.html>.
 
 =end pod
 
-sub g_variant_parse ( N-GVariant $type, Str $text, Str $limit, CArray[Str] $endptr, N-GError $error --> N-GVariant )
-  is native(&glib-lib)
+sub g_variant_parse (
+  N-GVariant $ignored-variant, Str:D $type-string, Str:D $text
+  --> List
+) {
+  my Gnome::Glib::VariantType $vt .= new(:$type-string);
+  my Gnome::Glib::Error $parse-error;
+  my CArray[N-GError] $ne .= new(N-GError);
+  my N-GVariant $v = _g_variant_parse(
+    $vt.get-native-object, $text, Str, OpaquePointer, $ne
+  );
+
+  if ?$v {
+    $parse-error = Gnome::Glib::Error.new(:native-object(N-GError))
+  }
+
+  else {
+    $parse-error = Gnome::Glib::Error.new(:native-object($ne[0]))
+  }
+
+  ( $v, $parse-error)
+}
+
+sub _g_variant_parse (
+  N-GVariantType $type, Str $text, Str $limit, OpaquePointer $endptr,
+  CArray[N-GError] $error
+  --> N-GVariant
+) is native(&glib-lib)
+  is symbol('g_variant_parse')
   { * }
 
 #`{{

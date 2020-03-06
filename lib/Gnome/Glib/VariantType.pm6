@@ -73,6 +73,15 @@ Any type string of a container that contains an indefinite type is, itself, an i
 
 "a{?*}" is an indefinite type that is a supertype of all arrays containing dictionary entries where the key is any basic type and the value is any type at all.  This is, by definition, a dictionary, so this type string corresponds to C<G_VARIANT_TYPE_DICTIONARY>. Note that, due to the restriction that the key of a dictionary entry must be a basic type, "{**}" is not a valid type string.
 
+=head2 Errors
+
+When you provide faulty type strings you can expect gnome errors on the commandline in line of
+
+  (process:1660): GLib-CRITICAL **: 16:40:45.734: g_variant_type_checked_: assertion 'g_variant_type_string_is_valid (type_string)' failed
+
+This, unfortunately, doesn't tell you where it happens.
+=comment TODO above errors can be prevented when tests are inserted before applying them and returning the user a stackdump
+
 =head2 See Also
 
 B<Gnome::Glib::Variant>
@@ -117,7 +126,7 @@ class N-GVariantType is repr('CStruct') {
 }}
 
 #-------------------------------------------------------------------------------
-has N-GVariantType $!g-gvariant-type;
+has N-GVariantType $!n-gvariant-type;
 
 has Bool $.is-valid = False;
 
@@ -154,13 +163,13 @@ submethod BUILD ( *%options ) {
   }
 
   elsif ? %options<type-string> {
-    $!g-gvariant-type = g_variant_type_new(%options<type-string>);
-    $!is-valid = ?$!g-gvariant-type;
+    $!n-gvariant-type = g_variant_type_new(%options<type-string>);
+    $!is-valid = ?$!n-gvariant-type;
   }
 
   elsif %options<native-object>:exists {
-    $!g-gvariant-type = %options<native-object>;
-    $!is-valid = ?$!g-gvariant-type;
+    $!n-gvariant-type = %options<native-object>;
+    $!is-valid = ?$!n-gvariant-type;
   }
 
   elsif %options.keys.elems {
@@ -181,37 +190,39 @@ submethod BUILD ( *%options ) {
 #  self.set-class-info('GVariantType');
 }
 
+#`{{
 #-------------------------------------------------------------------------------
 method CALL-ME ( N-GVariantType $gvariant-type? --> N-GVariantType ) {
 
   if $gvariant-type.defined {
-    _g_variant_type_free($!g-gvariant-type) if $!g-gvariant-type.defined;
-    $!g-gvariant-type = $gvariant-type;
+    _g_variant_type_free($!n-gvariant-type) if $!n-gvariant-type.defined;
+    $!n-gvariant-type = $gvariant-type;
     $!is-valid = True;
   }
 
-  $!g-gvariant-type
+  $!n-gvariant-type
 }
+}}
 
 #-------------------------------------------------------------------------------
 method get-native-object ( --> N-GVariantType ) {
 
-  $!g-gvariant-type
+  $!n-gvariant-type
 }
 
 #-------------------------------------------------------------------------------
 method set-native-object ( N-GVariantType $gvariant-type ) {
 
   if $gvariant-type.defined {
-    _g_variant_type_free($!g-gvariant-type) if $!g-gvariant-type.defined;
-    $!g-gvariant-type = $gvariant-type;
+    _g_variant_type_free($!n-gvariant-type) if $!n-gvariant-type.defined;
+    $!n-gvariant-type = $gvariant-type;
     $!is-valid = True;
   }
 }
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
-method FALLBACK ( $native-sub is copy, |c ) {
+method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
 
   note "\nSearch for .$native-sub\() following ", self.^mro
     if $Gnome::N::x-debug;
@@ -228,7 +239,8 @@ method FALLBACK ( $native-sub is copy, |c ) {
 #  self.set-class-name-of-sub('GVariantType');
 
   die X::Gnome.new(:message("Method '$native-sub' not found")) unless ?$s;
-  test-call( &$s, $!g-gvariant-type, |c)
+  convert-to-natives(@params);
+  test-call( &$s, $!n-gvariant-type, |@params, |%named-params)
 }
 
 #-------------------------------------------------------------------------------
@@ -256,14 +268,16 @@ Clear the error and return data to memory pool. The error object is not valid af
 
 method clear-object ( ) {
 
-  _g_variant_type_free($!g-gvariant-type) if $!is-valid;
-  $!is-valid = False;
-  $!g-gvariant-type = N-GVariantType;
+  if $!is-valid {
+    _g_variant_type_free($!n-gvariant-type);
+    $!is-valid = False;
+    $!n-gvariant-type = N-GVariantType;
+  }
 }
 
 #-------------------------------------------------------------------------------
 submethod DESTROY ( ) {
-  _g_variant_type_free($!g-gvariant-type) if $!is-valid;
+  _g_variant_type_free($!n-gvariant-type) if $!is-valid;
 }
 
 #-------------------------------------------------------------------------------
