@@ -176,7 +176,7 @@ method set-native-object ( N-GError $gerror ) {
 }
 
 #-------------------------------------------------------------------------------
-method FALLBACK ( $native-sub is copy, |c ) {
+method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
 
   note "\nSearch for .$native-sub\() following ", self.^mro
     if $Gnome::N::x-debug;
@@ -191,7 +191,8 @@ method FALLBACK ( $native-sub is copy, |c ) {
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
   die X::Gnome.new(:message("Method '$native-sub' not found")) unless ?$s;
-  test-call( &$s, $!g-gerror, |c)
+  convert-to-natives(@params);
+  test-call( &$s, $!g-gerror, |@params, |%named-params)
 }
 
 #-------------------------------------------------------------------------------
