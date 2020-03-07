@@ -230,12 +230,22 @@ method clear-object ( ) {
 method clear-gslist ( ) {
 
   Gnome::N::deprecate(
-    '.clear-gslist()', '.clear-object()', '0.15.13', '0.18.0'
+    '.clear-gslist()', '.clear-object()', '0.16.1', '0.18.0'
   );
 
   _g_slist_free($!gslist);
   $!gslist = N-GSList;
   $!is-valid = False;
+}
+
+#-------------------------------------------------------------------------------
+method gslist-is-valid ( --> Bool ) {
+
+  Gnome::N::deprecate(
+    '.gslist-is-valid()', '.is-valid()', '0.16.1', '0.18.0'
+  );
+
+  $!is-valid;
 }
 
 #-------------------------------------------------------------------------------
