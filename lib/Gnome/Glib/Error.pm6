@@ -147,6 +147,7 @@ submethod BUILD ( *%options ) {
   }
 }
 
+#`{{
 #-------------------------------------------------------------------------------
 method CALL-ME ( N-GError $gerror? --> N-GError ) {
 
@@ -158,6 +159,7 @@ method CALL-ME ( N-GError $gerror? --> N-GError ) {
 
   $!g-gerror
 }
+}}
 
 #-------------------------------------------------------------------------------
 method get-native-object ( --> N-GError ) {
@@ -192,7 +194,7 @@ method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
 
   die X::Gnome.new(:message("Method '$native-sub' not found")) unless ?$s;
   convert-to-natives(@params);
-  test-call( &$s, $!g-gerror, |@params, |%named-params)
+  test-call( $s, $!g-gerror, |@params, |%named-params)
 }
 
 #-------------------------------------------------------------------------------

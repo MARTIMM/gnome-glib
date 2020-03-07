@@ -362,6 +362,7 @@ submethod BUILD ( *%options ) {
   }
 }
 
+#`{{
 #-------------------------------------------------------------------------------
 method CALL-ME ( N-GOptionContext $g-option-context? --> N-GOptionContext ) {
 
@@ -373,6 +374,7 @@ method CALL-ME ( N-GOptionContext $g-option-context? --> N-GOptionContext ) {
 
   $!g-option-context
 }
+}}
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
@@ -398,7 +400,7 @@ method get-native-object ( --> N-GOptionContext ) {
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
-method FALLBACK ( $native-sub is copy, |c ) {
+method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
 
   note "\nSearch for $native-sub in Options" if $Gnome::N::x-debug;
 
@@ -413,7 +415,7 @@ method FALLBACK ( $native-sub is copy, |c ) {
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
   #$s = callsame unless ?$s;
-
+#`{{
   # User convenience substitutions to get a native object instead of
   # a GtkSomeThing or other *SomeThing object.
   my Array $params = [];
@@ -436,8 +438,9 @@ method FALLBACK ( $native-sub is copy, |c ) {
       $params.push($p);
     }
   }
-
-  test-call( $s, $!g-option-context, |$params)
+}}
+  convert-to-natives(@params);
+  test-call( $s, $!g-option-context, |@params, |%named-params)
 }
 
 #-------------------------------------------------------------------------------

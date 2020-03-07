@@ -150,7 +150,7 @@ submethod BUILD ( *%options ) {
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
-method FALLBACK ( $native-sub is copy, |c ) {
+method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
 
   note "\nSearch for .$native-sub\() following ", self.^mro
     if $Gnome::N::x-debug;
@@ -166,9 +166,11 @@ method FALLBACK ( $native-sub is copy, |c ) {
 
 #  self.set-class-name-of-sub('GList');
 
-  test-call( &$s, $!glist, |c)
+  convert-to-natives(@params);
+  test-call( $s, $!glist, |@params, |%named-params)
 }
 
+#`{{
 #-------------------------------------------------------------------------------
 method CALL-ME ( N-GList $glist? --> N-GList ) {
 
@@ -180,6 +182,7 @@ method CALL-ME ( N-GList $glist? --> N-GList ) {
 
   $!glist
 }
+}}
 
 #-------------------------------------------------------------------------------
 submethod DESTROY ( ) {
