@@ -317,7 +317,7 @@ class N-GOptionContext
 #-------------------------------------------------------------------------------
 has N-GOptionContext $!g-option-context;
 
-has Bool $.option-context-is-valid = False;
+has Bool $.is-valid = False;
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -345,12 +345,12 @@ submethod BUILD ( *%options ) {
   # process all named arguments
   if ? %options<pstring> {
     $!g-option-context = g_option_context_new(%options<pstring>);
-    $!option-context-is-valid = $!g-option-context.defined;
+    $!is-valid = $!g-option-context.defined;
   }
 
   elsif ? %options<context> {
     $!g-option-context = %options<context>;
-    $!option-context-is-valid = $!g-option-context.defined;
+    $!is-valid = $!g-option-context.defined;
   }
 
   elsif %options.keys.elems {
@@ -362,23 +362,8 @@ submethod BUILD ( *%options ) {
   }
 }
 
-#`{{
-#-------------------------------------------------------------------------------
-method CALL-ME ( N-GOptionContext $g-option-context? --> N-GOptionContext ) {
-
-  if $g-option-context.defined {
-    _g_option_context_free($!g-option-context) if $!g-option-context.defined;
-    $!g-option-context = $g-option-context;
-    $!option-context-is-valid = True;
-  }
-
-  $!g-option-context
-}
-}}
-
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
-#TODO destroy when overwritten?
 method set-native-object (
   N-GOptionContext:D $g-option-context --> N-GOptionContext
 ) {
@@ -386,7 +371,7 @@ method set-native-object (
   if $g-option-context.defined {
     _g_option_context_free($!g-option-context) if $!g-option-context.defined;
     $!g-option-context = $g-option-context;
-    $!option-context-is-valid = True;
+    $!is-valid = True;
   }
 
   $!g-option-context
@@ -414,46 +399,29 @@ method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
   try { $s = &::("g_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
-  #$s = callsame unless ?$s;
-#`{{
-  # User convenience substitutions to get a native object instead of
-  # a GtkSomeThing or other *SomeThing object.
-  my Array $params = [];
-  for c.list -> $p {
-    note "Substitution of parameter \[{$++}]: ", $p.^name if $Gnome::N::x-debug;
-
-    #TODO maybe another class later
-    if $p.^name ~~ m/ '::N-GOptionGroup' / {
-
-      $params.push($p);
-    }
-
-    elsif $p.^name ~~
-          m/^ 'Gnome::' [ Gtk || Gdk || Glib || Gio || GObject ] \d? '::' / {
-
-      $params.push($p());
-    }
-
-    else {
-      $params.push($p);
-    }
-  }
-}}
   convert-to-natives(@params);
   test-call( $s, $!g-option-context, |@params, |%named-params)
 }
 
 #-------------------------------------------------------------------------------
-#TM:1:option-context-is-valid
-# doc of $!option-context-is-valid defined above
+#TM:1:is-valid
+# doc of $!is-valid defined above
 =begin pod
-=head2 option-context-is-valid
+=head2 is-valid
 
 Returns True if native option context object is valid, otherwise C<False>.
 
-  method option-context-is-valid ( --> Bool )
+  method is-valid ( --> Bool )
 
 =end pod
+
+method option-context-is-valid () {
+    Gnome::N::deprecate(
+    '.option-context-is-valid()', '.is-valid()', '0.16.1', '0.18.0'
+  );
+
+  $!is-valid;
+}
 
 #-------------------------------------------------------------------------------
 method setup-option-entries ( **@entries --> CArray[N-GOptionEntry] ) {
@@ -509,7 +477,7 @@ method setup-option-entries ( **@entries --> CArray[N-GOptionEntry] ) {
 =begin pod
 =head2
 
-Clear the error and return data to memory to pool. The option context object is not valid after this call and option-context-is-valid() will return C<False>.
+Clear the error and return data to memory to pool. The option context object is not valid after this call and .is-valid() will return C<False>.
 
   method clear-option-context ()
 
@@ -518,7 +486,7 @@ Clear the error and return data to memory to pool. The option context object is 
 method clear-option-context ( ) {
 
   _g_option_context_free($!g-option-context) if $!g-option-context.defined;
-  $!option-context-is-valid = False;
+  $!is-valid = False;
   $!g-option-context = N-GOptionContext;
 }
 
