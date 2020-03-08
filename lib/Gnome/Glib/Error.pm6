@@ -20,23 +20,15 @@ This class is greatly simplified because in Raku one can use Exception classes t
 
 Error domains and codes are conventionally named as follows:
 
-- The error domain is called I<NAMESPACE>_I<MODULE>_ERROR. For instance glib file utilities uses G_FILE_ERROR.
+=item The error domain is called I<NAMESPACE>_I<MODULE>_ERROR. For instance glib file utilities uses G_FILE_ERROR.
 
-- The quark function for the error domain is called <namespace>_<module>_error_quark, for example C<g-file-error-quark()>.
+=item The quark function for the error domain is called <namespace>_<module>_error_quark, for example C<g-file-error-quark()>.
 
-- The error codes are in an enumeration called <Namespace><Module>Error, for example C<GFileError>.
+=item The error codes are in an enumeration called <Namespace><Module>Error, for example C<GFileError>.
 
-- Members of the error code enumeration are called
-  <NAMESPACE>_<MODULE>_ERROR_<CODE>, for example C<G_FILE_ERROR_NOENT>.
+=item Members of the error code enumeration are called <NAMESPACE>_<MODULE>_ERROR_<CODE>, for example C<G_FILE_ERROR_NOENT>.
 
-- If there's a "generic" or "unknown" error code for unrecoverable
-  errors it doesn't make sense to distinguish with specific codes,
-  it should be called <NAMESPACE>_<MODULE>_ERROR_FAILED,
-  for example C<G_SPAWN_ERROR_FAILED>. In the case of error code
-  enumerations that may be extended in future releases, you should
-  generally not handle this error code explicitly, but should
-  instead treat any unrecognized error code as equivalent to
-  FAILED.
+=item If there's a "generic" or "unknown" error code for unrecoverable errors it doesn't make sense to distinguish with specific codes, it should be called <NAMESPACE>_<MODULE>_ERROR_FAILED, for example C<G_SPAWN_ERROR_FAILED>. In the case of error code enumerations that may be extended in future releases, you should generally not handle this error code explicitly, but should instead treat any unrecognized error code as equivalent to FAILED.
 
 =head1 Synopsis
 =head2 Declaration
@@ -47,7 +39,7 @@ Error domains and codes are conventionally named as follows:
 
   my Gnome::Gtk3::Builder $builder .= new;
 
-  # try to read non existing file
+  # Try to read non existing file
   my Gnome::Glib::Error $e = $builder.add-from-file('x.glade');
   die $e.message if $e.is-valid;
 
@@ -57,7 +49,6 @@ use NativeCall;
 
 use Gnome::N::X;
 use Gnome::N::NativeLib;
-#use Gnome::N::N-GObject;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/glib/gerror.h
@@ -148,18 +139,6 @@ submethod BUILD ( *%options ) {
 }
 
 #-------------------------------------------------------------------------------
-method CALL-ME ( N-GError $gerror? --> N-GError ) {
-
-  if $gerror.defined {
-    _g_error_free($!g-gerror) if $!g-gerror.defined;
-    $!g-gerror = $gerror;
-    $!is-valid = True;
-  }
-
-  $!g-gerror
-}
-
-#-------------------------------------------------------------------------------
 method get-native-object ( --> N-GError ) {
 
   $!g-gerror
@@ -192,7 +171,7 @@ method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
 
   die X::Gnome.new(:message("Method '$native-sub' not found")) unless ?$s;
   convert-to-natives(@params);
-  test-call( &$s, $!g-gerror, |@params, |%named-params)
+  test-call( $s, $!g-gerror, |@params, |%named-params)
 }
 
 #-------------------------------------------------------------------------------

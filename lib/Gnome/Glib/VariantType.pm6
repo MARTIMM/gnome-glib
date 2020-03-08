@@ -119,12 +119,6 @@ class N-GVariantType
   is export
   { }
 
-#`{{
-class N-GVariantType is repr('CStruct') {
-  has Str $.type;
-}
-}}
-
 #-------------------------------------------------------------------------------
 has N-GVariantType $!n-gvariant-type;
 
@@ -151,7 +145,6 @@ Create a VariantType object using a native object returned from a builder. See a
 
 #TM:1:new(:type-string):
 #TM:1:new(:native-object):
-
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong native-objects
@@ -189,20 +182,6 @@ submethod BUILD ( *%options ) {
   # only after creating the native-object, the gtype is known
 #  self.set-class-info('GVariantType');
 }
-
-#`{{
-#-------------------------------------------------------------------------------
-method CALL-ME ( N-GVariantType $gvariant-type? --> N-GVariantType ) {
-
-  if $gvariant-type.defined {
-    _g_variant_type_free($!n-gvariant-type) if $!n-gvariant-type.defined;
-    $!n-gvariant-type = $gvariant-type;
-    $!is-valid = True;
-  }
-
-  $!n-gvariant-type
-}
-}}
 
 #-------------------------------------------------------------------------------
 method get-native-object ( --> N-GVariantType ) {

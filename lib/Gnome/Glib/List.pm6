@@ -91,7 +91,6 @@ has N-GList $!glist;
 has Bool $.is-valid = False;
 
 #-------------------------------------------------------------------------------
-#submethod BUILD ( N-GList:D :$!glist ) { }
 =begin pod
 =head1 Methods
 =head2 new
@@ -150,7 +149,7 @@ submethod BUILD ( *%options ) {
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
-method FALLBACK ( $native-sub is copy, |c ) {
+method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
 
   note "\nSearch for .$native-sub\() following ", self.^mro
     if $Gnome::N::x-debug;
@@ -166,19 +165,8 @@ method FALLBACK ( $native-sub is copy, |c ) {
 
 #  self.set-class-name-of-sub('GList');
 
-  test-call( &$s, $!glist, |c)
-}
-
-#-------------------------------------------------------------------------------
-method CALL-ME ( N-GList $glist? --> N-GList ) {
-
-  if $glist.defined {
-    _g_list_free($!glist) if $!glist.defined;
-    $!glist = $glist;
-    $!is-valid = True;
-  }
-
-  $!glist
+  convert-to-natives(@params);
+  test-call( $s, $!glist, |@params, |%named-params)
 }
 
 #-------------------------------------------------------------------------------

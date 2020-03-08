@@ -1,4 +1,8 @@
 ## Release notes
+* 2020-03-07 0.16.1:
+  * Removed CALL-ME() methods.
+  * Improved FALLBACK methods.
+
 * 2020-03-01 0.16.0:
   * Add modules VariantType, Variant, VariantBuilder (split from GVariant source).
 

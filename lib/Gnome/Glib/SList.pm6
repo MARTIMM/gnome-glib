@@ -85,7 +85,7 @@ class N-GSList is repr('CStruct') is export {
 
 #my Bool $signals-added = False;
 has N-GSList $!gslist;
-has Bool $!gslist-is-valid = False;
+has Bool $.is-valid = False;
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -115,21 +115,21 @@ submethod BUILD ( *%options ) {
   # process all named arguments
   if ? %options<empty> {
     Gnome::N::deprecate( '.new(:empty)', '.new()', '0.15.5', '0.18.0');
-    _g_slist_free($!gslist) if $!gslist-is-valid;
+    _g_slist_free($!gslist) if $!is-valid;
     $!gslist = N-GSList;
-    $!gslist-is-valid = True;
+    $!is-valid = True;
   }
 
   elsif ? %options<gslist> {
-    _g_slist_free($!gslist) if $!gslist-is-valid;
+    _g_slist_free($!gslist) if $!is-valid;
     $!gslist = %options<gslist>;
-    $!gslist-is-valid = True;
+    $!is-valid = True;
   }
 
   elsif %options.keys.elems {
     # must clear because exception can be captured!
-    _g_slist_free($!gslist) if $!gslist-is-valid;
-    $!gslist-is-valid = False;
+    _g_slist_free($!gslist) if $!is-valid;
+    $!is-valid = False;
 
     die X::Gnome.new(
       :message('Unsupported options for ' ~ self.^name ~
@@ -139,21 +139,30 @@ submethod BUILD ( *%options ) {
   }
 
   else {#if ? %options<empty> {
-    _g_slist_free($!gslist) if $!gslist-is-valid;
+    _g_slist_free($!gslist) if $!is-valid;
     $!gslist = N-GSList;
-    $!gslist-is-valid = True;
+    $!is-valid = True;
   }
 }
 
 #-------------------------------------------------------------------------------
-method CALL-ME ( N-GSList $gslist? --> N-GSList ) {
+method get-native-object ( --> N-GSList ) {
 
-  $!gslist = $gslist if ?$gslist;
   $!gslist
 }
 
 #-------------------------------------------------------------------------------
-method FALLBACK ( $native-sub is copy, |c ) {
+method set-native-object ( N-GSList $gslist ) {
+
+  if $gslist.defined {
+    _g_slist_free($!gslist) if $!gslist.defined;
+    $!gslist = $gslist;
+    $!is-valid = True;
+  }
+}
+
+#-------------------------------------------------------------------------------
+method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
 
   CATCH { test-catch-exception( $_, $native-sub); }
 
@@ -169,43 +178,59 @@ method FALLBACK ( $native-sub is copy, |c ) {
   try { $s = &::("g_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
-  if $s {
-    #test-call( $s, $!gslist, |c)
-    return $s( $!gslist, |c);
-  }
-
-  # test if it is a real method by accident
-  else {
-    if self.can($native-sub) {
-      return self."$native-sub"(|c);
-    }
-
-    else {
-      return self."g_slist_$native-sub"(|c);
-    }
-  }
+  convert-to-natives(@params);
+  test-call( $s, $!gslist, |@params, |%named-params)
 }
 
 #-------------------------------------------------------------------------------
-#TM:-:clear-gslist
+#TM:1:clear-object
 
 =begin pod
-=head2 clear-gslist
+=head2 clear-object
 
-Clear the native list and let gslist-is-valid() return False.
+Clear the native list and let .is-valid() return False.
 
-  clear-gslist ( )
+  clear-object ( )
 
 =end pod
 
+method clear-object ( ) {
+
+  _g_slist_free($!gslist) if $!is-valid;
+  $!gslist = N-GSList;
+  $!is-valid = False;
+}
+
 method clear-gslist ( ) {
 
-  _g_slist_free($!gslist);
-  $!gslist-is-valid = False;
+  Gnome::N::deprecate(
+    '.clear-gslist()', '.clear-object()', '0.16.1', '0.18.0'
+  );
+
+  _g_slist_free($!gslist) if $!is-valid;
+  $!gslist = N-GSList;
+  $!is-valid = False;
 }
 
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_alloc
+submethod DESTROY ( ) {
+
+  _g_slist_free($!gslist) if $!is-valid;
+}
+
+#-------------------------------------------------------------------------------
+method gslist-is-valid ( --> Bool ) {
+
+  Gnome::N::deprecate(
+    '.gslist-is-valid()', '.is-valid()', '0.16.1', '0.18.0'
+  );
+
+  $!is-valid;
+}
+
+#`{{
+#-------------------------------------------------------------------------------
+#TM:0:g_slist_alloc
 
 =begin pod
 =head2 [g_] slist_alloc
@@ -224,9 +249,10 @@ sub g_slist_alloc ( )
   returns N-GSList
   is native(&glib-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_free
+#TM:0:g_slist_free
 #`{{ No pod, user must use clear-gslist()
 =begin pod
 =head2 [g_] slist_free
@@ -252,7 +278,7 @@ sub _g_slist_free ( N-GSList $list )
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_free_1
+#TM:0:g_slist_free_1
 
 =begin pod
 =head2 [[g_] slist_] free_1
@@ -269,7 +295,7 @@ sub g_slist_free_1 ( N-GSList $list )
 }}
 #`{{
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_free_full
+#TM:0:g_slist_free_full
 
 =begin pod
 =head2 [[g_] slist_] free_full
@@ -296,7 +322,7 @@ sub g_slist_free_full ( N-GObject $list, GDestroyNotify $free_func )
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_append
+#TM:0:g_slist_append
 
 =begin pod
 =head2 [g_] slist_append
@@ -341,7 +367,7 @@ sub _g_slist_append ( N-GSList $list, Pointer[void] $data )
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_prepend
+#TM:0:g_slist_prepend
 
 =begin pod
 =head2 [g_] slist_prepend
@@ -373,7 +399,7 @@ sub g_slist_prepend ( N-GSList $list, Pointer $data )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_insert
+#TM:0:g_slist_insert
 
 =begin pod
 =head2 [g_] slist_insert
@@ -398,7 +424,7 @@ sub g_slist_insert ( N-GSList $list, Pointer $data, int32 $position )
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_insert_sorted
+#TM:0:g_slist_insert_sorted
 
 =begin pod
 =head2 [[g_] slist_] insert_sorted
@@ -424,7 +450,7 @@ sub g_slist_insert_sorted ( N-GSList $list, Pointer $data, GCompareFunc $func )
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_insert_sorted_with_data
+#TM:0:g_slist_insert_sorted_with_data
 
 =begin pod
 =head2 [[g_] slist_] insert_sorted_with_data
@@ -453,7 +479,7 @@ sub g_slist_insert_sorted_with_data ( N-GSList $list, Pointer $data, GCompareDat
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_insert_before
+#TM:0:g_slist_insert_before
 
 =begin pod
 =head2 [[g_] slist_] insert_before
@@ -476,7 +502,7 @@ sub g_slist_insert_before ( N-GSList $slist, N-GSList $sibling, Pointer $data )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_concat
+#TM:0:g_slist_concat
 
 =begin pod
 =head2 [g_] slist_concat
@@ -500,7 +526,7 @@ sub g_slist_concat ( N-GSList $list1, N-GSList $list2 )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_remove
+#TM:0:g_slist_remove
 
 =begin pod
 =head2 [g_] slist_remove
@@ -524,7 +550,7 @@ sub g_slist_remove ( N-GSList $list, Pointer $data )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_remove_all
+#TM:0:g_slist_remove_all
 
 =begin pod
 =head2 [[g_] slist_] remove_all
@@ -549,7 +575,7 @@ sub g_slist_remove_all ( N-GSList $list, Pointer $data )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_remove_link
+#TM:0:g_slist_remove_link
 
 =begin pod
 =head2 [[g_] slist_] remove_link
@@ -580,7 +606,7 @@ sub g_slist_remove_link ( N-GSList $list, N-GSList $link_ )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_delete_link
+#TM:0:g_slist_delete_link
 
 =begin pod
 =head2 [[g_] slist_] delete_link
@@ -611,7 +637,7 @@ sub g_slist_delete_link ( N-GSList $list, N-GSList $link_ )
 }}
 
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_reverse
+#TM:0:g_slist_reverse
 
 =begin pod
 =head2 [g_] slist_reverse
@@ -632,7 +658,7 @@ sub g_slist_reverse ( N-GSList $list )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_copy
+#TM:0:g_slist_copy
 
 =begin pod
 =head2 [g_] slist_copy
@@ -659,7 +685,7 @@ sub g_slist_copy ( N-GSList $list )
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_copy_deep
+#TM:0:g_slist_copy_deep
 
 =begin pod
 =head2 [[g_] slist_] copy_deep
@@ -704,7 +730,7 @@ sub g_slist_copy_deep ( N-GSList $list, GCopyFunc $func, Pointer $user_data )
 }}
 
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_nth
+#TM:0:g_slist_nth
 
 =begin pod
 =head2 [g_] slist_nth
@@ -728,7 +754,7 @@ sub g_slist_nth ( N-GSList $list, uint32 $n )
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_find
+#TM:0:g_slist_find
 
 =begin pod
 =head2 [g_] slist_find
@@ -754,7 +780,7 @@ sub g_slist_find ( N-GSList $list, Pointer $data )
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_find_custom
+#TM:0:g_slist_find_custom
 
 =begin pod
 =head2 [[g_] slist_] find_custom
@@ -784,7 +810,7 @@ sub g_slist_find_custom ( N-GSList $list, Pointer $data, GCompareFunc $func )
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_position
+#TM:0:g_slist_position
 
 =begin pod
 =head2 [g_] slist_position
@@ -808,7 +834,7 @@ sub g_slist_position ( N-GSList $list, N-GSList $llink )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_index
+#TM:0:g_slist_index
 
 =begin pod
 =head2 [g_] slist_index
@@ -833,7 +859,7 @@ sub g_slist_index ( N-GSList $list, Pointer $data )
 }}
 
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_last
+#TM:0:g_slist_last
 
 =begin pod
 =head2 [g_] slist_last
@@ -883,7 +909,7 @@ sub g_slist_length ( N-GSList $list )
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_foreach
+#TM:0:g_slist_foreach
 
 =begin pod
 =head2 [g_] slist_foreach
@@ -907,7 +933,7 @@ sub g_slist_foreach ( N-GSList $list, GFunc $func, Pointer $user_data )
 }}
 #`{{
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_sort
+#TM:0:g_slist_sort
 
 =begin pod
 =head2 [g_] slist_sort
@@ -932,7 +958,7 @@ sub g_slist_sort ( N-GSList $list, GCompareFunc $compare_func )
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_sort_with_data
+#TM:0:g_slist_sort_with_data
 
 =begin pod
 =head2 [[g_] slist_] sort_with_data
@@ -956,7 +982,7 @@ sub g_slist_sort_with_data ( N-GSList $list, GCompareDataFunc $compare_func, Poi
 }}
 
 #-------------------------------------------------------------------------------
-#TM:-:g_slist_nth_data
+#TM:0:g_slist_nth_data
 
 =begin pod
 =head2 [[g_] slist_] nth_data
@@ -1092,7 +1118,7 @@ sub g_slist_nth_data_gobject ( N-GSList $list, uint32 $n --> N-GObject )
   is symbol('g_slist_nth_data')
   { * }
 
-#TODO use a $!gslist-is-valid boolean
+#TODO use a $!is-valid boolean
 sub _g_slist_free ( N-GSList $list )
   is native(&gtk-lib)
   { * }

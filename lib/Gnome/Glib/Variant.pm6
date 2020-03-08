@@ -526,20 +526,6 @@ submethod BUILD ( *%options ) {
 #  self.set-class-info('GVariant');
 }
 
-#`{{
-#-------------------------------------------------------------------------------
-method CALL-ME ( N-GVariant $gvariant? --> N-GVariant ) {
-
-  if $gvariant.defined {
-    _g_variant_unref($!n-gvariant) if $!n-gvariant.defined;
-    $!n-gvariant = $gvariant;
-    $!is-valid = True;
-  }
-
-  $!n-gvariant
-}
-}}
-
 #-------------------------------------------------------------------------------
 method get-native-object ( --> N-GVariant ) {
 
@@ -603,8 +589,6 @@ method clear-object ( ) {
 submethod DESTROY ( ) {
   _g_variant_unref($!n-gvariant) if $!is-valid;
 }
-
-
 
 #-------------------------------------------------------------------------------
 #`{{ not for users
