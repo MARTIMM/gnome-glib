@@ -145,15 +145,6 @@ submethod BUILD ( *%options ) {
   }
 }
 
-#`{{
-#-------------------------------------------------------------------------------
-method CALL-ME ( N-GSList $gslist? --> N-GSList ) {
-
-  $!gslist = $gslist if ?$gslist;
-  $!gslist
-}
-}}
-
 #-------------------------------------------------------------------------------
 method get-native-object ( --> N-GSList ) {
 
@@ -189,23 +180,6 @@ method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
 
   convert-to-natives(@params);
   test-call( $s, $!gslist, |@params, |%named-params)
-#`{{
-  if $s {
-    #test-call( $s, $!gslist, |@params, |%named-params)
-    return $s( $!gslist, |@params, |%named-params);
-  }
-
-  # test if it is a real method by accident
-  else {
-    if self.can($native-sub) {
-      return self."$native-sub"( |@params, |%named-params);
-    }
-
-    else {
-      return self."g_slist_$native-sub"( |@params, |%named-params);
-    }
-  }
-}}
 }
 
 #-------------------------------------------------------------------------------
