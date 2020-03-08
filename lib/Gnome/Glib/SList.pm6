@@ -222,7 +222,7 @@ Clear the native list and let .is-valid() return False.
 
 method clear-object ( ) {
 
-  _g_slist_free($!gslist);
+  _g_slist_free($!gslist) if $!is-valid;
   $!gslist = N-GSList;
   $!is-valid = False;
 }
@@ -233,9 +233,15 @@ method clear-gslist ( ) {
     '.clear-gslist()', '.clear-object()', '0.16.1', '0.18.0'
   );
 
-  _g_slist_free($!gslist);
+  _g_slist_free($!gslist) if $!is-valid;
   $!gslist = N-GSList;
   $!is-valid = False;
+}
+
+#-------------------------------------------------------------------------------
+submethod DESTROY ( ) {
+
+  _g_slist_free($!gslist) if $!is-valid;
 }
 
 #-------------------------------------------------------------------------------
@@ -248,6 +254,7 @@ method gslist-is-valid ( --> Bool ) {
   $!is-valid;
 }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_slist_alloc
 
@@ -268,6 +275,7 @@ sub g_slist_alloc ( )
   returns N-GSList
   is native(&glib-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:g_slist_free
