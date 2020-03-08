@@ -91,7 +91,6 @@ has N-GList $!glist;
 has Bool $.is-valid = False;
 
 #-------------------------------------------------------------------------------
-#submethod BUILD ( N-GList:D :$!glist ) { }
 =begin pod
 =head1 Methods
 =head2 new
@@ -169,20 +168,6 @@ method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
   convert-to-natives(@params);
   test-call( $s, $!glist, |@params, |%named-params)
 }
-
-#`{{
-#-------------------------------------------------------------------------------
-method CALL-ME ( N-GList $glist? --> N-GList ) {
-
-  if $glist.defined {
-    _g_list_free($!glist) if $!glist.defined;
-    $!glist = $glist;
-    $!is-valid = True;
-  }
-
-  $!glist
-}
-}}
 
 #-------------------------------------------------------------------------------
 submethod DESTROY ( ) {
