@@ -44,6 +44,7 @@ Many methods are not needed in simple Raku use. Most of the time you get a list 
 =head2 Declaration
 
   unit class Gnome::Glib::SList;
+  also is Gnome::N::TopLevelClassSupport;
 
 =head2 Example
 
@@ -69,23 +70,16 @@ This example shows how to get and show some information from a widget path.
 use NativeCall;
 
 use Gnome::N::X;
+use Gnome::N::N-GSList;
 use Gnome::N::N-GObject;
 use Gnome::N::NativeLib;
+use Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/glib/gslist.h
 # https://developer.gnome.org/glib/stable/glib-Singly-Linked-List.html
 unit class Gnome::Glib::SList:auth<github:MARTIMM>;
-
-#-------------------------------------------------------------------------------
-class N-GSList is repr('CStruct') is export {
-  has Pointer $.data;
-  has N-GSList $.next;
-}
-
-#my Bool $signals-added = False;
-has N-GSList $!gslist;
-has Bool $.is-valid = False;
+also is Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -93,112 +87,59 @@ has Bool $.is-valid = False;
 =head2 new
 =head3 multi method new ( Bool :$empty! )
 
-Create a new plain object. The value doesn't have to be True nor False. The name only will suffice.
+Create a new plain object.
 
-=head3 multi method new ( N-GSList :$gslist! )
+  multi method new ( )
 
 Create an object using a native object from elsewhere.
 
+  multi method new ( N-GSList :$native-object! )
+
 =end pod
 
+#TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
+#TM:1:new():
 submethod BUILD ( *%options ) {
 
-  # add signal info in the form of group<signal-name>.
-  # groups are e.g. signal, event, nativeobject etc
-  #$signals-added = self.add-signal-types( $?CLASS.^name,
-  #  # ... :type<signame>
-  #) unless $signals-added;
-
   # prevent creating wrong widgets
-#  return unless self.^name eq 'Gnome::Glib::SList';
+  if self.^name eq 'Gnome::Glib::SList' or %options<SList> {
 
-  # process all named arguments
-  if ? %options<empty> {
-    Gnome::N::deprecate( '.new(:empty)', '.new()', '0.15.5', '0.18.0');
-    _g_slist_free($!gslist) if $!is-valid;
-    $!gslist = N-GSList;
-    $!is-valid = True;
-  }
+    # process all named arguments
+    if ? %options<empty> {
+      Gnome::N::deprecate( '.new(:empty)', '.new()', '0.15.5', '0.18.0');
+      self.set-native-object(N-GSList);
+    }
 
-  elsif ? %options<gslist> {
-    _g_slist_free($!gslist) if $!is-valid;
-    $!gslist = %options<gslist>;
-    $!is-valid = True;
-  }
+    elsif ? %options<gslist> or ? %options<native-object> {
+      my $no = %options<gslist> // %options<native-object>;
+      $no .= get-native-object if $no ~~ Gnome::Glib::SList;
+      self.set-native-object($no);
 
-  elsif %options.keys.elems {
-    # must clear because exception can be captured!
-    _g_slist_free($!gslist) if $!is-valid;
-    $!is-valid = False;
+      Gnome::N::deprecate(
+        '.new(:gslist)', '.new(:native-object)', '0.16.0', '0.18.0'
+      ) if ?%options<gslist>;
+    }
 
-    die X::Gnome.new(
-      :message('Unsupported options for ' ~ self.^name ~
-               ': ' ~ %options.keys.join(', ')
-              )
-    );
-  }
+    else {#if ? %options<empty> {
+      self.set-native-object(N-GSList);
+    }
 
-  else {#if ? %options<empty> {
-    _g_slist_free($!gslist) if $!is-valid;
-    $!gslist = N-GSList;
-    $!is-valid = True;
+    # only after creating the native-object, the gtype is known
+    self.set-class-info('GSList');
   }
 }
 
 #-------------------------------------------------------------------------------
-method get-native-object ( --> N-GSList ) {
+method _fallback ( $native-sub ) {
 
-  $!gslist
-}
-
-#-------------------------------------------------------------------------------
-method set-native-object ( N-GSList $gslist ) {
-
-  if $gslist.defined {
-    _g_slist_free($!gslist) if $!gslist.defined;
-    $!gslist = $gslist;
-    $!is-valid = True;
-  }
-}
-
-#-------------------------------------------------------------------------------
-method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
-
-  CATCH { test-catch-exception( $_, $native-sub); }
-
-  $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-');
-  die X::Gnome.new(:message(
-      "Native sub name '$native-sub' made too short. Keep at least one '-' or '_'."
-    )
-  ) unless $native-sub.index('_') >= 0;
-
-  note "Native sub string $native-sub" if $Gnome::N::x-debug;
   my Callable $s;
   try { $s = &::("g_slist_$native-sub") };
   try { $s = &::("g_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
-  convert-to-natives(@params);
-  test-call( $s, $!gslist, |@params, |%named-params)
-}
+  self.set-class-name-of-sub('GSList');
 
-#-------------------------------------------------------------------------------
-#TM:1:clear-object
-
-=begin pod
-=head2 clear-object
-
-Clear the native list and let .is-valid() return False.
-
-  clear-object ( )
-
-=end pod
-
-method clear-object ( ) {
-
-  _g_slist_free($!gslist) if $!is-valid;
-  $!gslist = N-GSList;
-  $!is-valid = False;
+  $s
 }
 
 method clear-gslist ( ) {
@@ -206,16 +147,7 @@ method clear-gslist ( ) {
   Gnome::N::deprecate(
     '.clear-gslist()', '.clear-object()', '0.16.1', '0.18.0'
   );
-
-  _g_slist_free($!gslist) if $!is-valid;
-  $!gslist = N-GSList;
-  $!is-valid = False;
-}
-
-#-------------------------------------------------------------------------------
-submethod DESTROY ( ) {
-
-  _g_slist_free($!gslist) if $!is-valid;
+  self.clear-object;
 }
 
 #-------------------------------------------------------------------------------
@@ -225,7 +157,18 @@ method gslist-is-valid ( --> Bool ) {
     '.gslist-is-valid()', '.is-valid()', '0.16.1', '0.18.0'
   );
 
-  $!is-valid;
+  self.is-valid;
+}
+
+#-------------------------------------------------------------------------------
+# no referencing for lists
+method native-object-ref ( $n-native-object --> N-GSList ) {
+  $n-native-object
+}
+
+#-------------------------------------------------------------------------------
+method native-object-unref ( $n-native-object ) {
+  _g_slist_free($n-native-object)
 }
 
 #`{{

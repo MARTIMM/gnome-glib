@@ -90,6 +90,7 @@ B<Gnome::Glib::Variant>
 =head2 Declaration
 
   unit class Gnome::Glib::VariantType;
+  also is Gnome::N::TopLevelClassSupport;
 
 =comment head2 Example
 
@@ -99,30 +100,12 @@ use NativeCall;
 
 use Gnome::N::X;
 use Gnome::N::NativeLib;
-#use Gnome::N::N-GObject;
+use Gnome::N::TopLevelClassSupport;
+use Gnome::N::N-GVariantType;
 
 #-------------------------------------------------------------------------------
 unit class Gnome::Glib::VariantType:auth<github:MARTIMM>;
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head1 Types
-=head2 class N-GVariantType
-
-A type in the GVariant type system
-
-=end pod
-
-#TT:1:N-GVariantType:
-class N-GVariantType
-  is repr('CPointer')
-  is export
-  { }
-
-#-------------------------------------------------------------------------------
-has N-GVariantType $!n-gvariant-type;
-
-has Bool $.is-valid = False;
+also is Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -144,119 +127,54 @@ Create a VariantType object using a native object returned from a builder. See a
 =end pod
 
 #TM:1:new(:type-string):
-#TM:1:new(:native-object):
+#TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong native-objects
-  return unless self.^name eq 'Gnome::Glib::VariantType';
+  if self.^name eq 'Gnome::Glib::VariantType' or ?%options<VariantType> {
 
-  # process all named arguments
-  if %options.elems == 0 {
-    die X::Gnome.new(:message('No options specified ' ~ self.^name));
-  }
+    # check if native object is set by other parent class BUILDers
+    if self.is-valid { }
 
-  elsif ? %options<type-string> {
-    $!n-gvariant-type = g_variant_type_new(%options<type-string>);
-    $!is-valid = ?$!n-gvariant-type;
-  }
+    # process all named arguments
+    elsif %options.elems == 0 {
+      die X::Gnome.new(:message('No options specified ' ~ self.^name));
+    }
 
-  elsif %options<native-object>:exists {
-    $!n-gvariant-type = %options<native-object>;
-    $!is-valid = ?$!n-gvariant-type;
-  }
+    elsif ? %options<type-string> {
+      #$!n-gvariant-type = g_variant_type_new(%options<type-string>);
+      #$!is-valid = ?$!n-gvariant-type;
+      self.set-native-object(g_variant_type_new(%options<type-string>));
+    }
 
-  elsif %options.keys.elems {
-    die X::Gnome.new(
-      :message(
-        'Unsupported, undefined, incomplete or wrongly typed options for ' ~
-        self.^name ~ ': ' ~ %options.keys.join(', ')
-      )
-    );
-  }
-
-  # create default object
-  else {
-
-  }
-
-  # only after creating the native-object, the gtype is known
-#  self.set-class-info('GVariantType');
-}
-
-#-------------------------------------------------------------------------------
-method get-native-object ( --> N-GVariantType ) {
-
-  $!n-gvariant-type
-}
-
-#-------------------------------------------------------------------------------
-method set-native-object ( N-GVariantType $gvariant-type ) {
-
-  if $gvariant-type.defined {
-    _g_variant_type_free($!n-gvariant-type) if $!n-gvariant-type.defined;
-    $!n-gvariant-type = $gvariant-type;
-    $!is-valid = True;
+    # only after creating the native-object, the gtype is known
+    self.set-class-info('GVariantType');
   }
 }
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
-method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
-
-  note "\nSearch for .$native-sub\() following ", self.^mro
-    if $Gnome::N::x-debug;
-
-  CATCH { test-catch-exception( $_, $native-sub); }
-
-  $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-');
+method _fallback ( $native-sub --> Callable ) {
 
   my Callable $s;
   try { $s = &::("g_variant_type_$native-sub"); };
   try { $s = &::("g_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
-#  self.set-class-name-of-sub('GVariantType');
+  self.set-class-name-of-sub('GVariantType');
 
-  die X::Gnome.new(:message("Method '$native-sub' not found")) unless ?$s;
-  convert-to-natives(@params);
-  test-call( &$s, $!n-gvariant-type, |@params, |%named-params)
+  $s
 }
 
 #-------------------------------------------------------------------------------
-#TM:1:is-valid
-# doc of $!is-valid defined above
-=begin pod
-=head2 is-valid
-
-Returns True if native error object is valid, otherwise C<False>.
-
-  method is-valid ( --> Bool )
-
-=end pod
-
-#-------------------------------------------------------------------------------
-#TM:1:clear-object
-=begin pod
-=head2 clear-object
-
-Clear the error and return data to memory pool. The error object is not valid after this call and C<is-valid()> will return C<False>.
-
-  method clear-object ()
-
-=end pod
-
-method clear-object ( ) {
-
-  if $!is-valid {
-    _g_variant_type_free($!n-gvariant-type);
-    $!is-valid = False;
-    $!n-gvariant-type = N-GVariantType;
-  }
+# no ref/unref for a variant type
+method native-object-ref ( $n-native-object --> N-GVariantType ) {
+  $n-native-object
 }
 
 #-------------------------------------------------------------------------------
-submethod DESTROY ( ) {
-  _g_variant_type_free($!n-gvariant-type) if $!is-valid;
+method native-object-unref ( $n-native-object ) {
+  _g_variant_type_free($n-native-object)
 }
 
 #-------------------------------------------------------------------------------

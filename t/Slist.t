@@ -1,4 +1,5 @@
 use v6;
+#use lib '../gnome-native/lib';
 use NativeCall;
 use Test;
 
@@ -12,6 +13,7 @@ my Gnome::Glib::SList $s .= new;
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
   isa-ok $s, Gnome::Glib::SList;
+  ok $s.is-valid, '.is-valid()';
 }
 
 #-------------------------------------------------------------------------------

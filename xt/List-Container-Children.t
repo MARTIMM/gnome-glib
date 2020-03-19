@@ -4,8 +4,8 @@ use NativeCall;
 use Test;
 
 #use Gnome::N::N-GObject;
+use Gnome::N::N-GList;
 use Gnome::Glib::List;
-use Gnome::GObject::Value;
 use Gnome::GObject::Value;
 use Gnome::Gtk3::Grid;
 use Gnome::Gtk3::Widget;

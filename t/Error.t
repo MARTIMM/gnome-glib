@@ -4,6 +4,7 @@ use NativeCall;
 use Test;
 
 use Gnome::N::NativeLib;
+use Gnome::N::N-GError;
 
 use Gnome::Glib::Quark;
 use Gnome::Glib::Error;
@@ -22,11 +23,13 @@ subtest 'ISA test', {
     :message(/:s No options specified/)
   );
 
+#`{{
   throws-like(
     { Gnome::Glib::Error.new(:message('abc def')); },
     X::Gnome, 'Cannot create with wrong args',
     :message(/:s Unsupported options for/)
   );
+}}
 
   # The error domain is called <NAMESPACE>_<MODULE>_ERROR
   my Int $domain = $quark.from-string('gnome_gtk3_button_test_error');

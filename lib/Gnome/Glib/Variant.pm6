@@ -226,6 +226,7 @@ be shared.
 =head2 Declaration
 
   unit class Gnome::Glib::Variant;
+  also is Gnome::N::TopLevelClassSupport;
 
 =comment head2 Example
 
@@ -235,29 +236,19 @@ use NativeCall;
 
 use Gnome::N::X;
 use Gnome::N::NativeLib;
+use Gnome::N::N-GError;
 use Gnome::N::N-GVariant;
+use Gnome::N::N-GVariantIter;
+use Gnome::N::N-GVariantType;
+use Gnome::N::TopLevelClassSupport;
 use Gnome::Glib::Error;
 use Gnome::Glib::VariantType;
 
 #-------------------------------------------------------------------------------
 unit class Gnome::Glib::Variant:auth<github:MARTIMM>;
+also is Gnome::N::TopLevelClassSupport;
 
-#`{{ Moved to Gnome::N::N-GVariant
-#-------------------------------------------------------------------------------
-=begin pod
-=head1 Types
-=head2 class N-GVariant
 
-N-GVariant is an opaque data structure and can only be accessed using the functions in this class. This native object is stored in this Raku class.
-
-=end pod
-
-#TT:1:N-GVariant:
-class N-GVariant
-  is repr('CPointer')
-  is export
-  { }
-}}
 #`{{
 #-------------------------------------------------------------------------------
 =begin pod
@@ -336,6 +327,7 @@ class N-GVariantDict
   is export
   { }
 }}
+
 #-------------------------------------------------------------------------------
 =begin pod
 =head2 GVariantClass
@@ -362,6 +354,7 @@ enum GVariantClass is export (
   G_VARIANT_CLASS_TUPLE         => '(',
   G_VARIANT_CLASS_DICT_ENTRY    => '{'
 );
+
 #-------------------------------------------------------------------------------
 =begin pod
 =head2 Type constants
@@ -452,18 +445,15 @@ constant G_VARIANT_TYPE_VARDICT is export = 'a{sv}';
 #constant G_VARIANT_TYPE_ is export = '';
 
 #-------------------------------------------------------------------------------
-has N-GVariant $!n-gvariant;
-
-has Bool $.is-valid = False;
-
-#-------------------------------------------------------------------------------
 =begin pod
 =head1 Methods
 =head2 new
 
+=begin comment
 Create a new Variant object.
 
   multi method new ( Str :$type-string!, Array :$values! )
+=end comment
 
 Create a new Variant object by parsing the type and data provided in strings.
 
@@ -477,117 +467,64 @@ Create a Variant object using a native object from elsewhere.
 
 #TM:1:new(:type-string,:values):
 #TM:1:new(:type-string,:data-string):
-#TM:1:new(:native-object):
-
+#TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong native-objects
-  return unless self.^name eq 'Gnome::Glib::Variant';
+  if self.^name eq 'Gnome::Glib::Variant' or ?%options<Variant> {
 
-  # process all named arguments
-  if %options.elems == 0 {
-    die X::Gnome.new(:message('No options specified ' ~ self.^name));
-  }
+    # check if native object is set by other parent class BUILDers
+    if self.is-valid { }
 
-  elsif ? %options<type-string> and %options<values> {
-    self.clear-object;
-    $!n-gvariant = g_variant_new( %options<type-string>, |%options<values>);
-    $!is-valid = ?$!n-gvariant;
-  }
+    # process all named arguments
+    elsif %options.elems == 0 {
+      die X::Gnome.new(:message('No options specified ' ~ self.^name));
+    }
 
-  elsif ? %options<type-string> and ? %options<data-string> {
-    my ( N-GVariant $v, Gnome::Glib::Error $e) = g_variant_parse(
-      N-GVariant, %options<type-string>, %options<data-string>
-    );
+    elsif ? %options<type-string> and %options<values> {
+      #note "new val: ", %options<values>.perl;
+      self.set-native-object(
+        _g_variant_new( %options<type-string>, %options<values>)
+      );
+    }
 
-    die X::Gnome.new(:message($e.message)) if $e.is-valid;
+    elsif ? %options<type-string> and ? %options<data-string> {
+      my ( N-GVariant $v, Gnome::Glib::Error $e) = g_variant_parse(
+        %options<type-string>, %options<data-string>
+      );
 
-    self.clear-object;
-    $!n-gvariant = $v;
-    $!is-valid = True;
-  }
+      die X::Gnome.new(:message($e.message)) if $e.is-valid;
 
-  elsif %options<native-object>:exists {
-    self.clear-object;
-    $!n-gvariant = %options<native-object> // N-GVariant;
-    $!is-valid = ?$!n-gvariant;
-  }
+      self.set-native-object($v);
+    }
 
-  elsif %options.keys.elems {
-    die X::Gnome.new(
-      :message(
-        'Unsupported, undefined, incomplete or wrongly typed options for ' ~
-        self.^name ~ ': ' ~ %options.keys.join(', ')
-      )
-    );
-  }
-
-  # only after creating the native-object, the gtype is known
-#  self.set-class-info('GVariant');
-}
-
-#-------------------------------------------------------------------------------
-method get-native-object ( --> N-GVariant ) {
-
-  $!n-gvariant
-}
-
-#-------------------------------------------------------------------------------
-method set-native-object ( N-GVariant $gvariant ) {
-
-  if $gvariant.defined {
-    _g_variant_unref($!n-gvariant) if $!n-gvariant.defined;
-    $!n-gvariant = $gvariant;
-    $!is-valid = True;
+    # only after creating the native-object, the gtype is known
+    self.set-class-info('GVariant');
   }
 }
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
-method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
-
-  note "\nSearch for .$native-sub\() following ", self.^mro
-    if $Gnome::N::x-debug;
-
-  CATCH { test-catch-exception( $_, $native-sub); }
-
-  $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-');
+method _fallback ( $native-sub --> Callable ) {
 
   my Callable $s;
   try { $s = &::("g_variant_$native-sub"); };
   try { $s = &::("g_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
-#  self.set-class-name-of-sub('GVariant');
+  self.set-class-name-of-sub('GVariant');
 
-  die X::Gnome.new(:message("Method '$native-sub' not found")) unless ?$s;
-  convert-to-natives(@params);
-  test-call( &$s, $!n-gvariant, |@params, |%named-params)
+  $s
 }
 
 #-------------------------------------------------------------------------------
-#TM:1:clear-object
-=begin pod
-=head2 clear-object
-
-Clear the error and return data to memory pool. The error object is not valid after this call and C<is-valid()> will return C<False>.
-
-  method clear-object ()
-
-=end pod
-
-method clear-object ( ) {
-
-  if $!is-valid {
-    _g_variant_unref($!n-gvariant);
-    $!is-valid = False;
-    $!n-gvariant = N-GVariant;
-  }
+method native-object-ref ( $n-native-object --> N-GVariant ) {
+  _g_variant_ref($n-native-object)
 }
 
 #-------------------------------------------------------------------------------
-submethod DESTROY ( ) {
-  _g_variant_unref($!n-gvariant) if $!is-valid;
+method native-object-unref ( $n-native-object ) {
+  _g_variant_unref($n-native-object)
 }
 
 #-------------------------------------------------------------------------------
@@ -1536,9 +1473,9 @@ Returns the string value of a B<Gnome::Glib::Variant> instance with a string
 type.  This includes the types C<G_VARIANT_TYPE_STRING>,
 C<G_VARIANT_TYPE_OBJECT_PATH> and C<G_VARIANT_TYPE_SIGNATURE>.
 
-The string will always be UTF-8 encoded, and will never be C<Any>.
+The string will always be UTF-8 encoded, and will never be undefined.
 
-If I<length> is non-C<Any> then the length of the string (in bytes) is
+If I<length> is defined then the length of the string (in bytes) is
 returned there.  For trusted values, this information is already
 known.  For untrusted values, a C<strlen()> will be performed.
 
@@ -1549,14 +1486,18 @@ The return value remains valid as long as I<value> exists.
 
 Returns: (transfer none): the constant string, UTF-8 encoded
 
-  method g_variant_get_string ( UInt $length --> Str )
-
-=item UInt $length; (optional) (default 0) (out): a pointer to a B<gsize>, to store the length
+  method g_variant_get_string ( --> Str )
 
 =end pod
 
-sub g_variant_get_string ( N-GVariant $value, uint64 $length --> Str )
+sub g_variant_get_string ( N-GVariant $value --> Str ) {
+  my uint64 $i;
+  _g_variant_get_string( $value, $i)
+}
+
+sub _g_variant_get_string ( N-GVariant $value, uint64 $length is rw --> Str )
   is native(&glib-lib)
+  is symbol('g_variant_get_string')
   { * }
 
 #-------------------------------------------------------------------------------
@@ -2195,7 +2136,7 @@ sub g_variant_store ( N-GVariant $value, Pointer $data  )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_variant_print:
+#TM:1:g_variant_print:
 =begin pod
 =head2 g_variant_print
 
@@ -2219,6 +2160,13 @@ sub g_variant_print ( N-GVariant $value, int32 $type_annotate --> Str )
   { * }
 
 #-------------------------------------------------------------------------------
+# See also https://developer.gnome.org/glib/stable/glib-Strings.html#GString
+#struct GString {
+#  gchar  *str;
+#  gsize len;
+#  gsize allocated_len;
+#};
+#`{{
 #TM:0:g_variant_print_string:
 =begin pod
 =head2 [g_variant_] print_string
@@ -2230,7 +2178,7 @@ a new empty B<GString> is allocated and it is returned.
 
 Returns: a B<GString> containing the string
 
-  method g_variant_print_string ( N-GVariant $string, Int $type_annotate --> N-GVariant )
+  method g_variant_print_string ( GString $string, Int $type_annotate --> N-GVariant )
 
 =item N-GVariant $string; (nullable) (default NULL): a B<GString>, or C<Any>
 =item Int $type_annotate; C<1> if type information should be included in the output
@@ -2240,6 +2188,8 @@ Returns: a B<GString> containing the string
 sub g_variant_print_string ( N-GVariant $value, N-GVariant $string, int32 $type_annotate --> N-GVariant )
   is native(&glib-lib)
   { * }
+}}
+
 
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_hash:
@@ -3126,9 +3076,9 @@ sub g_variant_builder_add_parsed ( GVariantBuilder $builder, Str $format, Any $a
 }}
 
 #-------------------------------------------------------------------------------
-#TM:0:g_variant_new:
-=begin pod
-=head2 g_variant_new
+#TM:0:_g_variant_new:
+
+#`{{ only via new
 
 Creates a new GVariant instance.
 
@@ -3149,92 +3099,126 @@ new_variant = g_variant_new ("(t^as)",
                              some_strings);
 =end comment
 
-  method g_variant_new ( Str $type-string --> N-GVariant )
+  method _g_variant_new ( Str $type-string --> N-GVariant )
 
 =item Str $format_string;
 
 =end pod
+}}
 
-sub g_variant_new ( Str $type-string, *@values --> N-GVariant ) {
+sub _g_variant_new ( Str $type-string, *@values --> N-GVariant ) {
 
   my @parameterList = ();
-  @parameterList.push: Parameter.new(type => Str);         # $format_string
+  @parameterList.push: Parameter.new(type => Str);         # $type_string
 
+  my @n-values = ();
+  my Bool $in-array = False;
+  my Bool $in-tupple = False;
+  my Bool $in-dict = False;
+
+#note "call val: ", @values.perl;
   for $type-string.split('') {
+#note "ts: $_";
 
     # split returns empty strings on either side -> ignore these
     when '' { }
 
     # Used for building or deconstructing boolean, byte and numeric types.
-    when 'b' {
-      @parameterList.push: Parameter.new(type => int32);   # boolean
+    when G_VARIANT_CLASS_BOOLEAN {
+      @parameterList.push: Parameter.new(type => int32) unless $in-array;
+      @n-values.push: shift @values unless $in-array;
     }
 
-    when 'y' {
-      @parameterList.push: Parameter.new(type => int8);    # byte
+    when G_VARIANT_CLASS_BYTE {
+      @parameterList.push: Parameter.new(type => int8) unless $in-array;
+      @n-values.push: shift @values unless $in-array;
     }
 
-    when 'n' {
-      @parameterList.push: Parameter.new(type => int16);    #
+    when G_VARIANT_CLASS_INT16 {
+      @parameterList.push: Parameter.new(type => int16) unless $in-array;
+      @n-values.push: shift @values unless $in-array;
     }
 
-    when 'q' {
-      @parameterList.push: Parameter.new(type => uint16);    #
+    when G_VARIANT_CLASS_UINT16 {
+      @parameterList.push: Parameter.new(type => uint16) unless $in-array;
+      @n-values.push: shift @values unless $in-array;
     }
 
-    when 'i' {
-      @parameterList.push: Parameter.new(type => int32);    #
+    when G_VARIANT_CLASS_INT32 {
+      @parameterList.push: Parameter.new(type => int32) unless $in-array;
+      @n-values.push: shift @values unless $in-array;
     }
 
-    when 'u' {
-      @parameterList.push: Parameter.new(type => uint32);    #
+    when G_VARIANT_CLASS_UINT32 {
+      @parameterList.push: Parameter.new(type => uint32) unless $in-array;
+      @n-values.push: shift @values unless $in-array;
     }
 
-    when 'x' {
-      @parameterList.push: Parameter.new(type => int64);    #
+    when G_VARIANT_CLASS_INT64 {
+      @parameterList.push: Parameter.new(type => int64) unless $in-array;
+      @n-values.push: shift @values unless $in-array;
     }
 
-    when 't' {
-      @parameterList.push: Parameter.new(type => uint64);    #
+    when G_VARIANT_CLASS_UINT64 {
+      @parameterList.push: Parameter.new(type => uint64) unless $in-array;
+      @n-values.push: shift @values unless $in-array;
     }
 
-    when 'h' {
-      @parameterList.push: Parameter.new(type => int32);    #
+#`{{
+    when G_VARIANT_CLASS_HANDLE {
+      @parameterList.push: Parameter.new(type => int32);
+      @n-values.push: shift @values;
     }
+}}
 
-    when 'd' {
-      @parameterList.push: Parameter.new(type => num64);    #
+    when G_VARIANT_CLASS_DOUBLE {
+      @parameterList.push: Parameter.new(type => num64) unless $in-array;
+      @n-values.push: shift @values unless $in-array;
     }
 
     # Used for building or deconstructing string types.
-    when 's' {
-      @parameterList.push: Parameter.new(type => Str);    #
-    }
-
-    when 'o' {
-      @parameterList.push: Parameter.new(type => Str);    #
-    }
-
-    when 'g' {
-      @parameterList.push: Parameter.new(type => Str);    #
+    when G_VARIANT_CLASS_STRING {
+      @parameterList.push: Parameter.new(type => Str) unless $in-array;
+      @n-values.push: shift @values unless $in-array;
     }
 
 
 #`{{
-    # Used for building or deconstructing variant types
-    when 'v' {
+
+    when G_VARIANT_CLASS_OBJECT_PATH {
+      @parameterList.push: Parameter.new(type => Str);
+      @n-values.push: shift @values;
     }
 
-    # Used for building or deconstructing arrays
-    when 'a' {
+    when G_VARIANT_CLASS_SIGNATURE {
+      @parameterList.push: Parameter.new(type => Str);
+      @n-values.push: shift @values;
+    }
+
+    # Used for building or deconstructing variant types
+    when G_VARIANT_CLASS_VARIANT {
+      @parameterList.push: Parameter.new(type => Pointer);
+      @n-values.push: shift @values;
     }
 
     # Used for building or deconstructing maybe types
-    when 'm' {
+    when G_VARIANT_CLASS_MAYBE {
+      @n-values.push: shift @values;
+    }
+}}
+#`{{
+
+    # Used for building or deconstructing arrays
+    when G_VARIANT_CLASS_ARRAY {
+      @n-values.push: shift @values;
+      $in-array = True;
     }
 
+}}
+#`{{
     # Used for building or deconstructing tuples
-    when '(' {
+    when G_VARIANT_CLASS_TUPLE {
+      @n-values.push: shift @values;
     }
 
     #
@@ -3242,7 +3226,8 @@ sub g_variant_new ( Str $type-string, *@values --> N-GVariant ) {
     }
 
     #Used for building or deconstructing dictionary entries
-    when '{' {
+    when G_VARIANT_CLASS_DICT_ENTRY {
+      @n-values.push: shift @values;
     }
 
     when '}' {
@@ -3292,8 +3277,12 @@ sub g_variant_new ( Str $type-string, *@values --> N-GVariant ) {
   state $ptr = cglobal( &glib-lib, 'g_variant_new', Pointer);
   my Callable $f = nativecast( $signature, $ptr);
 
-  $f( $type-string, |@values)
+note "Val: ", @n-values.perl;
+note "Sig: ", $signature.perl;
+
+  $f( $type-string, |@n-values)
 }
+
 
 #`{{
 #-------------------------------------------------------------------------------
@@ -3319,6 +3308,23 @@ sub g_variant_get ( N-GVariant $value, Str $format_string, Any $any = Any  )
   is native(&glib-lib)
   { * }
 }}
+
+method get ( |c ) {
+  g_variant_get( self.get-native-object-no-reffing, |c);
+}
+
+sub g_variant_get ( N-GVariant $value, Str $format_string --> N-GVariantIter ) {
+
+  my N-GVariantIter $v;
+  _g_variant_get( $value, $format_string, $v);
+  $v
+}
+
+sub _g_variant_get (
+  N-GVariant $value, Str $format_string, N-GVariantIter $v is rw
+) is native(&glib-lib)
+  is symbol('g_variant_get')
+  { * }
 
 #`{{
 #-------------------------------------------------------------------------------
@@ -3489,7 +3495,7 @@ See also the L<GVariant Text Format|https://developer.gnome.org/glib/stable/gvar
 =end pod
 
 sub g_variant_parse (
-  N-GVariant $ignored-variant, Str:D $type-string, Str:D $text
+  Str:D $type-string, Str:D $text
   --> List
 ) {
   my Gnome::Glib::VariantType $vt .= new(:$type-string);
@@ -3557,6 +3563,7 @@ sub g_variant_new_parsed_va ( Str $format, va_list $app --> N-GVariant )
   { * }
 }}
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_parse_error_print_context:
 =begin pod
@@ -3574,6 +3581,7 @@ sub g_variant_new_parsed_va ( Str $format, va_list $app --> N-GVariant )
 sub g_variant_parse_error_print_context ( N-GError $error, Str $source_str --> Str )
   is native(&glib-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
 #TM:0:g_variant_compare:

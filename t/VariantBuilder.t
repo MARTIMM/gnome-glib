@@ -1,14 +1,16 @@
 use v6;
-use lib '../gnome-native/lib';
+#use lib '../gnome-native/lib';
 use NativeCall;
 use Test;
 
+use Gnome::N::N-GVariantBuilder;
+#use Gnome::N::N-GError;
 use Gnome::Glib::Error;
 use Gnome::Glib::Variant;
-use Gnome::Glib::VariantBuilder;
 use Gnome::Glib::VariantType;
+use Gnome::Glib::VariantBuilder;
 
-#use Gnome::N::X;
+use Gnome::N::X;
 #Gnome::N::debug(:on);
 
 #-------------------------------------------------------------------------------
@@ -58,9 +60,34 @@ subtest 'ISA test', {
   $vb.variant-builder-init(G_VARIANT_TYPE_ARRAY);
   $vb.add-parsed('{"width": <600>, "data": <10>}');
   $vb.add-parsed('{"title": <"mr">}');
-
+  $v .= new(:native-object($vb.variant-builder-end));
   $vb.clear-object;
-  nok $vb.is-valid, '.clear-object()';
+  nok $vb.is-valid, 'VariantBuilder.clear-object()';
+
+  is $v.variant-print(False),
+     '[{\'width\': <600>, \'data\': <10>}, {\'title\': <\'mr\'>}]',
+     '.variant-print()';
+note $v.get-type-string, ', ', $v.variant-print(True);
+
+  $v.clear-object;
+  nok $v.is-valid, 'Variant.clear-object()';
+
+#Gnome::N::debug(:on);
+#  my Gnome::Glib::Variant $v2 .= new(:native-object($v.get-variant));
+#  note "v2 valid: ", $v2.is-valid;
+#  note $v2.get-type-string, ', ', $v2.get-string;
+
+
+#`{{
+  $vb.variant-builder-init('(iau)');
+  $vb.add-parsed('-10');
+#  $vb.add-parsed('-11');
+  $vb.variant-builder-open(Gnome::Glib::VariantType.new(:type-string<au>));
+  $vb.add-parsed('10');
+  $vb.add-parsed('11');
+  $vb.variant-builder-close;
+  $v .= new(:native-object($vb.variant-builder-end));
+}}
 }
 
 #`{{
