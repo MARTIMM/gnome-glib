@@ -236,7 +236,7 @@ use NativeCall;
 
 use Gnome::N::X;
 use Gnome::N::NativeLib;
-use Gnome::N::N-GError;
+#use Gnome::N::N-GError;
 use Gnome::N::N-GVariant;
 use Gnome::N::N-GVariantIter;
 use Gnome::N::N-GVariantType;

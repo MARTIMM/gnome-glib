@@ -4,7 +4,6 @@ use NativeCall;
 use Test;
 
 use Gnome::N::NativeLib;
-use Gnome::N::N-GError;
 
 use Gnome::Glib::Quark;
 use Gnome::Glib::Error;

@@ -50,7 +50,6 @@ use NativeCall;
 
 use Gnome::N::X;
 use Gnome::N::NativeLib;
-use Gnome::N::N-GError;
 use Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
@@ -58,6 +57,23 @@ use Gnome::N::TopLevelClassSupport;
 # https://developer.gnome.org/glib/stable/glib-Error-Reporting.html
 unit class Gnome::Glib::Error:auth<github:MARTIMM>;
 also is Gnome::N::TopLevelClassSupport;
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head1 Types
+=head2 class N-GError;
+
+=item has uint32 $.domain; The set domain.
+=item has int32 $.code; The set error code.
+=item has Str $.message; The error message.
+
+=end pod
+#TT:1:N-GError:
+class N-GError is repr('CStruct') is export {
+  has uint32 $.domain;            # is GQuark
+  has int32 $.code;
+  has Str $.message;
+}
 
 #TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
 #TM:1:new(:$domain, :code, :error-message):

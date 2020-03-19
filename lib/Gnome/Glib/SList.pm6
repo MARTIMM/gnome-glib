@@ -70,7 +70,7 @@ This example shows how to get and show some information from a widget path.
 use NativeCall;
 
 use Gnome::N::X;
-use Gnome::N::N-GSList;
+#use Gnome::N::N-GSList;
 use Gnome::N::N-GObject;
 use Gnome::N::NativeLib;
 use Gnome::N::TopLevelClassSupport;
@@ -80,6 +80,20 @@ use Gnome::N::TopLevelClassSupport;
 # https://developer.gnome.org/glib/stable/glib-Singly-Linked-List.html
 unit class Gnome::Glib::SList:auth<github:MARTIMM>;
 also is Gnome::N::TopLevelClassSupport;
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head1 Types
+=head2 class N-GSList
+
+Structure to create a single linked list. This native object is stored here to prevent circular dependencies.
+=end pod
+
+#TT:1:N-GSList:
+class N-GSList is repr('CStruct') is export {
+  has Pointer $.data;
+  has N-GSList $.next;
+}
 
 #-------------------------------------------------------------------------------
 =begin pod

@@ -148,8 +148,8 @@ use NativeCall;
 
 use Gnome::N::X;
 use Gnome::N::NativeLib;
-use Gnome::N::N-GError;
-use Gnome::N::N-GOptionContext;
+#use Gnome::N::N-GError;
+#use Gnome::N::N-GOptionContext;
 use Gnome::N::N-GObject;
 use Gnome::N::TopLevelClassSupport;
 use Gnome::Glib::Error;
@@ -308,7 +308,27 @@ class N-GOptionEntry is export is repr('CStruct') {
 }
 
 #-------------------------------------------------------------------------------
+=begin pod
+=head2 class N-GOptionGroup
+
+An option group.
+=end pod
+
+#TT:0::N-GOptionGroup
 class N-GOptionGroup
+  is repr('CPointer')
+  is export
+  { }
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 class N-GOptionContext
+
+An option context.
+=end pod
+
+#TT:1:N-GOptionContext:
+class N-GOptionContext
   is repr('CPointer')
   is export
   { }

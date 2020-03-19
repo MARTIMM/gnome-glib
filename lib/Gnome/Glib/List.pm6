@@ -72,7 +72,7 @@ To call a function for each element in the list, use C<g_list_foreach()>.
 use NativeCall;
 
 use Gnome::N::X;
-use Gnome::N::N-GList;
+#use Gnome::N::N-GList;
 use Gnome::N::N-GObject;
 use Gnome::N::NativeLib;
 use Gnome::N::TopLevelClassSupport;
@@ -82,6 +82,21 @@ use Gnome::N::TopLevelClassSupport;
 # https://developer.gnome.org/glib/stable/glib-Doubly-Linked-Lists.html
 unit class Gnome::Glib::List:auth<github:MARTIMM>;
 also is Gnome::N::TopLevelClassSupport;
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head1 Types
+=head2 class N-GList
+
+Structure to create a doubly linked list. This native object is stored here to prevent circular dependencies.
+=end pod
+
+#TT:1:N-GList:
+class N-GList is repr('CStruct') is export {
+  has Pointer $.data;
+  has N-GList $.next;
+  has N-GList $.prev;
+}
 
 #-------------------------------------------------------------------------------
 =begin pod
