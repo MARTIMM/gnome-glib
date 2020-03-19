@@ -1,4 +1,9 @@
 ## Release notes
+* 2020-03-07 0.17.0:
+  * Add module VariantIter (split from GVariant source). There are some problems with this module. Reviewing the usability of all the Variant* classes it seems to be needed by Action* classes (from Gio), using it to keep some state of sorts. I think this can be solved by Raku solutions by keeping a state in the Raku objects which handle the Action classes 'activate' signals while keeping the Action objects 'stateless'. So the the Variant* classes are not yet usable and the development is put on hold for the moment.
+  * Renamed Option to OptionContext.
+  * All modules except Main and Quark are converted to use the **Gnome::N::TopLevelClassSupport**.
+
 * 2020-03-07 0.16.1:
   * Removed CALL-ME() methods.
   * Improved FALLBACK methods.
