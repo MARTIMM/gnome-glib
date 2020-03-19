@@ -1,4 +1,4 @@
-#TL:1:Gnome::Glib::Option:
+#TL:1:Gnome::Glib::OptionContext:
 
 #TODO split option_group from option_context
 
@@ -6,7 +6,7 @@ use v6;
 #-------------------------------------------------------------------------------
 =begin pod
 
-=head1 Gnome::Glib::Option
+=head1 Gnome::Glib::OptionContext
 
 parses commandline options
 
@@ -136,7 +136,8 @@ B<endif>
 =head1 Synopsis
 =head2 Declaration
 
-  unit class Gnome::Glib::Option;
+  unit class Gnome::Glib::OptionContext;
+  also is Gnome::N::TopLevelClassSupport;
 
 =comment head2 Example
 
@@ -147,13 +148,17 @@ use NativeCall;
 
 use Gnome::N::X;
 use Gnome::N::NativeLib;
+use Gnome::N::N-GError;
+use Gnome::N::N-GOptionContext;
 use Gnome::N::N-GObject;
+use Gnome::N::TopLevelClassSupport;
 use Gnome::Glib::Error;
 
 #-------------------------------------------------------------------------------
 # /usr/include/gtk-3.0/gtk/INCLUDE
 # https://developer.gnome.org/WWW
-unit class Gnome::Glib::Option:auth<github:MARTIMM>;
+unit class Gnome::Glib::OptionContext:auth<github:MARTIMM>;
+also is Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -309,17 +314,6 @@ class N-GOptionGroup
   { }
 
 #-------------------------------------------------------------------------------
-class N-GOptionContext
-  is repr('CPointer')
-  is export
-  { }
-
-#-------------------------------------------------------------------------------
-has N-GOptionContext $!g-option-context;
-
-has Bool $.is-valid = False;
-
-#-------------------------------------------------------------------------------
 =begin pod
 =head1 Methods
 =head2 new
@@ -330,97 +324,72 @@ Create a new option context object. The string is a parameter string. See also C
 
 Create an object using a native option context object from elsewhere.
 
-  multi method new ( N-GOptionContext :$context! )
+  multi method new ( N-GOptionContext :$native-object! )
 
 =end pod
 
 #TM:1:new(:pstring):
-#TM:1:new(:context):
-
+#TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong widgets
-  return unless self.^name eq 'Gnome::Glib::Option';
+  if self.^name eq 'Gnome::Glib::OptionContext' or %options<Option> {
 
-  # process all named arguments
-  if ? %options<pstring> {
-    $!g-option-context = g_option_context_new(%options<pstring>);
-    $!is-valid = $!g-option-context.defined;
-  }
+    # process all named arguments
+    if ? %options<pstring> {
+      self.set-native-object(g_option_context_new(%options<pstring>));
+    }
 
-  elsif ? %options<context> {
-    $!g-option-context = %options<context>;
-    $!is-valid = $!g-option-context.defined;
-  }
+    elsif ? %options<context> or ? %options<native-object> {
+      my $no = %options<context> // %options<native-object>;
+      $no .= get-native-object if $no ~~ Gnome::Glib::OptionContext;
+      self.set-native-object($no);
 
-  elsif %options.keys.elems {
-    die X::Gnome.new(
-      :message('Unsupported options for ' ~ self.^name ~
-               ': ' ~ %options.keys.join(', ')
-              )
-    );
+      Gnome::N::deprecate(
+        '.new(:context)', '.new(:native-object)', '0.16.0', '0.18.0'
+      ) if ?%options<glist>;
+    }
+
+    # only after creating the native-object, the gtype is known
+    self.set-class-info('GOptionContext');
   }
 }
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
-method set-native-object (
-  N-GOptionContext:D $g-option-context --> N-GOptionContext
-) {
 
-  if $g-option-context.defined {
-    _g_option_context_free($!g-option-context) if $!g-option-context.defined;
-    $!g-option-context = $g-option-context;
-    $!is-valid = True;
-  }
-
-  $!g-option-context
-}
-
-#-------------------------------------------------------------------------------
-# no pod. user does not have to know about it.
-method get-native-object ( --> N-GOptionContext ) {
-  $!g-option-context
-}
-
-#-------------------------------------------------------------------------------
-# no pod. user does not have to know about it.
-method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
-
-  note "\nSearch for $native-sub in Options" if $Gnome::N::x-debug;
-
-  CATCH { test-catch-exception( $_, $native-sub); }
-
-  # convert all dashes to underscores if there are any.
-  $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-').defined;
+method _fallback ( $native-sub --> Callable ) {
 
   my Callable $s;
+#  try { $s = &::("g_option_context_$native-sub"); };
+#  try { $s = &::("g_option_group_$native-sub"); };
   try { $s = &::("g_option_$native-sub"); };
   try { $s = &::("g_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
-  convert-to-natives(@params);
-  test-call( $s, $!g-option-context, |@params, |%named-params)
+  self.set-class-name-of-sub('GOptionContext');
+
+  $s
 }
 
 #-------------------------------------------------------------------------------
-#TM:1:is-valid
-# doc of $!is-valid defined above
-=begin pod
-=head2 is-valid
+# no referencing for option contexts
+method native-object-ref ( $n-native-object ) {
+  $n-native-object;
+}
 
-Returns True if native option context object is valid, otherwise C<False>.
+#-------------------------------------------------------------------------------
+method native-object-unref ( $n-native-object ) {
+  _g_option_context_free($n-native-object);
+}
 
-  method is-valid ( --> Bool )
-
-=end pod
-
+#-------------------------------------------------------------------------------
 method option-context-is-valid () {
     Gnome::N::deprecate(
     '.option-context-is-valid()', '.is-valid()', '0.16.1', '0.18.0'
   );
 
-  $!is-valid;
+  self.is-valid;
 }
 
 #-------------------------------------------------------------------------------
@@ -485,9 +454,11 @@ Clear the error and return data to memory to pool. The option context object is 
 
 method clear-option-context ( ) {
 
-  _g_option_context_free($!g-option-context) if $!g-option-context.defined;
-  $!is-valid = False;
-  $!g-option-context = N-GOptionContext;
+  Gnome::N::deprecate(
+    'clear-option-context.', '.clear-object()', '0.16.0', '0.18.0'
+  );
+
+  self.clear-object;
 }
 
 sub _g_option_context_free ( N-GOptionContext $context )
@@ -828,11 +799,12 @@ The method returns a list of;
 =end pod
 
 sub g_option_context_parse (
-  N-GOptionContext $context, Int $argc is copy, @argv is copy
+  N-GOptionContext $context, *@argv is copy
   --> List
 ) {
-#note "AC 0: ", $argc;
-#note "AV 0: ", @argv;
+  my Int $argc = @argv.elems;
+note "AC 0: ", $argc;
+note "AV 0: ", @argv;
 
   my Gnome::Glib::Error $error;
   my CArray[N-GError] $e .= new(N-GError);
@@ -841,12 +813,15 @@ sub g_option_context_parse (
   $ac[0] = $argc;
 
   my CArray[Str] $avi .= new;
-  loop ( my Int $i = 0; $i < @argv.elems; $i++ ) {
-    $avi[$i] = @argv[$i];
+  my Int $arg-count = 0;
+  for @argv -> $arg {
+    $avi[$arg-count++] = $arg;
   }
+
   my CArray[CArray[Str]] $av .= new;
   $av[0] = $avi;
 
+#TODO something fishy, keeps generating gnome errors
   my Int $s = _g_option_context_parse( $context, $ac, $av, $e);
 note "S: $s";
 
@@ -857,8 +832,8 @@ note "S: $s";
     loop ( my Int $i = 0; $i < $argc; $i++ ) {
       @argv[$i] = $av[0][$i];
     }
-#note "AC 2: ", $argc;
-#note "AV 2: ", @argv;
+note "AC 2: ", $argc;
+note "AV 2: ", @argv;
   }
 
   else {
@@ -872,8 +847,8 @@ note "E: ", $e, ', ', $e[0].perl;
 sub _g_option_context_parse (
   N-GOptionContext $context, CArray[int32] $argc, CArray[CArray[Str]] $argv,
   CArray[N-GError] $error
-) returns int32
-  is native(&glib-lib)
+  --> int32
+) is native(&glib-lib)
   is symbol('g_option_context_parse')
   { * }
 
@@ -1106,7 +1081,14 @@ sub _g_option_context_get_help (
   is symbol('g_option_context_get_help')
   { * }
 }}
-
+#`{{ returns no UTF-8
+sub g_option_context_get_help (
+  N-GOptionContext $context, int32 $main_help, N-GOptionGroup $group
+) returns CArray[uint8]
+  is native(&glib-lib)
+#  is symbol('g_option_context_get_help')
+  { * }
+}}
 #-------------------------------------------------------------------------------
 #TM:1:g_option_group_new:
 =begin pod
