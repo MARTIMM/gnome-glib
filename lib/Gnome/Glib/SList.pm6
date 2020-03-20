@@ -117,6 +117,9 @@ submethod BUILD ( *%options ) {
 
   # prevent creating wrong widgets
   if self.^name eq 'Gnome::Glib::SList' or %options<SList> {
+note "\nsl: no = ", self.get-native-object;
+note "\nslist length: ", g_slist_length(self.get-native-object), ', ', self.is-valid;
+
 
     # skip if object is already set by parent
     if self.is-valid { }
@@ -127,14 +130,14 @@ submethod BUILD ( *%options ) {
       self.set-native-object(N-GSList);
     }
 
-    elsif ? %options<gslist> or ? %options<native-object> {
-      my $no = %options<gslist> // %options<native-object>;
+    elsif ? %options<gslist> {
+      my $no = %options<gslist>;
       $no .= get-native-object if $no ~~ Gnome::Glib::SList;
       self.set-native-object($no);
 
       Gnome::N::deprecate(
         '.new(:gslist)', '.new(:native-object)', '0.16.0', '0.18.0'
-      ) if ?%options<gslist>;
+      );
     }
 
     else {#if ? %options<empty> {
@@ -179,7 +182,7 @@ method gslist-is-valid ( --> Bool ) {
 
 #-------------------------------------------------------------------------------
 # no referencing for lists
-method native-object-ref ( $n-native-object --> N-GSList ) {
+method native-object-ref ( $n-native-object ) {
   $n-native-object
 }
 

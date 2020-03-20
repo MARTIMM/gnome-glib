@@ -128,14 +128,14 @@ submethod BUILD ( *%options ) {
       self.set-native-object(N-GList);
     }
 
-    elsif ? %options<glist> or ? %options<native-object> {
-      my $no = %options<glist> // %options<native-object>;
+    elsif ? %options<glist> {
+      my $no = %options<glist>;
       $no .= get-native-object if $no ~~ Gnome::Glib::List;
       self.set-native-object($no);
 
       Gnome::N::deprecate(
         '.new(:glist)', '.new(:native-object)', '0.15.5', '0.18.0'
-      ) if ?%options<glist>;
+      );
     }
 
     else { #if ? %options<empty> {
