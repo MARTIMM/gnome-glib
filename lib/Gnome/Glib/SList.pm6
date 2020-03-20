@@ -117,9 +117,6 @@ submethod BUILD ( *%options ) {
 
   # prevent creating wrong widgets
   if self.^name eq 'Gnome::Glib::SList' or %options<SList> {
-note "\nsl: no = ", self.get-native-object;
-note "\nslist length: ", g_slist_length(self.get-native-object), ', ', self.is-valid;
-
 
     # skip if object is already set by parent
     if self.is-valid { }
@@ -162,6 +159,7 @@ method _fallback ( $native-sub ) {
   $s
 }
 
+#-------------------------------------------------------------------------------
 method clear-gslist ( ) {
 
   Gnome::N::deprecate(
