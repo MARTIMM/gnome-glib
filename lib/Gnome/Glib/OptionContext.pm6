@@ -355,8 +355,11 @@ submethod BUILD ( *%options ) {
   # prevent creating wrong widgets
   if self.^name eq 'Gnome::Glib::OptionContext' or %options<Option> {
 
+    # skip if object is already set by parent
+    if self.is-valid { }
+
     # process all named arguments
-    if ? %options<pstring> {
+    elsif ? %options<pstring> {
       self.set-native-object(g_option_context_new(%options<pstring>));
     }
 

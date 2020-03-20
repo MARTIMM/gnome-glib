@@ -72,7 +72,6 @@ To call a function for each element in the list, use C<g_list_foreach()>.
 use NativeCall;
 
 use Gnome::N::X;
-#use Gnome::N::N-GList;
 use Gnome::N::N-GObject;
 use Gnome::N::NativeLib;
 use Gnome::N::TopLevelClassSupport;
@@ -88,7 +87,7 @@ also is Gnome::N::TopLevelClassSupport;
 =head1 Types
 =head2 class N-GList
 
-Structure to create a doubly linked list. This native object is stored here to prevent circular dependencies.
+Structure to create a doubly linked list.
 =end pod
 
 #TT:1:N-GList:
@@ -120,8 +119,11 @@ submethod BUILD ( *%options ) {
   # prevent creating wrong widgets
   if self.^name eq 'Gnome::Glib::List' or %options<List> {
 
+    # skip if object is already set by parent
+    if self.is-valid { }
+
     # process all named arguments
-    if ? %options<empty> {
+    elsif ? %options<empty> {
       Gnome::N::deprecate( '.new(:empty)', '.new()', '0.15.5', '0.18.0');
       self.set-native-object(N-GList);
     }
@@ -180,7 +182,7 @@ method clear-list ( ) {
 
 #-------------------------------------------------------------------------------
 # no referencing for lists
-method native-object-ref ( $n-native-object --> N-GList ) {
+method native-object-ref ( $n-native-object ) {
   $n-native-object
 }
 
@@ -1090,7 +1092,7 @@ sub g_list_sort_with_data ( N-GList $list, GCompareDataFunc $compare_func, Point
 }}
 
 #-------------------------------------------------------------------------------
-#TM:0:g_list_nth_data:
+#TM:4:g_list_nth_data:Gnome::Gtk3::Button.t
 =begin pod
 =head2 [[g_] list_] nth_data
 

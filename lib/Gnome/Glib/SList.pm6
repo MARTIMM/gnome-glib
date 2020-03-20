@@ -118,8 +118,11 @@ submethod BUILD ( *%options ) {
   # prevent creating wrong widgets
   if self.^name eq 'Gnome::Glib::SList' or %options<SList> {
 
+    # skip if object is already set by parent
+    if self.is-valid { }
+
     # process all named arguments
-    if ? %options<empty> {
+    elsif ? %options<empty> {
       Gnome::N::deprecate( '.new(:empty)', '.new()', '0.15.5', '0.18.0');
       self.set-native-object(N-GSList);
     }
