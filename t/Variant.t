@@ -8,25 +8,37 @@ use Gnome::Glib::Error;
 use Gnome::Glib::Variant;
 use Gnome::Glib::VariantType;
 
-#use Gnome::N::X;
+use Gnome::N::X;
 #Gnome::N::debug(:on);
 
 #-------------------------------------------------------------------------------
 my Gnome::Glib::VariantType $vt;
 my Gnome::Glib::Variant $v;
+
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
-#  $v .= new( :type-string<ui>, :values([ 40, -40]));
   $v .= new(:native-object(N-GVariant));
   isa-ok $v, Gnome::Glib::Variant, '.new(:native-object)';
   nok $v.is-valid, 'undefined obj not valid';
 
-  $v .= new( :type-string<au>, :data-string<[10,11]>);
-  isa-ok $v, Gnome::Glib::Variant, '.new(:type-string,:data-string)';
+  # 'u' = unsigned int32
+  $v .= new( :type-string<u>, :values(40));
+  isa-ok $v, Gnome::Glib::Variant, '.new(:type-string<u>, :values)';
   ok $v.is-valid, 'object ok';
+#`{{
+  # 'ai' = array of int32
+  $v .= new( :type-string<ai>, :values( [ -1, 0, 1]));
+  isa-ok $v, Gnome::Glib::Variant, '.new(:type-string<ai>, :values)';
+  ok $v.is-valid, 'object ok';
+}}
+  dies-ok(
+    { $v .= new( :type-string(G_VARIANT_CLASS_VARIANT), :values($v)); },
+    'variant not yet supported'
+  );
 
+  # 'au' = array of unsigned int
   $v .= new( :type-string<au>, :data-string<[10,11]>);
-  isa-ok $v, Gnome::Glib::Variant, '.new(:type-string,:data-string)';
+  isa-ok $v, Gnome::Glib::Variant, '.new(:type-string<au>,:data-string)';
   ok $v.is-valid, 'object ok';
 
   $v.clear-object;
@@ -34,6 +46,7 @@ subtest 'ISA test', {
 }
 
 #-------------------------------------------------------------------------------
+#Gnome::N::debug(:on);
 subtest 'Manipulations', {
   my ( N-GVariant $nv2, Gnome::Glib::Error $e) =
     $v.g-variant-parse( 'u', '.100');
@@ -42,13 +55,14 @@ subtest 'Manipulations', {
 #  note "E: ", $e.message unless $v2.is-valid;
   ok $e.is-valid, '.g-variant-parse() failed';
   like $e.message, /:s invalid character in number/, $e.message;
+#Gnome::N::debug(:off);
 
   ( $nv2, $e) = $v.g-variant-parse( 'u', '100');
   nok $e.is-valid, '.g-variant-parse() unsigned int ok';
 
   ( $nv2, $e) = $v.g-variant-parse( '(sub)', '("abc",20,true)');
   nok $e.is-valid, '.g-variant-parse() tuple ok';
-note $e.message if $e.is-valid;
+#note $e.message if $e.is-valid;
 
   ( $nv2, $e) = $v.g-variant-parse( 'au', '[100,200]');
   nok $e.is-valid, '.g-variant-parse() array ok';

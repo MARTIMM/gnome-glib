@@ -34,6 +34,7 @@ Error domains and codes are conventionally named as follows:
 =head2 Declaration
 
   unit class Gnome::Glib::Error;
+  also is Gnome::N::TopLevelClassSupport;
 
 =head2 Example
 
@@ -49,11 +50,13 @@ use NativeCall;
 
 use Gnome::N::X;
 use Gnome::N::NativeLib;
+use Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/glib/gerror.h
 # https://developer.gnome.org/glib/stable/glib-Error-Reporting.html
 unit class Gnome::Glib::Error:auth<github:MARTIMM>;
+also is Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -72,14 +75,8 @@ class N-GError is repr('CStruct') is export {
   has Str $.message;
 }
 
-#-------------------------------------------------------------------------------
-has N-GError $!g-gerror;
-
-has Bool $.is-valid = False;
-#-------------------------------------------------------------------------------
-#TM:1:new(:native-object):
+#TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
 #TM:1:new(:$domain, :code, :error-message):
-
 =begin pod
 =head1 Methods
 =head2 new
@@ -97,81 +94,50 @@ Create a new Error object using an other native error object.
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong widgets
-  # no parent, nor children ...
-  # return unless self.^name eq 'Gnome::Glib::Error';
+  if self.^name eq 'Gnome::Glib::Error' or ?%options<Error> {
 
-  # process all named arguments
-  if %options.elems == 0 {
-    die X::Gnome.new(:message('No options specified ' ~ self.^name));
-  }
+    # check if native object is set by other parent class BUILDers
+    if self.is-valid { }
 
-  elsif %options<domain>.defined and
-     %options<code>.defined and
-     %options<error-message>.defined {
+    # process all named arguments
+    elsif %options.elems == 0 {
+      die X::Gnome.new(:message('No options specified ' ~ self.^name));
+    }
 
-    $!g-gerror = g_error_new_literal(
-      %options<domain>, %options<code>, %options<error-message>
-    );
+    elsif %options<domain>.defined and
+       %options<code>.defined and
+       %options<error-message>.defined {
 
-    $!is-valid = ?$!g-gerror;
-  }
+      self.set-native-object(
+        g_error_new_literal(
+          %options<domain>, %options<code>, %options<error-message>
+        )
+      );
+    }
 
-  elsif %options<gerror>:exists {
-    Gnome::N::deprecate(
-      '.new(:gerror())', '.new(:native-object())', '0.15.5', '0.18.0'
-    );
-    $!g-gerror = %options<gerror>;
-    $!is-valid = ?$!g-gerror;
-  }
+    elsif %options<gerror>:exists {
+      Gnome::N::deprecate(
+        '.new(:gerror())', '.new(:native-object())', '0.15.5', '0.18.0'
+      );
+      g_error_new_literal(%options<gerror>);
+    }
 
-  elsif %options<native-object>:exists {
-    $!g-gerror = %options<native-object>;
-    $!is-valid = ?$!g-gerror;
-  }
-
-  elsif %options.elems {
-    die X::Gnome.new(
-      :message( 'Unsupported options for ' ~ self.^name ~
-                ': ' ~ %options.keys.join(', ')
-      )
-    );
+    # only after creating the native-object, the gtype is known
+    self.set-class-info('GError');
   }
 }
 
 #-------------------------------------------------------------------------------
-method get-native-object ( --> N-GError ) {
-
-  $!g-gerror
-}
-
-#-------------------------------------------------------------------------------
-method set-native-object ( N-GError $gerror ) {
-
-  if $gerror.defined {
-    _g_error_free($!g-gerror) if $!g-gerror.defined;
-    $!g-gerror = $gerror;
-    $!is-valid = True;
-  }
-}
-
-#-------------------------------------------------------------------------------
-method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
-
-  note "\nSearch for .$native-sub\() following ", self.^mro
-    if $Gnome::N::x-debug;
-
-  CATCH { test-catch-exception( $_, $native-sub); }
-
-  $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-');
+method _fallback ( $native-sub --> Callable ) {
 
   my Callable $s;
   try { $s = &::("g_error_$native-sub"); };
   try { $s = &::("g_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
-  die X::Gnome.new(:message("Method '$native-sub' not found")) unless ?$s;
-  convert-to-natives(@params);
-  test-call( $s, $!g-gerror, |@params, |%named-params)
+  self.set-class-name-of-sub('GError');
+
+  $s
 }
 
 #-------------------------------------------------------------------------------
@@ -181,20 +147,8 @@ method error-is-valid ( --> Bool ) {
     '.error-is-valid()', '.is-valid()', '0.15.5', '0.18.0'
   );
 
-  $!is-valid;
+  self.is-valid;
 }
-
-#-------------------------------------------------------------------------------
-#TM:1:is-valid
-# doc of $!is-valid defined above
-=begin pod
-=head2 is-valid
-
-Returns True if native error object is valid, otherwise C<False>.
-
-  method is-valid ( --> Bool )
-
-=end pod
 
 #-------------------------------------------------------------------------------
 method clear-error ( ) {
@@ -203,32 +157,18 @@ method clear-error ( ) {
     '.clear-error()', '.clear-object()', '0.15.5', '0.18.0'
   );
 
-  _g_error_free($!g-gerror) if $!g-gerror.defined;
-  $!is-valid = False;
-  $!g-gerror = N-GError;
+  self.clear-object;
 }
 
 #-------------------------------------------------------------------------------
-#TM:1:clear-object
-=begin pod
-=head2 clear-object
-
-Clear the error and return data to memory pool. The error object is not valid after this call and C<is-valid()> will return C<False>.
-
-  method clear-object ()
-
-=end pod
-
-method clear-object ( ) {
-
-  _g_error_free($!g-gerror) if $!is-valid;
-  $!is-valid = False;
-  $!g-gerror = N-GError;
+# no ref/unref for a variant type
+method native-object-ref ( $n-native-object --> N-GError ) {
+  $n-native-object
 }
 
 #-------------------------------------------------------------------------------
-submethod DESTROY ( ) {
-  _g_error_free($!g-gerror) if $!is-valid;
+method native-object-unref ( $n-native-object ) {
+  _g_error_free($n-native-object)
 }
 
 #-------------------------------------------------------------------------------
@@ -243,7 +183,7 @@ Get the domain code from the error object. Use C<to-string()> from I<Gnome::Glib
 =end pod
 
 method domain ( --> UInt ) {
-  $!is-valid ?? $!g-gerror.domain !! UInt;
+  self.is-valid ?? self.get-native-object-no-reffing.domain !! UInt;
 }
 
 #-------------------------------------------------------------------------------
@@ -258,7 +198,7 @@ Return the error code of the error. Returns C<Int> if object is invalid.
 =end pod
 
 method code ( --> Int ) {
-  $!is-valid ?? $!g-gerror.code !! Int;
+  self.is-valid ?? self.get-native-object-no-reffing.code !! Int;
 }
 
 #-------------------------------------------------------------------------------
@@ -273,7 +213,7 @@ Return the error message in the error object. Returns C<Str> if object is invali
 =end pod
 
 method message ( --> Str ) {
-  $!is-valid ?? $!g-gerror.message !! Str;
+  self.is-valid ?? self.get-native-object-no-reffing.message !! Str;
 }
 
 #`{{ Todo

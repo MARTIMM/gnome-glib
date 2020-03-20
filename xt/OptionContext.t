@@ -1,23 +1,25 @@
 use v6;
 #use lib '../gnome-glib/lib';
+use lib '../gnome-native/lib';
+use lib '../gnome-gtk3/lib';
 use NativeCall;
 use Test;
 
 use Gnome::Glib::Error;
-use Gnome::Glib::Option;
+use Gnome::Glib::OptionContext;
 use Gnome::Gtk3::Main;
 
-#use Gnome::N::X;
+use Gnome::N::X;
 #Gnome::N::debug(:on);
 
 #-------------------------------------------------------------------------------
 my Gnome::Gtk3::Main $m .= new;
-my Gnome::Glib::Option $o;
+my Gnome::Glib::OptionContext $o;
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
   $o .= new(:pstring('- test tree model performance'));
-  isa-ok $o, Gnome::Glib::Option, '.new(:pstring)';
-  ok $o.option-context-is-valid, '.option-context-is-valid()';
+  isa-ok $o, Gnome::Glib::OptionContext, '.new(:pstring)';
+  ok $o.is-valid, '.is-valid()';
 }
 
 #-------------------------------------------------------------------------------
@@ -65,13 +67,13 @@ subtest 'Manipulations', {
   $o.group_add_entries( $ogroup, $ges);
   $o.context_add_group($m.gtk-get-option-group(1));
 
-  ( my Int $c, my $v, my Gnome::Glib::Error $e) = $o.context_parse(
-    8, <testtreemodel --display=:0 -r 1  -vb -- file1 file2>
-  );
+  my @args = 'testtreemodel', '--display=:1.0', '-r', '1',
+             '-vb', '--', 'file1', 'file2';
+  ( my Int $c, my $v, my Gnome::Glib::Error $e) = $o.context_parse(@args);
 
   nok $e.is-valid, 'no error from .context_parse()';
   is $c, 7, '.context_parse(), count == 7';
-  is-deeply $v, [ |<testtreemodel -r>, '1', |< -vb -- file1 file2>],
+  is-deeply $v, [ 'testtreemodel', '-r', '1', '-vb', '--', 'file1', 'file2'],
     '.context_parse(), vals == <testtreemodel -r 1  -vb -- file1 file2>';
 
 #`{{
@@ -82,12 +84,26 @@ subtest 'Manipulations', {
   is-deeply $v, [ |<testtreemodel -r>, '1', |< -vb -- file1 file2>],
     '.context_parse_strv(), vals == <testtreemodel -r 1  -vb -- file1 file2>';
 }}
-#`{{
-  note $o.context-get-help(1);
+#Gnome::N::debug(:on);
 
-  $o.clear-option-context;
-  nok $o.option-context-is-valid, '.clear-option-context()';
+  ok $o.context-get-help-enabled, 'help enabled';
+#`{{
+  $o.context_set_strict_posix(0);
+#  note $o.context-get-help( 1, N-GOptionGroup);
+  my CArray[uint8] $nt = $o.context-get-help( 1, N-GOptionGroup);
+#  my Str $help-text = '';
+  my @b = ();
+  my Int $i = 0;
+  while $nt[$i] {
+#    $help-text ~= $nt[$i++].chr;
+    @b.push: ($nt[$i] < 0 ?? ($nt[$i] +& 0x7F) + 0x80 !! $nt[$i]);
+    $i++;
+  }
+  note Buf.new(|@b).decode;
 }}
+
+  $o.clear-object;
+  nok $o.is-valid, '.clear-object()';
 }
 
 #`{{

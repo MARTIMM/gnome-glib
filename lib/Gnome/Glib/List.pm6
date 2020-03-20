@@ -41,6 +41,7 @@ Most of the time there is no need to manipulate the list because many of the GTK
 =head2 Declaration
 
   unit class Gnome::Glib::List;
+  also is Gnome::N::TopLevelClassSupport;
 
 =head2 Example 1
 
@@ -73,22 +74,28 @@ use NativeCall;
 use Gnome::N::X;
 use Gnome::N::N-GObject;
 use Gnome::N::NativeLib;
+use Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/glib/glist.h
 # https://developer.gnome.org/glib/stable/glib-Doubly-Linked-Lists.html
 unit class Gnome::Glib::List:auth<github:MARTIMM>;
+also is Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
+=begin pod
+=head1 Types
+=head2 class N-GList
+
+Structure to create a doubly linked list.
+=end pod
+
+#TT:1:N-GList:
 class N-GList is repr('CStruct') is export {
   has Pointer $.data;
   has N-GList $.next;
   has N-GList $.prev;
 }
-
-#-------------------------------------------------------------------------------
-has N-GList $!glist;
-has Bool $.is-valid = False;
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -101,130 +108,66 @@ Create a new plain object.
 
 Create a new list object using an other native list object.
 
-  multi method new ( N-GError :$glist! )
+  multi method new ( N-GList :$native-object! )
 
 =end pod
 
 #TM:1:new():
-#TM:0:new(:native-object):
+#TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong widgets
-  return unless self.^name eq 'Gnome::Glib::List';
+  if self.^name eq 'Gnome::Glib::List' or %options<List> {
 
-  # process all named arguments
-  if ? %options<empty> {
-    Gnome::N::deprecate( '.new(:empty)', '.new()', '0.15.5', '0.18.0');
-    $!glist = N-GList;
-    $!is-valid = True;
+    # skip if object is already set by parent
+    if self.is-valid { }
+
+    # process all named arguments
+    elsif ? %options<empty> {
+      Gnome::N::deprecate( '.new(:empty)', '.new()', '0.15.5', '0.18.0');
+      self.set-native-object(N-GList);
+    }
+
+    elsif ? %options<glist> {
+      my $no = %options<glist>;
+      $no .= get-native-object if $no ~~ Gnome::Glib::List;
+      self.set-native-object($no);
+
+      Gnome::N::deprecate(
+        '.new(:glist)', '.new(:native-object)', '0.15.5', '0.18.0'
+      );
+    }
+
+    else { #if ? %options<empty> {
+      self.set-native-object(N-GList);
+    }
+
+    # only after creating the native-object, the gtype is known
+    self.set-class-info('GList');
   }
-
-  elsif ? %options<glist> or ? %options<native-object> {
-    my $no = %options<glist> // %options<native-object>;
-    $no .= get-native-object if $no ~~ Gnome::Glib::List;
-    $!glist = $no;
-    $!is-valid = True;
-
-    Gnome::N::deprecate(
-      '.new(:glist)', '.new(:native-object)', '0.15.5', '0.18.0'
-    ) if ?%options<glist>;
-  }
-
-  elsif %options.keys.elems {
-    die X::Gnome.new(
-      :message('Unsupported options for ' ~ self.^name ~
-               ': ' ~ %options.keys.join(', ')
-              )
-    );
-  }
-
-  else { #if ? %options<empty> {
-    $!glist = N-GList;
-    $!is-valid = True;
-  }
-
-  # only after creating the native-object, the gtype is known
-#  self.set-class-info('GList');
 }
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
-method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
-
-  note "\nSearch for .$native-sub\() following ", self.^mro
-    if $Gnome::N::x-debug;
-
-  CATCH { test-catch-exception( $_, $native-sub); }
-
-  $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-');
+method _fallback ( $native-sub --> Callable ) {
 
   my Callable $s;
   try { $s = &::("g_list_$native-sub"); };
   try { $s = &::("g_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
-#  self.set-class-name-of-sub('GList');
+  self.set-class-name-of-sub('GList');
 
-  convert-to-natives(@params);
-  test-call( $s, $!glist, |@params, |%named-params)
+  $s
 }
 
 #-------------------------------------------------------------------------------
-submethod DESTROY ( ) {
-  _g_list_free($!glist) if $!is-valid;
-}
-
-#-------------------------------------------------------------------------------
-method set-native-object ( N-GList $glist ) {
-
-  if $glist.defined {
-    $!glist = $glist;
-    $!is-valid = True;
-  }
-}
-
-#-------------------------------------------------------------------------------
-method get-native-object ( --> N-GList ) {
-
-  $!glist
-}
-
-#-------------------------------------------------------------------------------
-#TM:1:is-valid
-# doc of $!is-valid defined above
-=begin pod
-=head2 is-valid
-
-Returns True if native list object is valid, otherwise C<False>.
-
-  method is-valid ( --> Bool )
-
-=end pod
-
 method list-is-valid ( --> Bool ) {
   Gnome::N::deprecate(
     '.list-is-valid()', '.is-valid()', '0.15.5', '0.18.0'
   );
 
-  $!is-valid
-}
-
-#-------------------------------------------------------------------------------
-#TM:1:clear-object
-=begin pod
-=head2 clear-object
-
-Clear the list and data. The list object is not valid after this call and is-valid() will return C<False>.
-
-  method clear-object ()
-
-=end pod
-
-method clear-object ( ) {
-  if $!is-valid {
-    _g_list_free($!glist);
-    $!is-valid = False;
-  }
+  self.is-valid
 }
 
 #-------------------------------------------------------------------------------
@@ -234,10 +177,18 @@ method clear-list ( ) {
     '.clear-list()', '.clear-object()', '0.15.5', '0.18.0'
   );
 
-  if $!is-valid {
-    _g_list_free($!glist);
-    $!is-valid = False;
-  }
+  self.clear-object;
+}
+
+#-------------------------------------------------------------------------------
+# no referencing for lists
+method native-object-ref ( $n-native-object ) {
+  $n-native-object
+}
+
+#-------------------------------------------------------------------------------
+method native-object-unref ( $n-native-object ) {
+  _g_list_free($n-native-object)
 }
 
 #`{{
@@ -976,7 +927,7 @@ Gets the next element in a B<Gnome::Glib::List>, or undefined if the B<Gnome::Gl
 =end pod
 
 method next ( --> Gnome::Glib::List ) {
-  my N-GList $no = $!glist.next;
+  my N-GList $no = self.get-native-object.next;
   ?$no ?? Gnome::Glib::List.new(:native-object($no)) !! Gnome::Glib::List
 }
 
@@ -992,7 +943,7 @@ Gets the previous element in a B<Gnome::Glib::List>, or undefined if the B<Gnome
 =end pod
 
 method previous ( --> Gnome::Glib::List ) {
-  my N-GList $no = $!glist.prev;
+  my N-GList $no = self.get-native-object.prev;
   ?$no ?? Gnome::Glib::List.new(:native-object($no)) !! Gnome::Glib::List
 }
 
@@ -1008,7 +959,7 @@ Gets the data from the current B<Gnome::Glib::List> position.
 =end pod
 
 method data ( --> Any ) {
-  $!glist.data
+  self.get-native-object.data
 }
 
 #-------------------------------------------------------------------------------
@@ -1063,7 +1014,7 @@ method foreach ( $func-object, Str $func-name ) {
     );
 
     _g_list_foreach(
-      $!glist,
+      self.get-native-object,
       sub ( $d, $ud ) {
         $func-object."$func-name"( self, $d);
       },
@@ -1141,7 +1092,7 @@ sub g_list_sort_with_data ( N-GList $list, GCompareDataFunc $compare_func, Point
 }}
 
 #-------------------------------------------------------------------------------
-#TM:0:g_list_nth_data:
+#TM:4:g_list_nth_data:Gnome::Gtk3::Button.t
 =begin pod
 =head2 [[g_] list_] nth_data
 

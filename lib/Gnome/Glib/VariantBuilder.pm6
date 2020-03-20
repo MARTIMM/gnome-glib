@@ -1,4 +1,4 @@
-#TL:1:Gnome::Glib::Variant:
+#TL:1:Gnome::Glib::VariantBuilder:
 
 use v6;
 #-------------------------------------------------------------------------------
@@ -19,6 +19,7 @@ Helper class to build arrays and tuples
 =head2 Declaration
 
   unit class Gnome::Glib::VariantBuilder;
+  also is Gnome::N::TopLevelClassSupport;
 
 =comment head2 Example
 
@@ -29,33 +30,15 @@ use NativeCall;
 use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::N-GVariant;
+use Gnome::N::N-GVariantBuilder;
+use Gnome::N::N-GVariantType;
+use Gnome::N::TopLevelClassSupport;
 use Gnome::Glib::Error;
 use Gnome::Glib::VariantType;
 
 #-------------------------------------------------------------------------------
 unit class Gnome::Glib::VariantBuilder:auth<github:MARTIMM>;
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head1 Types
-=head2 class N-GVariantBuilder
-
-A utility type for constructing container-type GVariant instances. This is an opaque structure and may only be accessed using the functions from this class.
-
-N-GVariantBuilder is not threadsafe in any way. Do not attempt to access it from more than one thread.
-
-=end pod
-
-#TT:1:N-GVariantBuilder:
-class N-GVariantBuilder
-  is repr('CPointer')
-  is export
-  { }
-
-#-------------------------------------------------------------------------------
-has N-GVariantBuilder $!n-gvariant-builder;
-
-has Bool $.is-valid = False;
+also is Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -77,154 +60,63 @@ Create a Variant object using a native object from elsewhere.
 =end pod
 
 #TM:1:new(:type-string):
-#TM:1:new(:native-object):
-
+#TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong native-objects
-  return unless self.^name eq 'Gnome::Glib::VariantBuilder';
+  if self.^name eq 'Gnome::Glib::VariantBuilder' or ?%options<VariantBuilder> {
 
-  # process all named arguments
-  if %options.elems == 0 {
-    die X::Gnome.new(:message('No options specified ' ~ self.^name));
-  }
+    # check if native object is set by other parent class BUILDers
+    if self.is-valid { }
 
-  elsif ? %options<type-string> {
-    self.clear-object;
-    $!n-gvariant-builder = g_variant_builder_new(
-      Gnome::Glib::VariantType.new(
-        :type-string(%options<type-string>)
-      ).get-native-object
-    );
+    # process all named arguments
+    elsif %options.elems == 0 {
+      die X::Gnome.new(:message('No options specified ' ~ self.^name));
+    }
 
-    $!is-valid = ?$!n-gvariant-builder;
-  }
+    elsif ? %options<type-string> {
+      self.set-native-object(
+        g_variant_builder_new(
+          Gnome::Glib::VariantType.new(
+            :type-string(%options<type-string>)
+          ).get-native-object-no-reffing
+        )
+      );
+    }
 
-  elsif ? %options<type> {
-    self.clear-object;
-    my $nvt = %options<type>;
-    $nvt .= get-native-object if $nvt ~~ Gnome::Glib::VariantType;
-    $!n-gvariant-builder = g_variant_builder_new($nvt);
-    $!is-valid = ?$!n-gvariant-builder;
-  }
+    elsif ? %options<type> {
+      my $nvt = %options<type>;
+      $nvt .= get-native-object if $nvt ~~ Gnome::Glib::VariantType;
+      self.set-native-object(g_variant_builder_new($nvt));
+    }
 
-#`{{
-  elsif ? %options<type-string> and ? %options<parse-data> {
-    my ( N-GVariant $v, Gnome::Glib::Error $e) =
-      g_variant_parse( N-GVariant, %options<type-string>, %options<parse-data>);
-
-    die X::Gnome.new(:message($e.message)) if $e.is-valid;
-
-    $!n-gvariant-builder = $v;
-    $!is-valid = True;
-  }
-}}
-
-#TODO update reference count?
-  elsif %options<native-object>:exists {
-    self.clear-object;
-    $!n-gvariant-builder = %options<native-object> // N-GVariantBuilder;
-    $!is-valid = ?$!n-gvariant-builder;
-  }
-
-  elsif %options.keys.elems {
-    die X::Gnome.new(
-      :message(
-        'Unsupported, undefined, incomplete or wrongly typed options for ' ~
-        self.^name ~ ': ' ~ %options.keys.join(', ')
-      )
-    );
-  }
-
-  # only after creating the native-object, the gtype is known
-#  self.set-class-info('GVariant');
-}
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 get-native-object
-
-Get native object from this class. Do not keep it around because it can be dereferenced and invalidated whithout you knowing it.
-
-  method get-native-object ( --> N-GVariantBuilder )
-
-=end pod
-#TODO update reference count?
-#TM:1:get-native-object:
-method get-native-object ( --> N-GVariantBuilder ) {
-
-  $!n-gvariant-builder
-}
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 set-native-object
-
-Set native object in this class. The native object kept in this class will be dereferenced and invalidated.
-
-  method set-native-object ( N-GVariantBuilder $n-gvariant-builder )
-
-=end pod
-
-#TODO update reference count?
-#TM:1:set-native-object:
-method set-native-object ( N-GVariantBuilder $n-gvariant-builder ) {
-
-  if $n-gvariant-builder.defined {
-    _g_variant_builder_unref($!n-gvariant-builder)
-      if $!n-gvariant-builder.defined;
-    $!n-gvariant-builder = $n-gvariant-builder;
-    $!is-valid = True;
+    # only after creating the native-object, the gtype is known
+    self.set-class-info('GVariantBuilder');
   }
 }
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
-method FALLBACK ( $native-sub is copy, *@params is copy, *%named-params ) {
-
-  note "\nSearch for .$native-sub\() following ", self.^mro
-    if $Gnome::N::x-debug;
-
-  CATCH { test-catch-exception( $_, $native-sub); }
-
-  $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-');
+method _fallback ( $native-sub ) {
 
   my Callable $s;
   try { $s = &::("g_variant_builder_$native-sub"); };
   try { $s = &::("g_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
-#  self.set-class-name-of-sub('GVariantBuilder');
+  self.set-class-name-of-sub('GVariantBuilder');
 
-  die X::Gnome.new(:message("Method '$native-sub' not found")) unless ?$s;
-  convert-to-natives(@params);
-  test-call( &$s, $!n-gvariant-builder, |@params, |%named-params)
+  $s
 }
 
 #-------------------------------------------------------------------------------
-#TM:1:clear-object
-=begin pod
-=head2 clear-object
-
-Clear the error and return data to memory pool. The error object is not valid after this call and C<is-valid()> will return C<False>.
-
-  method clear-object ()
-
-=end pod
-
-#TODO update reference count?
-method clear-object ( ) {
-
-  if $!is-valid {
-    _g_variant_builder_unref($!n-gvariant-builder);
-    $!is-valid = False;
-    $!n-gvariant-builder = N-GVariantBuilder;
-  }
+method native-object-ref ( $n-native-object --> N-GVariantBuilder ) {
+  _g_variant_builder_ref($n-native-object);
 }
 
 #-------------------------------------------------------------------------------
-submethod DESTROY ( ) {
-  _g_variant_builder_unref($!n-gvariant-builder) if $!is-valid;
+method native-object-unref ( $n-native-object ) {
+  _g_variant_builder_unref($n-native-object)
 }
 
 #-------------------------------------------------------------------------------
@@ -339,7 +231,7 @@ sub _g_variant_builder_init ( N-GVariantBuilder $builder, N-GVariantType $type )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_variant_builder_end:
+#TM:1:g_variant_builder_end:
 =begin pod
 =head2 [g_] variant_builder_end
 
@@ -387,15 +279,11 @@ sub g_variant_builder_clear ( N-GVariantBuilder $builder )
 =begin pod
 =head2 [g_] variant_builder_open
 
-Opens a subcontainer inside the given I<builder>.  When done adding
-items to the subcontainer, C<g_variant_builder_close()> must be called. I<type>
-is the type of the container: so to build a tuple of several values, I<type>
-must include the tuple itself.
+Opens a subcontainer inside the given I<builder>.  When done adding items to the subcontainer, C<g_variant_builder_close()> must be called. I<type> is the type of the container: so to build a tuple of several values, I<type> must include the tuple itself.
 
-It is an error to call this function in any way that would cause an
-inconsistent value to be constructed (ie: adding too many values or
-a value of an incorrect type).
+It is an error to call this function in any way that would cause an inconsistent value to be constructed (ie: adding too many values or a value of an incorrect type).
 
+=begin comment
 Example of building a nested variant:
 |[<!-- language="C" -->
 N-GVariantBuilder builder;
@@ -423,6 +311,7 @@ g_variant_builder_close (&builder);
 
 output = g_variant_builder_end (&builder);
 ]|
+=end comment
 
   method g_variant_builder_open ( N-GVariantType $type )
 
