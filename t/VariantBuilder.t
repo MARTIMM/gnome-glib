@@ -67,7 +67,7 @@ subtest 'ISA test', {
   is $v.variant-print(False),
      '[{\'width\': <600>, \'data\': <10>}, {\'title\': <\'mr\'>}]',
      '.variant-print()';
-note $v.get-type-string, ', ', $v.variant-print(True);
+#note $v.get-type-string, ', ', $v.variant-print(True);
 
   $v.clear-object;
   nok $v.is-valid, 'Variant.clear-object()';
