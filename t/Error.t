@@ -16,19 +16,10 @@ my Gnome::Glib::Quark $quark .= new;
 my Gnome::Glib::Error $e;
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
-  throws-like(
+  dies-ok(
     { Gnome::Glib::Error.new(); },
-    X::Gnome, 'Cannot create without args',
-    :message(/:s No options specified/)
+    'No options specified'
   );
-
-#`{{
-  throws-like(
-    { Gnome::Glib::Error.new(:message('abc def')); },
-    X::Gnome, 'Cannot create with wrong args',
-    :message(/:s Unsupported options for/)
-  );
-}}
 
   # The error domain is called <NAMESPACE>_<MODULE>_ERROR
   my Int $domain = $quark.from-string('gnome_gtk3_button_test_error');
@@ -127,7 +118,7 @@ subtest 'A real error', {
   # 4 is value of G_FILE_ERROR_NOENT in enum GFileError (not defined yet)
   # See also https://developer.gnome.org/glib/stable/glib-File-Utilities.html
   is $e.code, 4, 'error code for this error is 4';
-  like $e.message, /:s Failed to open file/, $e.message;
+# problem in other languages:  like $e.message, /:s Failed to open file/, $e.message;
 
   unlink $f;
 }
