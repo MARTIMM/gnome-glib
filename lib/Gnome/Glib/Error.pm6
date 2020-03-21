@@ -94,7 +94,7 @@ Create a new Error object using an other native error object.
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong widgets
-  if self.^name eq 'Gnome::Glib::Error' or ?%options<Error> {
+  if self.^name eq 'Gnome::Glib::Error' or ?%options<GError> {
 
     # check if native object is set by other parent class BUILDers
     if self.is-valid { }

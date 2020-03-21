@@ -53,7 +53,7 @@ Create a VariantIter object using a native object from elsewhere.
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong native-objects
-  if self.^name eq 'Gnome::Glib::VariantIter' or ?%options<VariantIter> {
+  if self.^name eq 'Gnome::Glib::VariantIter' or ?%options<GVariantIter> {
 
     # check if native object is set by other parent class BUILDers
     if self.is-valid { }

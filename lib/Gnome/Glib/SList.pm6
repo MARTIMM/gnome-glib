@@ -61,7 +61,7 @@ This example shows how to get and show some information from a widget path.
 
   # Get class names of the button in the widget path
   my Gnome::Gtk3::WidgetPath $wp .= new(:native-object($b1.get-path));
-  my Gnome::Glib::SList $l .= new(:gslist($wp.iter-list-classes(2)));
+  my Gnome::Glib::SList $l .= new(:native-object($wp.iter-list-classes(2)));
   is $l.g-slist-length, 1, 'list contains one class';
   is $l.nth-data-str(0), 'text-button', "class is a 'text-button'";
 
@@ -116,7 +116,7 @@ Create an object using a native object from elsewhere.
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong widgets
-  if self.^name eq 'Gnome::Glib::SList' or %options<SList> {
+  if self.^name eq 'Gnome::Glib::SList' or %options<GSList> {
 
     # skip if object is already set by parent
     if self.is-valid { }

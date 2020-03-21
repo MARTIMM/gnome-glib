@@ -471,7 +471,7 @@ Create a Variant object using a native object from elsewhere.
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong native-objects
-  if self.^name eq 'Gnome::Glib::Variant' or ?%options<Variant> {
+  if self.^name eq 'Gnome::Glib::Variant' or ?%options<GVariant> {
 
     # check if native object is set by other parent class BUILDers
     if self.is-valid { }
