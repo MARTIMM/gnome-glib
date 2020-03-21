@@ -3277,8 +3277,8 @@ sub _g_variant_new ( Str $type-string, *@values --> N-GVariant ) {
   state $ptr = cglobal( &glib-lib, 'g_variant_new', Pointer);
   my Callable $f = nativecast( $signature, $ptr);
 
-note "Val: ", @n-values.perl;
-note "Sig: ", $signature.perl;
+#note "Val: ", @n-values.perl;
+#note "Sig: ", $signature.perl;
 
   $f( $type-string, |@n-values)
 }
