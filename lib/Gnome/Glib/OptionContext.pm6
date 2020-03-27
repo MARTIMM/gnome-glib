@@ -353,7 +353,7 @@ Create an object using a native option context object from elsewhere.
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong widgets
-  if self.^name eq 'Gnome::Glib::OptionContext' or %options<Option> {
+  if self.^name eq 'Gnome::Glib::OptionContext' or %options<GOption> {
 
     # skip if object is already set by parent
     if self.is-valid { }

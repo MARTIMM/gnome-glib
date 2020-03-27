@@ -117,7 +117,7 @@ Create a new list object using an other native list object.
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong widgets
-  if self.^name eq 'Gnome::Glib::List' or %options<List> {
+  if self.^name eq 'Gnome::Glib::List' or %options<GList> {
 
     # skip if object is already set by parent
     if self.is-valid { }

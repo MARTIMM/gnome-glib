@@ -131,7 +131,7 @@ Create a VariantType object using a native object returned from a builder. See a
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong native-objects
-  if self.^name eq 'Gnome::Glib::VariantType' or ?%options<VariantType> {
+  if self.^name eq 'Gnome::Glib::VariantType' or ?%options<GVariantType> {
 
     # check if native object is set by other parent class BUILDers
     if self.is-valid { }
