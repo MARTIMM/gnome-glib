@@ -121,7 +121,8 @@ method FALLBACK ( $native-sub is copy, |c ) {
   try { $s = &::("g_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
-  CATCH { test-catch-exception( $_, $native-sub); }
+#  CATCH { test-catch-exception( $_, $native-sub); }
+  CATCH { .note; die; }
 
   test-call-without-natobj( $s, |c)
 }
