@@ -100,7 +100,8 @@ method FALLBACK ( $native-sub is copy, |c ) {
   note "\nSearch for .$native-sub\() following ", self.^mro
     if $Gnome::N::x-debug;
 
-  CATCH { test-catch-exception( $_, $native-sub); }
+#  CATCH { test-catch-exception( $_, $native-sub); }
+  CATCH { .note; die; }
 
   $native-sub ~~ s:g/ '-' /_/ if $native-sub.index('-');
 
