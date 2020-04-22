@@ -1,4 +1,7 @@
 ## Release notes
+* 2020-04-22 0.17.2
+  * Added a test before freeing a list or slist. There are sometimes crashes with a message `***MEMORY-ERROR***: qa-manager.pl6[28683]: GSlice: assertion failed: sinfo->n_allocated > 0`. I am not sure if it happens here but added to make sure it doesn't.
+
 * 2020-04-05 0.17.1
   * Removed a level of exception catching.
 
