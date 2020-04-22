@@ -186,7 +186,11 @@ method native-object-ref ( $n-native-object ) {
 
 #-------------------------------------------------------------------------------
 method native-object-unref ( $n-native-object ) {
-  _g_slist_free($n-native-object)
+  # check for self.is-valid is not good enough. empty lists (undefined)
+  # are still valid but should be cleared to prevent '***MEMORY-ERROR***:
+  # qa-manager.pl6[28683]: GSlice: assertion failed: sinfo->n_allocated > 0'
+
+  _g_slist_free($n-native-object) if g_slist_length($n-native-object);
 }
 
 #`{{
