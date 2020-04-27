@@ -1131,11 +1131,11 @@ Since: 2.6
 =item Str $name; the name for the option group, this is used to provide help for the options in this group with '--help-I<name>'
 =item Str $description; a description for this group to be shown in `--help`. This string is translated using the translation domain or translation function of the group
 =item Str $help_description; a description for the '--help-I<name>' option. This string is translated using the translation domain or translation function of the group
-#`{{
+=begin comment
     Pointer $user_data?, N-GDestroyNotify $destroy?
 =item Pointer $user_data; user data that will be passed to the pre- and post-parse hooks, the error hook and to callbacks of C<G_OPTION_ARG_CALLBACK> options, is optional
 =item Callable $destroy; a function that will be called to free I<user_data>, is optional
-}}
+=end comment
 =end pod
 
 sub g_option_group_new (
