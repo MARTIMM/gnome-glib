@@ -30,11 +30,18 @@ Error domains and codes are conventionally named as follows:
 
 =item If there's a "generic" or "unknown" error code for unrecoverable errors it doesn't make sense to distinguish with specific codes, it should be called <NAMESPACE>_<MODULE>_ERROR_FAILED, for example C<G_SPAWN_ERROR_FAILED>. In the case of error code enumerations that may be extended in future releases, you should generally not handle this error code explicitly, but should instead treat any unrecognized error code as equivalent to FAILED.
 
+
 =head1 Synopsis
 =head2 Declaration
 
   unit class Gnome::Glib::Error;
   also is Gnome::N::TopLevelClassSupport;
+
+
+=head2 Uml Diagram
+
+![](plantuml/Error.svg)
+
 
 =head2 Example
 
@@ -51,6 +58,7 @@ use NativeCall;
 use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::TopLevelClassSupport;
+use Gnome::N::GlibToRakuTypes;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/glib/gerror.h
@@ -63,16 +71,16 @@ also is Gnome::N::TopLevelClassSupport;
 =head1 Types
 =head2 class N-GError;
 
-=item has uint32 $.domain; The set domain.
-=item has int32 $.code; The set error code.
+=item has UInt $.domain; The set domain.
+=item has Int $.code; The set error code.
 =item has Str $.message; The error message.
 
 =end pod
 #TT:1:N-GError:
 class N-GError is repr('CStruct') is export {
-  has uint32 $.domain;            # is GQuark
-  has int32 $.code;
-  has Str $.message;
+  has GQuark $.domain;            # is GQuark
+  has gint $.code;
+  has gchar-ptr $.message;
 }
 
 #TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
@@ -81,9 +89,13 @@ class N-GError is repr('CStruct') is export {
 =head1 Methods
 =head2 new
 
+=head3 :domain, :code, :error-message
+
 Create a new Error object. A domain, which is a string must be converted to an unsigned integer with one of the Quark conversion methods. See B<Gnome::Glib::Quark>.
 
   multi method new ( UInt :$domain!, Int :$code!, Str :$error-message! )
+
+=head3 :native-object
 
 Create a new Error object using an other native error object.
 
@@ -104,12 +116,11 @@ submethod BUILD ( *%options ) {
       die X::Gnome.new(:message('No options specified ' ~ self.^name));
     }
 
-    elsif %options<domain>.defined and
-       %options<code>.defined and
-       %options<error-message>.defined {
+    elsif %options<domain>:exists and %options<code>:exists and
+          %options<error-message>:exists {
 
       self.set-native-object(
-        g_error_new_literal(
+        _g_error_new_literal(
           %options<domain>, %options<code>, %options<error-message>
         )
       );
@@ -119,7 +130,7 @@ submethod BUILD ( *%options ) {
       Gnome::N::deprecate(
         '.new(:gerror())', '.new(:native-object())', '0.15.5', '0.18.0'
       );
-      g_error_new_literal(%options<gerror>);
+      _g_error_new_literal(%options<gerror>);
     }
 
     # only after creating the native-object, the gtype is known
@@ -257,15 +268,15 @@ sub g_error_new (
 }
 
 sub _g_error_new (
-  int32 $domain, int32 $code, Str $format, Str $any
-) returns N-GError
+  int32 $domain, int32 $code, Str $format, Str $any --> N-GError )
   is native(&glib-lib)
   is symbol('g_error_new')
   { * }
 }}
 
 #-------------------------------------------------------------------------------
-#TM:2:g_error_new_literal:new( :domain, :code, :error-message)
+#TM:2:_g_error_new_literal:new( :domain, :code, :error-message)
+#`{{
 =begin pod
 =head2 [[g_] error_] new_literal
 
@@ -280,10 +291,12 @@ Creates a new C<N-GError>.
 =item Str $message; error message
 
 =end pod
+}}
 
-sub g_error_new_literal ( uint32 $domain, int32 $code, Str $message )
-  returns N-GError
-  is native(&glib-lib)
+sub _g_error_new_literal (
+  GQuark $domain, gint $code, Str $message --> N-GError
+) is native(&glib-lib)
+  is symbol('g_error_new_literal')
   { * }
 
 #`{{
@@ -308,8 +321,7 @@ Since: 2.22
 
 =end pod
 
-sub g_error_new_valist ( N-GObject $domain, int32 $code, Str $format,  $va_list args G_GNUC_PRINTF3,  $0 )
-  returns N-GObject
+sub g_error_new_valist ( N-GObject $domain, int32 $code, Str $format,  $va_list args G_GNUC_PRINTF3,  $0 --> N-GObject )
   is native(&glib-lib)
   { * }
 }}
@@ -340,8 +352,7 @@ Returns: a new C<N-GError>
 
 =end pod
 
-sub g_error_copy ( N-GError $error )
-  returns N-GError
+sub g_error_copy ( N-GError $error --> N-GError )
   is native(&glib-lib)
   { * }
 
@@ -353,12 +364,7 @@ sub g_error_copy ( N-GError $error )
 Returns C<1> if Gnome::Glib::Error> matches I<$domain> and I<$code>, C<0> otherwise. In particular, when I<error> is C<Any>, C<0> will be returned.
 
 =begin comment
-If I<$domain> contains a `FAILED` (or otherwise generic) error code,
-you should generally not check for it explicitly, but should
-instead treat any not-explicitly-recognized error code as being
-equivalent to the `FAILED` code. This way, if the domain is
-extended in the future to provide a more specific error code for
-a certain case, your code will still work.
+If I<$domain> contains a `FAILED` (or otherwise generic) error code, you should generally not check for it explicitly, but should instead treat any not-explicitly-recognized error code as being equivalent to the `FAILED` code. This way, if the domain is extended in the future to provide a more specific error code for a certain case, your code will still work.
 =end comment
 
   method g_error_matches ( UInt $domain, Int $code --> Int  )
@@ -368,8 +374,7 @@ a certain case, your code will still work.
 
 =end pod
 
-sub g_error_matches ( N-GError $error, uint32 $domain, int32 $code )
-  returns int32
+sub g_error_matches ( N-GError $error, GQuark $domain, gint $code --> gboolean )
   is native(&glib-lib)
   { * }
 
@@ -398,7 +403,7 @@ sub g_set_error (
 
 sub _g_set_error (
   N-GError $err, uint32 $domain, int32 $code, Str $format, Str $any
-) returns int32
+--> int32 )
   is native(&glib-lib)
   is symbol('g_set_error')
   { * }
