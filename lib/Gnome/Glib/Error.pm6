@@ -5,9 +5,9 @@ use v6;
 #-------------------------------------------------------------------------------
 =begin pod
 
-=TITLE Gnome::Glib::Error
+=head1 Gnome::Glib::Error
 
-=SUBTITLE a system for reporting errors
+A system for reporting errors
 
 =head1 Description
 
