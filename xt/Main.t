@@ -2,7 +2,7 @@ use v6;
 use NativeCall;
 use Test;
 
-use Gnome::Glib::GMain;
+use Gnome::Glib::Main;
 use Gnome::Gtk3::Main;
 
 diag "\nGlib main loop test";
@@ -16,7 +16,7 @@ $argc[0] = 0;
 is $main.gtk-init-check( $argc, CArray[CArray[Str]]), 1, "gtk initalized";
 
 #-------------------------------------------------------------------------------
-my Gnome::Glib::GMain $gmain .= new;
+my Gnome::Glib::Main $gmain .= new;
 my $main-context1 = $gmain.context-new;
 my $loop = $gmain.loop-new( $main-context1, False);
 
