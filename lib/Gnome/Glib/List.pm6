@@ -711,11 +711,13 @@ Returns: the element's data, or C<Any> if the position is off the end of the B<G
 
 =end pod
 
-sub g_list_nth_data ( N-GList $list, uint32 $n --> Pointer )
+sub g_list_nth_data ( N-GList $list, guint $n --> gpointer )
   is native(&glib-lib)
   { * }
 
-sub g_list_nth_data_str ( N-GList $list, int32 $n --> Str ) {
+
+# next subs are obsolete
+sub g_list_nth_data_str ( N-GList $list, guint $n --> Str ) {
   Gnome::N::deprecate(
     '.g_list_nth_data_str()', '.g_list_nth_data()', '0.15.5', '0.18.0'
   );
@@ -723,12 +725,12 @@ sub g_list_nth_data_str ( N-GList $list, int32 $n --> Str ) {
   _g_list_nth_data_str( $list, $n)
 }
 
-sub _g_list_nth_data_str ( N-GList $list, int32 $n --> Str )
+sub _g_list_nth_data_str ( N-GList $list, guint $n --> Str )
   is native(&gtk-lib)
   is symbol('g_list_nth_data')
   { * }
 
-sub g_list_nth_data_gobject ( N-GList $list, int32 $n --> N-GObject ) {
+sub g_list_nth_data_gobject ( N-GList $list, guint $n --> N-GObject ) {
   Gnome::N::deprecate(
     '.g_list_nth_data_gobject()', '.g_list_nth_data()', '0.15.5', '0.18.0'
   );
@@ -736,7 +738,7 @@ sub g_list_nth_data_gobject ( N-GList $list, int32 $n --> N-GObject ) {
   _g_list_nth_data_gobject( $list, $n)
 }
 
-sub _g_list_nth_data_gobject ( N-GList $list, int32 $n --> N-GObject )
+sub _g_list_nth_data_gobject ( N-GList $list, guint $n --> N-GObject )
   is native(&gtk-lib)
   is symbol('g_list_nth_data')
   { * }
