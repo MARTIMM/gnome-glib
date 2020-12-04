@@ -278,6 +278,30 @@ sub _g_list_free ( N-GList $list )
   { * }
 
 #-------------------------------------------------------------------------------
+#TM:0:g_list_copy:
+=begin pod
+=head2 [g_] list_copy
+
+Copies a B<N-GList>.
+
+Note that this is a "shallow" copy. If the list elements consist of pointers to data, the pointers are copied but the actual data is not. See C<g_list_copy_deep()> if you need to copy the data as well.
+
+Returns: the start of the new list that holds the same data as this list.
+
+  method g_list_copy ( --> Gnome::Glib::List )
+
+=end pod
+
+sub g_list_copy ( N-GList $list --> Gnome::Glib::List ) {
+  Gnome::Glib::List.new(:native-object(_g_list_copy($list)))
+}
+
+sub _g_list_copy ( N-GList $list --> N-GList )
+  is symbol('g_list_copy')
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
 #TM:2:g_list_nth:xt/List.t
 =begin pod
 =head2 [g_] list_nth
@@ -750,30 +774,6 @@ sub _g_list_nth_data_gobject ( N-GList $list, guint $n --> N-GObject )
 
 
 =finish
-
-#-------------------------------------------------------------------------------
-#TM:0:g_list_copy:
-=begin pod
-=head2 [g_] list_copy
-
-Copies a B<N-GList>.
-
-Note that this is a "shallow" copy. If the list elements consist of pointers to data, the pointers are copied but the actual data is not. See C<g_list_copy_deep()> if you need to copy the data as well.
-
-Returns: the start of the new list that holds the same data as this list.
-
-  method g_list_copy ( --> Gnome::Glib::List )
-
-=end pod
-
-sub g_list_copy ( N-GList $list --> Gnome::Glib::List ) {
-  Gnome::Glib::List.new(:native-object(_g_list_copy($list)))
-}
-
-sub _g_list_copy ( N-GList $list --> N-GList )
-  is symbol('g_list_copy')
-  is native(&glib-lib)
-  { * }
 
 #`{{
 #-------------------------------------------------------------------------------
