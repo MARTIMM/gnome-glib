@@ -229,7 +229,6 @@ method native-object-unref ( $n-native-object ) {
   # SLists '***MEMORY-ERROR***: qa-manager.pl6[28683]: GSlice: assertion
   # failed: sinfo->n_allocated > 0'
 
-  $n-native-object = g_list_first($n-native-object);
   _g_list_free($n-native-object) if g_list_length($n-native-object);
 }
 
@@ -582,7 +581,7 @@ Returns: the number of elements in the B<Gnome::Glib::List>
 
 =end pod
 
-sub g_list_length ( N-GList $list --> uint32 )
+sub g_list_length ( N-GList $list --> guint )
   is native(&glib-lib)
   { * }
 
