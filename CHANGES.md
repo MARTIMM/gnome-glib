@@ -1,4 +1,8 @@
 ## Release notes
+* 2020-12-01 0.17.3
+  * Changes to use **Gnome::N::GlibToRakuTypes**.
+  * Further doc changes and added tests.
+
 * 2020-04-22 0.17.2
   * Added a test before freeing a list or slist. There are sometimes crashes with a message `***MEMORY-ERROR***: qa-manager.pl6[28683]: GSlice: assertion failed: sinfo->n_allocated > 0`. I am not sure if it happens here but added to make sure it doesn't.
 
