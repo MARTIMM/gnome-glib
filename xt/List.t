@@ -4,7 +4,11 @@ use NativeCall;
 use Test;
 
 #use Gnome::N::N-GObject;
-use Gnome::N::N-GList;
+#use Gnome::N::N-GList;
+use Gnome::N::GlibToRakuTypes;
+use Gnome::N::X;
+#Gnome::N::debug(:on);
+
 use Gnome::Glib::List;
 use Gnome::GObject::Value;
 use Gnome::Gtk3::Grid;
@@ -12,8 +16,6 @@ use Gnome::Gtk3::Widget;
 use Gnome::Gtk3::Label;
 use Gnome::Gtk3::Entry;
 
-use Gnome::N::X;
-#Gnome::N::debug(:on);
 
 #-------------------------------------------------------------------------------
 # preparations
@@ -28,7 +30,9 @@ $g.grid-attach( $e, 1, 0, 1, 1);
 
 class H {
   # g_list_foreach test method
-  method h ( Gnome::Glib::List $hlist, Int $hi, Pointer $hd ) {
+  method h (
+    Gnome::Glib::List $hlist, Int $hi, gpointer $hd
+  ) {
 
     my Gnome::Gtk3::Widget $w .= new(:native-object($hd));
     my Str $widget-name = $w.widget-get-name;
@@ -52,7 +56,7 @@ class H {
   }
 
   # g_list_find_custom test method
-  method s ( Pointer $list-data, :$widget-name, :$widget-text --> Int ) {
+  method s ( gpointer $list-data, :$widget-name, :$widget-text --> Int ) {
 
     my Gnome::Gtk3::Widget $w .= new(:native-object($list-data));
     my Str $wname = $w.widget-get-name;
@@ -87,29 +91,40 @@ is $t, 'new text in entry', '.nth-data()';
 
 #-------------------------------------------------------------------------------
 # search for an item
-my N-GList $sloc = $list.g_list_find_custom(
+my N-GList $sloc = $list.find-custom(
   H.new, 's', :widget-name('db-username'), :widget-text('new text in entry')
 );
-ok ?$sloc, '.g_list_find_custom()';
+ok ?$sloc, '.find-custom()';
 
 # make the search to fail
-$sloc = $list.g_list_find_custom(
+$sloc = $list.find-custom(
   H.new, 's', :widget-name('db-username'), :widget-text('Othername')
 );
-ok !$sloc, '.g_list_find_custom(), search failed';
+ok !$sloc, '.find-custom(), search failed';
 
 #-------------------------------------------------------------------------------
 #Gnome::N::debug(:on);
 my @x = ();
-my Gnome::Glib::List $ll = $list.g-list-first;
+my Gnome::Glib::List $ll = $list.list-first;
+is $ll.length, 2, 'two elements in grid';
+my Int $pos = 0;
 while ?$ll {
+  is $list.list-position($ll), $pos, ".list-position\() $pos";
+  is $list.list-index($ll.data), $pos, ".list-index\() $pos";
+  my Gnome::Glib::List $xl = $list.list-find($ll.data);
+  is $list.list-position($xl), $pos, '.list-find()';
+
+  $pos++;
+
   my Gnome::Gtk3::Widget $w .= new(:native-object($ll.data));
-#  note $w.widget-get-name;
   @x.push: $w.widget-get-name;
   $ll .= next;
 }
+#Gnome::N::debug(:off);
 
 $ll = $list.g-list-last;
+is $list.list-position($list.nth(1)), 1, '.nth()';
+is $list.list-position($ll.nth-prev(1)), 0, '.nth-prev()';
 while ?$ll {
   my Gnome::Gtk3::Widget $w .= new(:native-object($ll.data));
 #  note $w.widget-get-name;

@@ -8,8 +8,6 @@ use v6;
 
 linked lists that can be iterated over in both directions
 
-=comment ![](images/X.png)
-
 =head1 Description
 
 The B<Gnome::Glib::List> structure and its associated functions provide a standard doubly-linked list data structure.
@@ -20,14 +18,13 @@ The double linked list does not keep track of the number of items and does not k
 
 Note that most of the list functions expect to be passed a pointer to the first element in the list.
 
-To create an empty list just call C<.new>.
+=comment To create an empty list just call C<.new>.
 
-Raku does have plenty ways of its own two handle data for any kind of problem so a doubly linked list is note really needed. This class, however, is provided (partly) to handle returned information from other GTK+ methods. E.g. A Container can return child widgets in a List like this.
+Raku does have plenty ways of its own two handle data for any kind of problem so a doubly linked list is not really needed. This class, however, is provided (partly) to handle returned information from other GTK+ methods. E.g. A Container can return child widgets in a List like this.
 
+To remove elements, use C<g_list_remove()>.
 
-=comment To remove elements, use C<g_list_remove()>.
-
-To navigate in a list, use C<g_list_first()>, C<g_list_last()>, C<next()>, C<previous()>.
+To navigate in a list, use C<g_list_first()>, C<g_list_last()>, C<next()>, C<previous()>, etc.
 
 To find elements in the list use C<g_list_nth()>, C<g_list_nth_data()>, C<g_list_foreach()> and C<g_list_find_custom()>.
 
@@ -37,35 +34,69 @@ To free the entire list, use C<clear-object()> which invalidates the list after 
 
 Most of the time there is no need to manipulate the list because many of the GTK+ functions will return a list of e.g. children in a container which only need to be examined.
 
+
 =head1 Synopsis
 =head2 Declaration
 
   unit class Gnome::Glib::List;
   also is Gnome::N::TopLevelClassSupport;
 
-=head2 Example 1
 
-To visit all elements in the list, use a loop over the list:
+=head2 Uml Diagram
 
-  my Gnome::Glib::List $ll = $list;
-  while ?$ll {
-    ... do something with data in $ll.data ...
-    $ll .= next;
-  }
+![](plantuml/List.svg)
 
-=head2 Example 2
 
-To call a function for each element in the list, use C<g_list_foreach()>.
+=head2 Example 1, a while loop to visit all widgets in a grid
 
-  class H {
-    method h ( Gnome::Glib::List $hl, Int $hi, Pointer $hd ) {
-     ... do something with the list item $hl at index $hi and data $hd ...
+  my Gnome::Glib::List $list .= new(
+    :native-object($grid.get-children)
+  );
+
+  while ?$list {
+    # do something with data at $list.data
+    my Gnome::Gtk3::Widget $w .= new(
+      :native-object(my N-GObject $no = $list.data)
+    );
+
+    given $w.widget-get-name {
+      when 'GtkLabel' {
+        my Gnome::Gtk3::Label $hl .= new(:native-object($no));
+        ...
+      }
+      ...
     }
 
-    ...
+    $list .= next;
   }
 
-  $list.list-foreach( H.new, 'h');
+  $list.clear-object;
+
+
+=head2 Example 2, using list-foreach to visit all items in the list
+
+  class ListHandlerClass {
+    method list-handler (
+      Gnome::Glib::List $hl, Int $hi, Pointer $hd
+    ) {
+      # do something with the list item at $hl at index $hi and data $hd
+      my Gnome::Gtk3::Widget $w .= new(:native-object($hd));
+      given $w.widget-get-name {
+        when 'GtkLabel' {
+          my Gnome::Gtk3::Label $hl .= new(:native-object($hd));
+          ...
+        }
+        ...
+      }
+    }
+  }
+
+  my Gnome::Glib::List $list .= new(
+    :native-object($grid.get-children)
+  );
+
+  $list.list-foreach( ListHandlerClass.new, 'list-handler');
+  $list.clear-object;
 
 =end pod
 #-------------------------------------------------------------------------------
@@ -75,6 +106,7 @@ use Gnome::N::X;
 use Gnome::N::N-GObject;
 use Gnome::N::NativeLib;
 use Gnome::N::TopLevelClassSupport;
+use Gnome::N::GlibToRakuTypes;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/glib/glist.h
@@ -92,7 +124,7 @@ Structure to create a doubly linked list.
 
 #TT:1:N-GList:
 class N-GList is repr('CStruct') is export {
-  has Pointer $.data;
+  has gpointer $.data;
   has N-GList $.next;
   has N-GList $.prev;
 }
@@ -102,9 +134,13 @@ class N-GList is repr('CStruct') is export {
 =head1 Methods
 =head2 new
 
+=head3 Default, no options
+
 Create a new plain object.
 
   multi method new ( )
+
+=head3 :native-object
 
 Create a new list object using an other native list object.
 
@@ -117,7 +153,7 @@ Create a new list object using an other native list object.
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong widgets
-  if self.^name eq 'Gnome::Glib::List' or %options<GList> {
+  if self.^name eq 'Gnome::Glib::List' #`{{or %options<GList>}} {
 
     # skip if object is already set by parent
     if self.is-valid { }
@@ -138,7 +174,7 @@ submethod BUILD ( *%options ) {
       );
     }
 
-    else { #if ? %options<empty> {
+    else {
       self.set-native-object(N-GList);
     }
 
@@ -193,6 +229,7 @@ method native-object-unref ( $n-native-object ) {
   # SLists '***MEMORY-ERROR***: qa-manager.pl6[28683]: GSlice: assertion
   # failed: sinfo->n_allocated > 0'
 
+  $n-native-object = g_list_first($n-native-object);
   _g_list_free($n-native-object) if g_list_length($n-native-object);
 }
 
@@ -213,8 +250,7 @@ Returns: a pointer to the newly-allocated B<Gnome::Glib::List> element
 
 =end pod
 
-sub g_list_alloc (  )
-  returns N-GList
+sub g_list_alloc (  --> N-GList )
   is native(&glib-lib)
   { * }
 }}
@@ -242,453 +278,8 @@ sub _g_list_free ( N-GList $list )
   is symbol('g_list_free')
   { * }
 
-#`{{
 #-------------------------------------------------------------------------------
-# TM:0:g_list_free_1:
-=begin pod
-=head2 [[g_] list_] free_1
-
-Frees one B<Gnome::Glib::List> element, but does not update links from the next and
-previous elements in the list, so you should not call this function on an
-element that is currently part of a list.
-
-It is usually used after C<g_list_remove_link()>.
-
-  method g_list_free_1 ( )
-
-
-=end pod
-
-sub g_list_free_1 ( N-GList $list )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-# TM:0:g_list_free_full:
-=begin pod
-=head2 [[g_] list_] free_full
-
-Convenience method, which frees all the memory used by a B<Gnome::Glib::List>,
-and calls I<free_func> on every element's data.
-
-I<free_func> must not modify the list (eg, by removing the freed
-element from it).
-
-Since: 2.28
-
-  method g_list_free_full ( GDestroyNotify $free_func )
-
-=item GDestroyNotify $free_func; the function to be called to free each element's data
-
-=end pod
-
-sub g_list_free_full ( N-GList $list, GDestroyNotify $free_func )
-  is native(&glib-lib)
-  { * }
-}}
-
-#`{{
-#-------------------------------------------------------------------------------
-# TM:0:g_list_append:
-=begin pod
-=head2 [g_] list_append
-
-Adds a new element on to the end of the list.
-
-Note that the return value is the new start of the list,
-if I<list> was empty; make sure you store the new value.
-
-C<g_list_append()> has to traverse the entire list to find the end,
-which is inefficient when adding multiple elements. A common idiom
-to avoid the inefficiency is to use C<g_list_prepend()> and reverse
-the list with C<g_list_reverse()> when all elements have been added.
-
-|[<!-- language="C" -->
-// Notice that these are initialized to the empty list.
-GList *string_list = NULL, *number_list = NULL;
-
-// This is a list of strings.
-string_list = g_list_append (string_list, "first");
-string_list = g_list_append (string_list, "second");
-
-// This is a list of integers.
-number_list = g_list_append (number_list, GINT_TO_POINTER (27));
-number_list = g_list_append (number_list, GINT_TO_POINTER (14));
-]|
-
-Returns: either I<list> or the new start of the B<Gnome::Glib::List> if I<list> was C<Any>
-
-  method g_list_append ( Pointer $data --> N-GList  )
-
-=item Pointer $data; the data for the new element
-
-=end pod
-
-sub g_list_append ( N-GList $list, Pointer $data )
-  returns N-GList
-  is native(&glib-lib)
-  { * }
-}}
-
-#`{{
-#-------------------------------------------------------------------------------
-# TM:0:g_list_prepend:
-=begin pod
-=head2 [g_] list_prepend
-
-Prepends a new element on to the start of the list.
-
-Note that the return value is the new start of the list,
-which will have changed, so make sure you store the new value.
-
-|[<!-- language="C" -->
-// Notice that it is initialized to the empty list.
-GList *list = NULL;
-
-list = g_list_prepend (list, "last");
-list = g_list_prepend (list, "first");
-]|
-
-Do not use this function to prepend a new element to a different
-element than the start of the list. Use C<g_list_insert_before()> instead.
-
-Returns: a pointer to the newly prepended element, which is the new
-start of the B<Gnome::Glib::List>
-
-  method g_list_prepend ( Pointer $data --> N-GList  )
-
-=item Pointer $data; the data for the new element
-
-=end pod
-
-sub g_list_prepend ( N-GList $list, Pointer $data )
-  returns N-GList
-  is native(&glib-lib)
-  { * }
-}}
-
-#`{{
-#-------------------------------------------------------------------------------
-# TM:0:g_list_insert:
-=begin pod
-=head2 [g_] list_insert
-
-Inserts a new element into the list at the given position.
-
-Returns: the (possibly changed) start of the B<Gnome::Glib::List>
-
-  method g_list_insert ( Pointer $data, Int $position --> N-GList  )
-
-=item Pointer $data; the data for the new element
-=item Int $position; the position to insert the element. If this is  negative, or is larger than the number of elements in the  list, the new element is added on to the end of the list.
-
-=end pod
-
-sub g_list_insert ( N-GList $list, Pointer $data, int32 $position )
-  returns N-GList
-  is native(&glib-lib)
-  { * }
-}}
-#`{{
-#-------------------------------------------------------------------------------
-# TM:0:g_list_insert_sorted:
-=begin pod
-=head2 [[g_] list_] insert_sorted
-
-Inserts a new element into the list, using the given comparison
-function to determine its position.
-
-If you are adding many new elements to a list, and the number of
-new elements is much larger than the length of the list, use
-C<g_list_prepend()> to add the new items and sort the list afterwards
-with C<g_list_sort()>.
-
-Returns: the (possibly changed) start of the B<Gnome::Glib::List>
-
-  method g_list_insert_sorted ( Pointer $data, GCompareFunc $func --> N-GList  )
-
-=item Pointer $data; the data for the new element
-=item GCompareFunc $func; the function to compare elements in the list. It should  return a number > 0 if the first parameter comes after the  second parameter in the sort order.
-
-=end pod
-
-sub g_list_insert_sorted ( N-GList $list, Pointer $data, GCompareFunc $func )
-  returns N-GList
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-# TM:0:g_list_insert_sorted_with_data:
-=begin pod
-=head2 [[g_] list_] insert_sorted_with_data
-
-Inserts a new element into the list, using the given comparison
-function to determine its position.
-
-If you are adding many new elements to a list, and the number of
-new elements is much larger than the length of the list, use
-C<g_list_prepend()> to add the new items and sort the list afterwards
-with C<g_list_sort()>.
-
-Returns: the (possibly changed) start of the B<Gnome::Glib::List>
-
-Since: 2.10
-
-  method g_list_insert_sorted_with_data ( Pointer $data, GCompareDataFunc $func, Pointer $user_data --> N-GList  )
-
-=item Pointer $data; the data for the new element
-=item GCompareDataFunc $func; the function to compare elements in the list. It should return a number > 0 if the first parameter  comes after the second parameter in the sort order.
-=item Pointer $user_data; user data to pass to comparison function
-
-=end pod
-
-sub g_list_insert_sorted_with_data ( N-GList $list, Pointer $data, GCompareDataFunc $func, Pointer $user_data )
-  returns N-GList
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-# TM:0:g_list_insert_before:
-=begin pod
-=head2 [[g_] list_] insert_before
-
-Inserts a new element into the list before the given position.
-
-Returns: the (possibly changed) start of the B<Gnome::Glib::List>
-
-  method g_list_insert_before ( N-GList $sibling, Pointer $data --> N-GList  )
-
-=item N-GList $sibling; the list element before which the new element  is inserted or C<Any> to insert at the end of the list
-=item Pointer $data; the data for the new element
-
-=end pod
-
-sub g_list_insert_before ( N-GList $list, N-GList $sibling, Pointer $data )
-  returns N-GList
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-# TM:0:g_list_concat:
-=begin pod
-=head2 [g_] list_concat
-
-Adds the second B<Gnome::Glib::List> onto the end of the first B<Gnome::Glib::List>.
-Note that the elements of the second B<Gnome::Glib::List> are not copied.
-They are used directly.
-
-This function is for example used to move an element in the list.
-The following example moves an element to the top of the list:
-|[<!-- language="C" -->
-list = g_list_remove_link (list, llink);
-list = g_list_concat (llink, list);
-]|
-
-Returns: the start of the new B<Gnome::Glib::List>, which equals I<list1> if not C<Any>
-
-  method g_list_concat ( N-GList $list2 --> N-GList  )
-
-=item N-GList $list2; the B<Gnome::Glib::List> to add to the end of the first B<Gnome::Glib::List>, this must point  to the top of the list
-
-=end pod
-
-sub g_list_concat ( N-GList $list1, N-GList $list2 )
-  returns N-GList
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-# TM:0:g_list_remove:
-=begin pod
-=head2 [g_] list_remove
-
-Removes an element from a B<Gnome::Glib::List>.
-If two elements contain the same data, only the first is removed.
-If none of the elements contain the data, the B<Gnome::Glib::List> is unchanged.
-
-Returns: the (possibly changed) start of the B<Gnome::Glib::List>
-
-  method g_list_remove ( Pointer $data --> N-GList  )
-
-=item Pointer $data; the data of the element to remove
-
-=end pod
-
-sub g_list_remove ( N-GList $list, Pointer $data )
-  returns N-GList
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-# TM:0:g_list_remove_all:
-=begin pod
-=head2 [[g_] list_] remove_all
-
-Removes all list nodes with data equal to I<data>.
-Returns the new head of the list. Contrast with
-C<g_list_remove()> which removes only the first node
-matching the given data.
-
-Returns: the (possibly changed) start of the B<Gnome::Glib::List>
-
-  method g_list_remove_all ( Pointer $data --> N-GList  )
-
-=item Pointer $data; data to remove
-
-=end pod
-
-sub g_list_remove_all ( N-GList $list, Pointer $data )
-  returns N-GList
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-# TM:0:g_list_remove_link:
-=begin pod
-=head2 [[g_] list_] remove_link
-
-Removes an element from a B<Gnome::Glib::List>, without freeing the element.
-The removed element's prev and next links are set to C<Any>, so
-that it becomes a self-contained list with one element.
-
-This function is for example used to move an element in the list
-(see the example for C<g_list_concat()>) or to remove an element in
-the list before freeing its data:
-|[<!-- language="C" -->
-list = g_list_remove_link (list, llink);
-free_some_data_that_may_access_the_list_again (llink->data);
-g_list_free (llink);
-]|
-
-Returns: the (possibly changed) start of the B<Gnome::Glib::List>
-
-  method g_list_remove_link ( N-GList $llink --> N-GList  )
-
-=item N-GList $llink; an element in the B<Gnome::Glib::List>
-
-=end pod
-
-sub g_list_remove_link ( N-GList $list, N-GList $llink )
-  returns N-GList
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-# TM:0:g_list_delete_link:
-=begin pod
-=head2 [[g_] list_] delete_link
-
-Removes the node link_ from the list and frees it.
-Compare this to C<g_list_remove_link()> which removes the node
-without freeing it.
-
-Returns: the (possibly changed) start of the B<Gnome::Glib::List>
-
-  method g_list_delete_link ( N-GList $link_ --> N-GList  )
-
-=item N-GList $link_; node to delete from I<list>
-
-=end pod
-
-sub g_list_delete_link ( N-GList $list, N-GList $link_ )
-  returns N-GList
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-# TM:0:g_list_reverse:
-=begin pod
-=head2 [g_] list_reverse
-
-Reverses a B<Gnome::Glib::List>.
-It simply switches the next and prev pointers of each element.
-
-Returns: the start of the reversed B<Gnome::Glib::List>
-
-  method g_list_reverse ( --> N-GList  )
-
-
-=end pod
-
-sub g_list_reverse ( N-GList $list )
-  returns N-GList
-  is native(&glib-lib)
-  { * }
-}}
-
-#-------------------------------------------------------------------------------
-#TM:0:g_list_copy:
-=begin pod
-=head2 [g_] list_copy
-
-Copies a B<N-GList>.
-
-Note that this is a "shallow" copy. If the list elements consist of pointers to data, the pointers are copied but the actual data is not. See C<g_list_copy_deep()> if you need to copy the data as well.
-
-Returns: the start of the new list that holds the same data as this list.
-
-  method g_list_copy ( --> Gnome::Glib::List )
-
-=end pod
-
-sub g_list_copy ( N-GList $list --> Gnome::Glib::List ) {
-  Gnome::Glib::List.new(:native-object(_g_list_copy($list)))
-}
-
-sub _g_list_copy ( N-GList $list )
-  returns N-GList
-  is symbol('g_list_copy')
-  is native(&glib-lib)
-  { * }
-
-#`{{
-#-------------------------------------------------------------------------------
-# TM:0:g_list_copy_deep:
-=begin pod
-=head2 [[g_] list_] copy_deep
-
-Makes a full (deep) copy of a B<Gnome::Glib::List>.
-
-In contrast with C<g_list_copy()>, this function uses I<func> to make
-a copy of each list element, in addition to copying the list
-container itself.
-
-I<func>, as a B<GCopyFunc>, takes two arguments, the data to be copied
-and a I<user_data> pointer. On common processor architectures, it's safe to
-pass C<Any> as I<user_data> if the copy function takes only one argument. You
-may get compiler warnings from this though if compiling with GCC’s
-`-Wcast-function-type` warning.
-
-For instance, if I<list> holds a list of GObjects, you can do:
-|[<!-- language="C" -->
-another_list = g_list_copy_deep (list, (GCopyFunc) g_object_ref, NULL);
-]|
-
-And, to entirely free the new list, you could do:
-|[<!-- language="C" -->
-g_list_free_full (another_list, g_object_unref);
-]|
-
-Returns: the start of the new list that holds a full copy of I<list>,
-use C<g_list_free_full()> to free it
-
-Since: 2.34
-
-  method g_list_copy_deep ( GCopyFunc $func, Pointer $user_data --> N-GList  )
-
-=item GCopyFunc $func; a copy function used to copy every element in the list
-=item Pointer $user_data; user data passed to the copy function I<func>, or C<Any>
-
-=end pod
-
-sub g_list_copy_deep ( N-GList $list, GCopyFunc $func, Pointer $user_data )
-  returns N-GList
-  is native(&glib-lib)
-  { * }
-}}
-
-#-------------------------------------------------------------------------------
-#TM:0:g_list_nth:
+#TM:2:g_list_nth:xt/List.t
 =begin pod
 =head2 [g_] list_nth
 
@@ -698,62 +289,76 @@ This iterates over the list until it reaches the I<n>-th position. If you intend
 
 Returns: the element, or C<Any> if the position is off the end of the B<Gnome::Glib::List>
 
-  method g_list_nth ( UInt $n --> N-GList  )
+  method g_list_nth ( UInt $n --> Gnome::Glib::List )
 
 =item UInt $n; the position of the element, counting from 0
 
 =end pod
 
-sub g_list_nth ( N-GList $list, uint32 $n )
-  returns N-GList
+
+sub g_list_nth ( N-GList $list, guint $n --> Gnome::Glib::List ) {
+  my N-GList $no = _g_list_nth( $list, $n);
+  ?$no ?? Gnome::Glib::List.new(:native-object($no)) !! Gnome::Glib::List
+}
+
+sub _g_list_nth ( N-GList $list, guint $n --> N-GList )
   is native(&glib-lib)
+  is symbol('g_list_nth')
   { * }
 
-#`{{
 #-------------------------------------------------------------------------------
-# TM:0:g_list_nth_prev:
+# TM:2:g_list_nth_prev:xt/List.t
 =begin pod
 =head2 [[g_] list_] nth_prev
 
 Gets the element I<n> places before I<list>.
 
-Returns: the element, or C<Any> if the position is
-off the end of the B<Gnome::Glib::List>
+Returns: the element, or C<Any> if the position is off the end of the B<Gnome::Glib::List>
 
-  method g_list_nth_prev ( UInt $n --> N-GList  )
+  method g_list_nth_prev ( UInt $n --> Gnome::Glib::List )
 
 =item UInt $n; the position of the element, counting from 0
 
 =end pod
 
-sub g_list_nth_prev ( N-GList $list, uint32 $n )
-  returns N-GList
+
+sub g_list_nth_prev ( N-GList $list, guint $n --> Gnome::Glib::List ) {
+  my N-GList $no = _g_list_nth_prev( $list, $n);
+  ?$no ?? Gnome::Glib::List.new(:native-object($no)) !! Gnome::Glib::List
+}
+
+sub _g_list_nth_prev ( N-GList $list, guint $n --> N-GList )
   is native(&glib-lib)
+  is symbol('g_list_nth_prev')
   { * }
 
 #-------------------------------------------------------------------------------
-# TM:0:g_list_find:
+# TM:2:g_list_find:xt/List.t
 =begin pod
 =head2 [g_] list_find
 
 Finds the element in a B<Gnome::Glib::List> which contains the given data.
 
-Returns: the found B<Gnome::Glib::List> element, or C<Any> if it is not found
+Returns: the found B<Gnome::Glib::List> element, or undefined if it is not found
 
-  method g_list_find ( Pointer $data --> N-GList  )
+  method g_list_find ( Pointer $data --> Gnome::Glib::List )
 
 =item Pointer $data; the element data to find
 
 =end pod
 
-sub g_list_find ( N-GList $list, Pointer $data )
-  returns N-GList
+sub g_list_find ( N-GList $list, gpointer $data --> Gnome::Glib::List ) {
+  my N-GList $no = _g_list_find( $list, $data);
+  ?$no ?? Gnome::Glib::List.new(:native-object($no)) !! Gnome::Glib::List
+}
+
+sub _g_list_find ( N-GList $list, gpointer $data --> N-GList )
   is native(&glib-lib)
+  is symbol('g_list_find')
   { * }
-}}
 
 #-------------------------------------------------------------------------------
-#TM:4:g_list_find_custom:xt/List-Container-Children.t
+#TM:2:g_list_find_custom:xt/List.t
 =begin pod
 =head2 [[g_] list_] find_custom
 
@@ -802,7 +407,7 @@ An example where a search is done through a list of widgets returned from, for e
     ... get data from found widget ...
   }
 
-This example might not be the best choice when all fields are searched through this way because most elements are passed multiple times after all tests. To prevent this, one could continue the search from where it returned a defined list. The other option is to use C<g_list_foreach()> defined below.
+This example might not be the best choice when all fields are searched through this way because most elements are passed multiple times after all tests. To prevent this, one could continue the search from where it returned a defined list. The other option is to use C<g_list_foreach()> explained below.
 
 =end pod
 
@@ -813,8 +418,8 @@ sub g_list_find_custom (
   my N-GList $result;
   if $func-object.^can($func-name) {
     $result = _g_list_find_custom(
-      $list, OpaquePointer,
-      sub ( Pointer $list-data, OpaquePointer --> int32 ) {
+      $list, gpointer,
+      sub ( gpointer $list-data, gpointer --> gint ) {
         # when returned value is returned, assume not found (=1) if undefined
         $func-object."$func-name"( $list-data, |%user-data) // 1
       }
@@ -825,61 +430,54 @@ sub g_list_find_custom (
 }
 
 sub _g_list_find_custom (
-  N-GList $list, OpaquePointer,
-  Callable $func ( Pointer $a, Pointer $b --> int32)
+  N-GList $list, gpointer,
+  Callable $func ( gpointer $a, gpointer $b --> gint )
   --> N-GList
 ) is native(&glib-lib)
   is symbol('g_list_find_custom')
   { * }
 
-#`{{
 #-------------------------------------------------------------------------------
-# TM:0:g_list_position:
+# TM:2:g_list_position:xt/List.t
 =begin pod
 =head2 [g_] list_position
 
-Gets the position of the given element
-in the B<Gnome::Glib::List> (starting from 0).
+Gets the position of the given element in the B<Gnome::Glib::List> (starting from 0).
 
 Returns: the position of the element in the B<Gnome::Glib::List>,
 or -1 if the element is not found
 
-  method g_list_position ( N-GList $llink --> Int  )
+  method g_list_position ( N-GList $llink --> Int )
 
 =item N-GList $llink; an element in the B<Gnome::Glib::List>
 
 =end pod
 
-sub g_list_position ( N-GList $list, N-GList $llink )
-  returns int32
+sub g_list_position ( N-GList $list, N-GList $llink --> gint )
   is native(&glib-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-# TM:0:g_list_index:
+# TM:2:g_list_index:xt/List.t
 =begin pod
 =head2 [g_] list_index
 
-Gets the position of the element containing
-the given data (starting from 0).
+Gets the position of the element containing the given data (starting from 0).
 
-Returns: the index of the element containing the data,
-or -1 if the data is not found
+Returns: the index of the element containing the data, or -1 if the data is not found
 
-  method g_list_index ( Pointer $data --> Int  )
+  method g_list_index ( Pointer $data --> Int )
 
 =item Pointer $data; the data to find
 
 =end pod
 
-sub g_list_index ( N-GList $list, Pointer $data )
-  returns int32
+sub g_list_index ( N-GList $list, gpointer $data --> gint )
   is native(&glib-lib)
   { * }
-}}
 
 #-------------------------------------------------------------------------------
-#TM:4:g_list_last:xt/List-Container-Children.t
+#TM:2:g_list_last:xt/List.t
 =begin pod
 =head2 [g_] list_last
 
@@ -900,7 +498,7 @@ sub _g_list_last ( N-GList $list --> N-GList )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:4:g_list_first:xt/List-Container-Children.t
+#TM:2:g_list_first:xt/List.t
 =begin pod
 =head2 [g_] list_first
 
@@ -921,7 +519,7 @@ sub _g_list_first ( N-GList $list --> N-GList )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:next:xt/List-Container-Children.t
+#TM:1:next:xt/List.t
 =begin pod
 =head2 next
 
@@ -937,7 +535,7 @@ method next ( --> Gnome::Glib::List ) {
 }
 
 #-------------------------------------------------------------------------------
-#TM:4:previous:xt/List-Container-Children.t
+#TM:2:previous:xt/List.t
 =begin pod
 =head2 previous
 
@@ -953,7 +551,7 @@ method previous ( --> Gnome::Glib::List ) {
 }
 
 #-------------------------------------------------------------------------------
-#TM:4:data:xt/List-Container-Children.t
+#TM:2:data:xt/List.t
 =begin pod
 =head2 data
 
@@ -968,7 +566,7 @@ method data ( --> Any ) {
 }
 
 #-------------------------------------------------------------------------------
-#TM:0:g_list_length:
+#TM:2:g_list_length:xt/List.t
 =begin pod
 =head2 [g_] list_length
 
@@ -984,13 +582,12 @@ Returns: the number of elements in the B<Gnome::Glib::List>
 
 =end pod
 
-sub g_list_length ( N-GList $list )
-  returns uint32
+sub g_list_length ( N-GList $list --> uint32 )
   is native(&glib-lib)
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:4:g_list_foreach:xt/List-Container-Children.t
+#TM:2:g_list_foreach:xt/List.t
 =begin pod
 =head2 [g_] list_foreach
 
@@ -1028,25 +625,28 @@ method foreach ( $func-object, Str $func-name ) {
   }
 }
 
-sub g_list_foreach ( N-GList $list, $func-object, Str $func-name ) {
+sub g_list_foreach (
+  N-GList $list, $func-object, Str $func-name, *%user-data
+) {
   if $func-object.^can($func-name) {
     my $list-entry = 0;
     _g_list_foreach(
       $list,
-      sub ( $d, $ud ) {
+      sub ( $d, gpointer $ignored ) {
         $func-object."$func-name"(
-          Gnome::Glib::List.new(:native-object($list)), $list-entry++, $d
+          Gnome::Glib::List.new(:native-object($list)), $list-entry++, $d,
+          |%user-data
         );
       },
-      OpaquePointer
+      gpointer
     )
   }
 }
 
 sub _g_list_foreach (
   N-GList $list,
-  Callable $func ( Pointer $data, OpaquePointer $user-data),
-  OpaquePointer $user_data
+  Callable $func ( gpointer $data, gpointer $user-data),
+  gpointer $user_data
 ) is native(&glib-lib)
   is symbol('g_list_foreach')
   { * }
@@ -1068,8 +668,7 @@ Returns: the (possibly changed) start of the B<Gnome::Glib::List>
 
 =end pod
 
-sub g_list_sort ( N-GList $list, GCompareFunc $compare_func )
-  returns N-GList
+sub g_list_sort ( N-GList $list, GCompareFunc $compare_func --> N-GList )
   is native(&glib-lib)
   { * }
 
@@ -1090,8 +689,7 @@ Returns: the (possibly changed) start of the B<Gnome::Glib::List>
 
 =end pod
 
-sub g_list_sort_with_data ( N-GList $list, GCompareDataFunc $compare_func, Pointer $user_data )
-  returns N-GList
+sub g_list_sort_with_data ( N-GList $list, GCompareDataFunc $compare_func, Pointer $user_data --> N-GList )
   is native(&glib-lib)
   { * }
 }}
@@ -1113,8 +711,7 @@ Returns: the element's data, or C<Any> if the position is off the end of the B<G
 
 =end pod
 
-sub g_list_nth_data ( N-GList $list, uint32 $n )
-  returns Pointer
+sub g_list_nth_data ( N-GList $list, uint32 $n --> Pointer )
   is native(&glib-lib)
   { * }
 
@@ -1143,3 +740,438 @@ sub _g_list_nth_data_gobject ( N-GList $list, int32 $n --> N-GObject )
   is native(&gtk-lib)
   is symbol('g_list_nth_data')
   { * }
+
+
+
+
+
+
+
+
+=finish
+
+#-------------------------------------------------------------------------------
+#TM:0:g_list_copy:
+=begin pod
+=head2 [g_] list_copy
+
+Copies a B<N-GList>.
+
+Note that this is a "shallow" copy. If the list elements consist of pointers to data, the pointers are copied but the actual data is not. See C<g_list_copy_deep()> if you need to copy the data as well.
+
+Returns: the start of the new list that holds the same data as this list.
+
+  method g_list_copy ( --> Gnome::Glib::List )
+
+=end pod
+
+sub g_list_copy ( N-GList $list --> Gnome::Glib::List ) {
+  Gnome::Glib::List.new(:native-object(_g_list_copy($list)))
+}
+
+sub _g_list_copy ( N-GList $list --> N-GList )
+  is symbol('g_list_copy')
+  is native(&glib-lib)
+  { * }
+
+#`{{
+#-------------------------------------------------------------------------------
+# TM:0:g_list_copy_deep:
+=begin pod
+=head2 [[g_] list_] copy_deep
+
+Makes a full (deep) copy of a B<Gnome::Glib::List>.
+
+In contrast with C<g_list_copy()>, this function uses I<func> to make
+a copy of each list element, in addition to copying the list
+container itself.
+
+I<func>, as a B<GCopyFunc>, takes two arguments, the data to be copied
+and a I<user_data> pointer. On common processor architectures, it's safe to
+pass C<Any> as I<user_data> if the copy function takes only one argument. You
+may get compiler warnings from this though if compiling with GCC’s
+`-Wcast-function-type` warning.
+
+For instance, if I<list> holds a list of GObjects, you can do:
+|[<!-- language="C" -->
+another_list = g_list_copy_deep (list, (GCopyFunc) g_object_ref, NULL);
+]|
+
+And, to entirely free the new list, you could do:
+|[<!-- language="C" -->
+g_list_free_full (another_list, g_object_unref);
+]|
+
+Returns: the start of the new list that holds a full copy of I<list>,
+use C<g_list_free_full()> to free it
+
+  method g_list_copy_deep ( GCopyFunc $func, Pointer $user_data --> N-GList  )
+
+=item GCopyFunc $func; a copy function used to copy every element in the list
+=item Pointer $user_data; user data passed to the copy function I<func>, or C<Any>
+
+=end pod
+
+sub g_list_copy_deep ( N-GList $list, GCopyFunc $func, Pointer $user_data --> N-GList )
+  is native(&glib-lib)
+  { * }
+}}
+
+
+#`{{
+#-------------------------------------------------------------------------------
+#TM:0:g_list_free_1:
+=begin pod
+=head2 [[g_] list_] free_1
+
+Frees one B<Gnome::Glib::List> element, but does not update links from the next and
+previous elements in the list, so you should not call this function on an
+element that is currently part of a list.
+
+It is usually used after C<g_list_remove_link()>.
+
+  method g_list_free_1 ( )
+
+
+=end pod
+
+sub g_list_free_1 ( N-GList $list )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_list_free_full:
+=begin pod
+=head2 [[g_] list_] free_full
+
+Convenience method, which frees all the memory used by a B<Gnome::Glib::List>,
+and calls I<free_func> on every element's data.
+
+I<free_func> must not modify the list (eg, by removing the freed
+element from it).
+
+  method g_list_free_full ( GDestroyNotify $free_func )
+
+=item GDestroyNotify $free_func; the function to be called to free each element's data
+
+=end pod
+
+sub g_list_free_full ( N-GList $list, GDestroyNotify $free_func )
+  is native(&glib-lib)
+  { * }
+}}
+
+#`{{
+#-------------------------------------------------------------------------------
+#TM:0:g_list_append:
+=begin pod
+=head2 [g_] list_append
+
+Adds a new element on to the end of the list.
+
+Note that the return value is the new start of the list,
+if I<list> was empty; make sure you store the new value.
+
+C<g_list_append()> has to traverse the entire list to find the end,
+which is inefficient when adding multiple elements. A common idiom
+to avoid the inefficiency is to use C<g_list_prepend()> and reverse
+the list with C<g_list_reverse()> when all elements have been added.
+
+|[<!-- language="C" -->
+// Notice that these are initialized to the empty list.
+GList *string_list = NULL, *number_list = NULL;
+
+// This is a list of strings.
+string_list = g_list_append (string_list, "first");
+string_list = g_list_append (string_list, "second");
+
+// This is a list of integers.
+number_list = g_list_append (number_list, GINT_TO_POINTER (27));
+number_list = g_list_append (number_list, GINT_TO_POINTER (14));
+]|
+
+Returns: either I<list> or the new start of the B<Gnome::Glib::List> if I<list> was C<Any>
+
+  method g_list_append ( Pointer $data --> N-GList  )
+
+=item Pointer $data; the data for the new element
+
+=end pod
+
+sub g_list_append ( N-GList $list, Pointer $data --> N-GList )
+  is native(&glib-lib)
+  { * }
+}}
+
+#`{{
+#-------------------------------------------------------------------------------
+#TM:0:g_list_prepend:
+=begin pod
+=head2 [g_] list_prepend
+
+Prepends a new element on to the start of the list.
+
+Note that the return value is the new start of the list,
+which will have changed, so make sure you store the new value.
+
+|[<!-- language="C" -->
+// Notice that it is initialized to the empty list.
+GList *list = NULL;
+
+list = g_list_prepend (list, "last");
+list = g_list_prepend (list, "first");
+]|
+
+Do not use this function to prepend a new element to a different
+element than the start of the list. Use C<g_list_insert_before()> instead.
+
+Returns: a pointer to the newly prepended element, which is the new
+start of the B<Gnome::Glib::List>
+
+  method g_list_prepend ( Pointer $data --> N-GList  )
+
+=item Pointer $data; the data for the new element
+
+=end pod
+
+sub g_list_prepend ( N-GList $list, Pointer $data --> N-GList )
+  is native(&glib-lib)
+  { * }
+}}
+
+#`{{
+#-------------------------------------------------------------------------------
+#TM:0:g_list_insert:
+=begin pod
+=head2 [g_] list_insert
+
+Inserts a new element into the list at the given position.
+
+Returns: the (possibly changed) start of the B<Gnome::Glib::List>
+
+  method g_list_insert ( Pointer $data, Int $position --> N-GList  )
+
+=item Pointer $data; the data for the new element
+=item Int $position; the position to insert the element. If this is  negative, or is larger than the number of elements in the  list, the new element is added on to the end of the list.
+
+=end pod
+
+sub g_list_insert ( N-GList $list, Pointer $data, int32 $position --> N-GList )
+  is native(&glib-lib)
+  { * }
+}}
+#`{{
+#-------------------------------------------------------------------------------
+#TM:0:g_list_insert_sorted:
+=begin pod
+=head2 [[g_] list_] insert_sorted
+
+Inserts a new element into the list, using the given comparison
+function to determine its position.
+
+If you are adding many new elements to a list, and the number of
+new elements is much larger than the length of the list, use
+C<g_list_prepend()> to add the new items and sort the list afterwards
+with C<g_list_sort()>.
+
+Returns: the (possibly changed) start of the B<Gnome::Glib::List>
+
+  method g_list_insert_sorted ( Pointer $data, GCompareFunc $func --> N-GList  )
+
+=item Pointer $data; the data for the new element
+=item GCompareFunc $func; the function to compare elements in the list. It should  return a number > 0 if the first parameter comes after the  second parameter in the sort order.
+
+=end pod
+
+sub g_list_insert_sorted ( N-GList $list, Pointer $data, GCompareFunc $func --> N-GList )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_list_insert_sorted_with_data:
+=begin pod
+=head2 [[g_] list_] insert_sorted_with_data
+
+Inserts a new element into the list, using the given comparison
+function to determine its position.
+
+If you are adding many new elements to a list, and the number of
+new elements is much larger than the length of the list, use
+C<g_list_prepend()> to add the new items and sort the list afterwards
+with C<g_list_sort()>.
+
+Returns: the (possibly changed) start of the B<Gnome::Glib::List>
+
+  method g_list_insert_sorted_with_data ( Pointer $data, GCompareDataFunc $func, Pointer $user_data --> N-GList  )
+
+=item Pointer $data; the data for the new element
+=item GCompareDataFunc $func; the function to compare elements in the list. It should return a number > 0 if the first parameter  comes after the second parameter in the sort order.
+=item Pointer $user_data; user data to pass to comparison function
+
+=end pod
+
+sub g_list_insert_sorted_with_data ( N-GList $list, Pointer $data, GCompareDataFunc $func, Pointer $user_data --> N-GList )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_list_insert_before:
+=begin pod
+=head2 [[g_] list_] insert_before
+
+Inserts a new element into the list before the given position.
+
+Returns: the (possibly changed) start of the B<Gnome::Glib::List>
+
+  method g_list_insert_before ( N-GList $sibling, Pointer $data --> N-GList  )
+
+=item N-GList $sibling; the list element before which the new element  is inserted or C<Any> to insert at the end of the list
+=item Pointer $data; the data for the new element
+
+=end pod
+
+sub g_list_insert_before ( N-GList $list, N-GList $sibling, Pointer $data --> N-GList )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_list_concat:
+=begin pod
+=head2 [g_] list_concat
+
+Adds the second B<Gnome::Glib::List> onto the end of the first B<Gnome::Glib::List>.
+Note that the elements of the second B<Gnome::Glib::List> are not copied.
+They are used directly.
+
+This function is for example used to move an element in the list.
+The following example moves an element to the top of the list:
+|[<!-- language="C" -->
+list = g_list_remove_link (list, llink);
+list = g_list_concat (llink, list);
+]|
+
+Returns: the start of the new B<Gnome::Glib::List>, which equals I<list1> if not C<Any>
+
+  method g_list_concat ( N-GList $list2 --> N-GList  )
+
+=item N-GList $list2; the B<Gnome::Glib::List> to add to the end of the first B<Gnome::Glib::List>, this must point  to the top of the list
+
+=end pod
+
+sub g_list_concat ( N-GList $list1, N-GList $list2 --> N-GList )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_list_remove:
+=begin pod
+=head2 [g_] list_remove
+
+Removes an element from a B<Gnome::Glib::List>.
+If two elements contain the same data, only the first is removed.
+If none of the elements contain the data, the B<Gnome::Glib::List> is unchanged.
+
+Returns: the (possibly changed) start of the B<Gnome::Glib::List>
+
+  method g_list_remove ( Pointer $data --> N-GList  )
+
+=item Pointer $data; the data of the element to remove
+
+=end pod
+
+sub g_list_remove ( N-GList $list, Pointer $data --> N-GList )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_list_remove_all:
+=begin pod
+=head2 [[g_] list_] remove_all
+
+Removes all list nodes with data equal to I<data>.
+Returns the new head of the list. Contrast with
+C<g_list_remove()> which removes only the first node
+matching the given data.
+
+Returns: the (possibly changed) start of the B<Gnome::Glib::List>
+
+  method g_list_remove_all ( Pointer $data --> N-GList  )
+
+=item Pointer $data; data to remove
+
+=end pod
+
+sub g_list_remove_all ( N-GList $list, Pointer $data --> N-GList )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_list_remove_link:
+=begin pod
+=head2 [[g_] list_] remove_link
+
+Removes an element from a B<Gnome::Glib::List>, without freeing the element.
+The removed element's prev and next links are set to C<Any>, so
+that it becomes a self-contained list with one element.
+
+This function is for example used to move an element in the list
+(see the example for C<g_list_concat()>) or to remove an element in
+the list before freeing its data:
+|[<!-- language="C" -->
+list = g_list_remove_link (list, llink);
+free_some_data_that_may_access_the_list_again (llink->data);
+g_list_free (llink);
+]|
+
+Returns: the (possibly changed) start of the B<Gnome::Glib::List>
+
+  method g_list_remove_link ( N-GList $llink --> N-GList  )
+
+=item N-GList $llink; an element in the B<Gnome::Glib::List>
+
+=end pod
+
+sub g_list_remove_link ( N-GList $list, N-GList $llink --> N-GList )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_list_delete_link:
+=begin pod
+=head2 [[g_] list_] delete_link
+
+Removes the node link_ from the list and frees it.
+Compare this to C<g_list_remove_link()> which removes the node
+without freeing it.
+
+Returns: the (possibly changed) start of the B<Gnome::Glib::List>
+
+  method g_list_delete_link ( N-GList $link_ --> N-GList  )
+
+=item N-GList $link_; node to delete from I<list>
+
+=end pod
+
+sub g_list_delete_link ( N-GList $list, N-GList $link_ --> N-GList )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_list_reverse:
+=begin pod
+=head2 [g_] list_reverse
+
+Reverses a B<Gnome::Glib::List>.
+It simply switches the next and prev pointers of each element.
+
+Returns: the start of the reversed B<Gnome::Glib::List>
+
+  method g_list_reverse ( --> N-GList  )
+
+
+=end pod
+
+sub g_list_reverse ( N-GList $list --> N-GList )
+  is native(&glib-lib)
+  { * }
+}}
