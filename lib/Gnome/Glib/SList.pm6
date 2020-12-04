@@ -4,15 +4,15 @@ use v6;
 #-------------------------------------------------------------------------------
 =begin pod
 
-=TITLE Gnome::Glib::SList
+=head1 Gnome::Glib::SList
 
-=SUBTITLE Linked lists that can be iterated in one direction
+Linked lists that can be iterated in one direction
 
 =head1 Description
 
 The C<N-GSList> structure and its associated functions provide a standard singly-linked list data structure.
 
-Each element in the list contains a piece of data, together with a pointer which links to the next element in the list. Using this pointer it is possible to move through the list in one direction only (unlike the [double-linked lists](https://developer.gnome.org/glib/stable/glib-Doubly-Linked-Lists.html), which allow movement in both directions).
+Each element in the list contains a piece of data, together with a pointer which links to the next element in the list. Using this pointer it is possible to move through the list in one direction only (unlike the double-linked lists, which allow movement in both directions).
 
 =begin comment
 The data contained in each element can be either integer values or simply pointers to any type of data.
@@ -40,29 +40,37 @@ To free the entire list, use C<clear-gslist()>.
 
 Many methods are not needed in simple Raku use. Most of the time you get a list from a method to process. For example, retrieving information from a widget path, See the example below.
 
+
+=head2 Uml Diagram
+
+![](plantuml/SList.svg)
+
+
 =head1 Synopsis
 =head2 Declaration
 
   unit class Gnome::Glib::SList;
   also is Gnome::N::TopLevelClassSupport;
 
+
 =head2 Example
 
 This example shows how to get and show some information from a widget path.
 
   # Build a gui; a button in a grid
+  my Gnome::Gtk3::Window $w .= new;
   $w.set-name('top-level-window');
 
   my Gnome::Gtk3::Grid $g .= new();
-  $w.gtk-container-add($g);
+  $w.container-add($g);
 
   my Gnome::Gtk3::Button $b1 .= new(:label<Start>);
-  $g.gtk-grid-attach( $b1, 0, 0, 1, 1);
+  $g.grid-attach( $b1, 0, 0, 1, 1);
 
   # Get class names of the button in the widget path
   my Gnome::Gtk3::WidgetPath $wp .= new(:native-object($b1.get-path));
   my Gnome::Glib::SList $l .= new(:native-object($wp.iter-list-classes(2)));
-  is $l.g-slist-length, 1, 'list contains one class';
+  is $l.slist-length, 1, 'list contains one class';
   is $l.nth-data-str(0), 'text-button', "class is a 'text-button'";
 
 =end pod
@@ -70,10 +78,10 @@ This example shows how to get and show some information from a widget path.
 use NativeCall;
 
 use Gnome::N::X;
-#use Gnome::N::N-GSList;
 use Gnome::N::N-GObject;
 use Gnome::N::NativeLib;
 use Gnome::N::TopLevelClassSupport;
+use Gnome::N::GlibToRakuTypes;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/glib/gslist.h
@@ -99,11 +107,13 @@ class N-GSList is repr('CStruct') is export {
 =begin pod
 =head1 Methods
 =head2 new
-=head3 multi method new ( Bool :$empty! )
+=head3 default, no options
 
 Create a new plain object.
 
   multi method new ( )
+
+=head3 :native-object
 
 Create an object using a native object from elsewhere.
 
@@ -137,7 +147,7 @@ submethod BUILD ( *%options ) {
       );
     }
 
-    else {#if ? %options<empty> {
+    else {
       self.set-native-object(N-GSList);
     }
 
@@ -193,29 +203,6 @@ method native-object-unref ( $n-native-object ) {
   _g_slist_free($n-native-object) if g_slist_length($n-native-object);
 }
 
-#`{{
-#-------------------------------------------------------------------------------
-#TM:0:g_slist_alloc
-
-=begin pod
-=head2 [g_] slist_alloc
-
-Allocates space for one C<N-GSList> element. It is called by the C<g_slist_append()>, C<g_slist_prepend()>, C<g_slist_insert()> and C<g_slist_insert_sorted()> functions and so is rarely used on its own.
-
-Returns: a pointer to the newly-allocated C<N-GSList> element.
-
-  method g_slist_alloc ( --> N-GSList  )
-
-=item G_GNUC_WARN_UNUSED_RESUL $T;
-
-=end pod
-
-sub g_slist_alloc ( )
-  returns N-GSList
-  is native(&glib-lib)
-  { * }
-}}
-
 #-------------------------------------------------------------------------------
 #TM:0:g_slist_free
 #`{{ No pod, user must use clear-gslist()
@@ -241,6 +228,393 @@ sub _g_slist_free ( N-GSList $list )
   is symbol('g_slist_free')
   { * }
 
+
+#-------------------------------------------------------------------------------
+#TM:0:g_slist_reverse
+
+=begin pod
+=head2 [g_] slist_reverse
+
+Reverses a C<N-GSList>.
+
+Returns: the start of the reversed C<N-GSList>
+
+  method g_slist_reverse ( N-GSList $list --> N-GSList  )
+
+=item N-GSList $list; a C<N-GSList>
+
+=end pod
+
+sub g_slist_reverse ( N-GSList $list --> N-GSList )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_slist_copy
+
+=begin pod
+=head2 [g_] slist_copy
+
+Copies a C<N-GSList>.
+
+Note that this is a "shallow" copy. If the list elements consist of pointers to data, the pointers are copied but the actual data isn't. See C<g_slist_copy_deep()> if you need to copy the data as well.
+
+Returns: a copy of I<list>
+
+  method g_slist_copy ( N-GSList $list --> N-GSList  )
+
+=item N-GSList $list; a C<N-GSList>
+
+=end pod
+
+sub g_slist_copy ( N-GSList $list --> N-GSList )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_slist_nth
+
+=begin pod
+=head2 [g_] slist_nth
+
+Gets the element at the given position in a C<N-GSList>.
+
+Returns: the element, or undefined if the position is off the end of the C<N-GSList>
+
+  method g_slist_nth ( N-GSList $list, UInt $n --> N-GSList  )
+
+=item N-GSList $list; a C<N-GSList>
+=item UInt $n; the position of the element, counting from 0
+
+=end pod
+
+sub g_slist_nth ( N-GSList $list, guint $n --> N-GSList )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_slist_last
+
+=begin pod
+=head2 [g_] slist_last
+
+Gets the last element in a C<N-GSList>.
+
+This function iterates over the whole list.
+
+Returns: the last element in the C<N-GSList>, or C<Any> if the C<N-GSList> has no elements
+
+  method g_slist_last ( N-GSList $list --> N-GSList )
+
+=item N-GSList $list; a C<N-GSList>
+
+=end pod
+
+sub g_slist_last ( N-GSList $list --> N-GSList )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:+:g_slist_length
+
+=begin pod
+=head2 [g_] slist_length
+
+Gets the number of elements in a C<N-GSList>.
+
+This function iterates over the whole list to count its elements. To check whether the list is non-empty, it is faster to check I<list> against an undefined native slist.
+
+Returns: the number of elements in the C<N-GSList>
+
+  method g_slist_length ( N-GSList $list --> UInt  )
+
+=item N-GSList $list; a C<N-GSList>
+
+=end pod
+
+sub g_slist_length ( N-GSList $list --> guint )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_slist_nth_data
+
+=begin pod
+=head2 [[g_] slist_] nth_data
+
+Gets the data of the element at the given position.
+
+Returns: the element's data, or C<Any> if the position is off the end of the C<N-GSList>. Extra methods are added to return specific types of data.
+
+  method g_slist_nth_data ( N-GSList $list, UInt $n --> Pointer )
+  method g_slist_nth_data_str ( N-GSList $list, UInt $n --> Str )
+  method g_slist_nth_data_gobject ( N-GSList $list, UInt $n --> N-GObject )
+
+=item N-GSList $list; a C<N-GSList>
+=item UInt $n; the position of the element
+
+=end pod
+
+sub g_slist_nth_data ( N-GSList $list, guint $n --> gpointer )
+  is native(&glib-lib)
+  { * }
+
+
+
+
+# next subs are obsolete
+sub g_slist_nth_data_str ( N-GSList $list, guint $n --> Str ) {
+  Gnome::N::deprecate(
+    '.g_slist_nth_data_str()', '.g_list_nth_data()', '0.15.5', '0.18.0'
+  );
+
+  _g_slist_nth_data_str( $list, $n)
+}
+
+sub _g_slist_nth_data_str ( N-GSList $list, guint $n --> Str )
+  is native(&gtk-lib)
+  is symbol('g_slist_nth_data')
+  { * }
+
+sub g_slist_nth_data_gobject ( N-GSList $list, guint $n --> N-GObject ) {
+  Gnome::N::deprecate(
+    '.g_slist_nth_data_gobject()', '.g_slist_nth_data()', '0.15.5', '0.18.0'
+  );
+
+  _g_slist_nth_data_gobject( $list, $n)
+}
+
+sub _g_slist_nth_data_gobject ( N-GSList $list, guint $n --> N-GObject )
+  is native(&gtk-lib)
+  is symbol('g_slist_nth_data')
+  { * }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+=finish
+
+#`{{
+#-------------------------------------------------------------------------------
+#TM:0:g_slist_find
+
+=begin pod
+=head2 [g_] slist_find
+
+Finds the element in a C<N-GSList> which
+contains the given data.
+
+Returns: the found C<N-GSList> element,
+or C<Any> if it is not found
+
+  method g_slist_find ( N-GSList $list, Pointer $data --> N-GSList  )
+
+=item N-GSList $list; a C<N-GSList>
+=item Pointer $data; the element data to find
+
+=end pod
+
+sub g_slist_find ( N-GSList $list, Pointer $data --> N-GSList )
+  is native(&glib-lib)
+  { * }
+}}
+
+#`{{
+#-------------------------------------------------------------------------------
+#TM:0:g_slist_find_custom
+
+=begin pod
+=head2 [[g_] slist_] find_custom
+
+Finds an element in a C<N-GSList>, using a supplied function to
+find the desired element. It iterates over the list, calling
+the given function which should return 0 when the desired
+element is found. The function takes two C<gconstpointer> arguments,
+the C<N-GSList> element's data as the first argument and the
+given user data.
+
+Returns: the found C<N-GSList> element, or C<Any> if it is not found
+
+  method g_slist_find_custom ( N-GSList $list, Pointer $data, GCompareFunc $func --> N-GSList  )
+
+=item N-GSList $list; a C<N-GSList>
+=item Pointer $data; user data passed to the function
+=item GCompareFunc $func; the function to call for each element. It should return 0 when the desired element is found
+
+=end pod
+
+sub g_slist_find_custom ( N-GSList $list, Pointer $data, GCompareFunc $func --> N-GSList )
+  is native(&glib-lib)
+  { * }
+}}
+
+#`{{
+#-------------------------------------------------------------------------------
+#TM:0:g_slist_position
+
+=begin pod
+=head2 [g_] slist_position
+
+Gets the position of the given element
+in the C<N-GSList> (starting from 0).
+
+Returns: the position of the element in the C<N-GSList>,
+or -1 if the element is not found
+
+  method g_slist_position ( N-GSList $list, N-GSList $llink --> Int  )
+
+=item N-GSList $list; a C<N-GSList>
+=item N-GSList $llink; an element in the C<N-GSList>
+
+=end pod
+
+sub g_slist_position ( N-GSList $list, N-GSList $llink --> int32 )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:g_slist_index
+
+=begin pod
+=head2 [g_] slist_index
+
+Gets the position of the element containing
+the given data (starting from 0).
+
+Returns: the index of the element containing the data,
+or -1 if the data is not found
+
+  method g_slist_index ( N-GSList $list, Pointer $data --> Int  )
+
+=item N-GSList $list; a C<N-GSList>
+=item Pointer $data; the data to find
+
+=end pod
+
+sub g_slist_index ( N-GSList $list, Pointer $data --> int32 )
+  is native(&glib-lib)
+  { * }
+}}
+
+#`{{
+#-------------------------------------------------------------------------------
+#TM:0:g_slist_foreach
+
+=begin pod
+=head2 [g_] slist_foreach
+
+Calls a function for each element of a C<N-GSList>.
+
+It is safe for I<func> to remove the element from I<list>, but it must
+not modify any part of the list after that element.
+
+  method g_slist_foreach ( N-GSList $list, GFunc $func, Pointer $user_data )
+
+=item N-GSList $list; a C<N-GSList>
+=item GFunc $func; the function to call with each element's data
+=item Pointer $user_data; user data to pass to the function
+
+=end pod
+
+sub g_slist_foreach ( N-GSList $list, GFunc $func, Pointer $user_data )
+  is native(&glib-lib)
+  { * }
+}}
+#`{{
+#-------------------------------------------------------------------------------
+#TM:0:g_slist_sort
+
+=begin pod
+=head2 [g_] slist_sort
+
+Sorts a C<N-GSList> using the given comparison function. The algorithm
+used is a stable sort.
+
+Returns: the start of the sorted C<N-GSList>
+
+  method g_slist_sort ( N-GSList $list, GCompareFunc $compare_func --> N-GSList  )
+
+=item N-GSList $list; a C<N-GSList>
+=item GCompareFunc $compare_func; the comparison function used to sort the C<N-GSList>. This function is passed the data from 2 elements of the C<N-GSList> and should return 0 if they are equal, a negative value if the first element comes before the second, or a positive value if the first element comes after the second.
+
+=end pod
+
+sub g_slist_sort ( N-GSList $list, GCompareFunc $compare_func --> N-GSList )
+  is native(&glib-lib)
+  { * }
+}}
+
+#`{{
+#-------------------------------------------------------------------------------
+#TM:0:g_slist_sort_with_data
+
+=begin pod
+=head2 [[g_] slist_] sort_with_data
+
+Like C<g_slist_sort()>, but the sort function accepts a user data argument.
+
+Returns: new head of the list
+
+  method g_slist_sort_with_data ( N-GSList $list, GCompareDataFunc $compare_func, Pointer $user_data --> N-GSList  )
+
+=item N-GSList $list; a C<N-GSList>
+=item GCompareDataFunc $compare_func; comparison function
+=item Pointer $user_data; data to pass to comparison function
+
+=end pod
+
+sub g_slist_sort_with_data ( N-GSList $list, GCompareDataFunc $compare_func, Pointer $user_data --> N-GSList )
+  is native(&glib-lib)
+  { * }
+}}
+
+#`{{
+#-------------------------------------------------------------------------------
+#TM:0:g_slist_alloc
+
+=begin pod
+=head2 [g_] slist_alloc
+
+Allocates space for one C<N-GSList> element. It is called by the C<g_slist_append()>, C<g_slist_prepend()>, C<g_slist_insert()> and C<g_slist_insert_sorted()> functions and so is rarely used on its own.
+
+Returns: a pointer to the newly-allocated C<N-GSList> element.
+
+  method g_slist_alloc ( --> N-GSList  )
+
+=item G_GNUC_WARN_UNUSED_RESUL $T;
+
+=end pod
+
+sub g_slist_alloc ( --> N-GSList )
+  is native(&glib-lib)
+  { * }
+}}
 #`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_slist_free_1
@@ -323,8 +697,7 @@ method g_slist_append (Any $data) {
   $!gslist = _g_slist_append( $!gslist, nativecast( Pointer[void], $data));
 }
 
-sub _g_slist_append ( N-GSList $list, Pointer[void] $data )
-  returns N-GSList
+sub _g_slist_append ( N-GSList $list, Pointer[void] $data --> N-GSList )
   is native(&glib-lib)
   is symbol('g_slist_append')
   { * }
@@ -358,8 +731,7 @@ Returns: the new start of the C<N-GSList>
 
 =end pod
 
-sub g_slist_prepend ( N-GSList $list, Pointer $data )
-  returns N-GSList
+sub g_slist_prepend ( N-GSList $list, Pointer $data --> N-GSList )
   is native(&glib-lib)
   { * }
 
@@ -381,8 +753,7 @@ Returns: the new start of the C<N-GSList>
 
 =end pod
 
-sub g_slist_insert ( N-GSList $list, Pointer $data, int32 $position )
-  returns N-GSList
+sub g_slist_insert ( N-GSList $list, Pointer $data, int32 $position --> N-GSList )
   is native(&glib-lib)
   { * }
 }}
@@ -407,8 +778,7 @@ Returns: the new start of the C<N-GSList>
 
 =end pod
 
-sub g_slist_insert_sorted ( N-GSList $list, Pointer $data, GCompareFunc $func )
-  returns N-GSList
+sub g_slist_insert_sorted ( N-GSList $list, Pointer $data, GCompareFunc $func --> N-GSList )
   is native(&glib-lib)
   { * }
 }}
@@ -436,8 +806,7 @@ Since: 2.10
 
 =end pod
 
-sub g_slist_insert_sorted_with_data ( N-GSList $list, Pointer $data, GCompareDataFunc $func, Pointer $user_data )
-  returns N-GSList
+sub g_slist_insert_sorted_with_data ( N-GSList $list, Pointer $data, GCompareDataFunc $func, Pointer $user_data --> N-GSList )
   is native(&glib-lib)
   { * }
 }}
@@ -461,8 +830,7 @@ Returns: the new head of the list.
 
 =end pod
 
-sub g_slist_insert_before ( N-GSList $slist, N-GSList $sibling, Pointer $data )
-  returns N-GSList
+sub g_slist_insert_before ( N-GSList $slist, N-GSList $sibling, Pointer $data --> N-GSList )
   is native(&glib-lib)
   { * }
 
@@ -485,8 +853,7 @@ Returns: the start of the new C<N-GSList>
 
 =end pod
 
-sub g_slist_concat ( N-GSList $list1, N-GSList $list2 )
-  returns N-GSList
+sub g_slist_concat ( N-GSList $list1, N-GSList $list2 --> N-GSList )
   is native(&glib-lib)
   { * }
 
@@ -509,8 +876,7 @@ Returns: the new start of the C<N-GSList>
 
 =end pod
 
-sub g_slist_remove ( N-GSList $list, Pointer $data )
-  returns N-GSList
+sub g_slist_remove ( N-GSList $list, Pointer $data --> N-GSList )
   is native(&glib-lib)
   { * }
 
@@ -534,8 +900,7 @@ Returns: new head of I<list>
 
 =end pod
 
-sub g_slist_remove_all ( N-GSList $list, Pointer $data )
-  returns N-GSList
+sub g_slist_remove_all ( N-GSList $list, Pointer $data --> N-GSList )
   is native(&glib-lib)
   { * }
 
@@ -565,8 +930,7 @@ Returns: the new start of the C<N-GSList>, without the element
 
 =end pod
 
-sub g_slist_remove_link ( N-GSList $list, N-GSList $link_ )
-  returns N-GSList
+sub g_slist_remove_link ( N-GSList $list, N-GSList $link_ --> N-GSList )
   is native(&glib-lib)
   { * }
 
@@ -595,59 +959,10 @@ Returns: the new head of I<list>
 
 =end pod
 
-sub g_slist_delete_link ( N-GSList $list, N-GSList $link_ )
-  returns N-GSList
+sub g_slist_delete_link ( N-GSList $list, N-GSList $link_ --> N-GSList )
   is native(&glib-lib)
   { * }
 }}
-
-#-------------------------------------------------------------------------------
-#TM:0:g_slist_reverse
-
-=begin pod
-=head2 [g_] slist_reverse
-
-Reverses a C<N-GSList>.
-
-Returns: the start of the reversed C<N-GSList>
-
-  method g_slist_reverse ( N-GSList $list --> N-GSList  )
-
-=item N-GSList $list; a C<N-GSList>
-
-=end pod
-
-sub g_slist_reverse ( N-GSList $list )
-  returns N-GSList
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_slist_copy
-
-=begin pod
-=head2 [g_] slist_copy
-
-Copies a C<N-GSList>.
-
-Note that this is a "shallow" copy. If the list elements
-consist of pointers to data, the pointers are copied but
-the actual data isn't. See C<g_slist_copy_deep()> if you need
-to copy the data as well.
-
-Returns: a copy of I<list>
-
-  method g_slist_copy ( N-GSList $list --> N-GSList  )
-
-=item N-GSList $list; a C<N-GSList>
-
-=end pod
-
-sub g_slist_copy ( N-GSList $list )
-  returns N-GSList
-  is native(&glib-lib)
-  { * }
-
 #`{{
 #-------------------------------------------------------------------------------
 #TM:0:g_slist_copy_deep
@@ -688,374 +1003,16 @@ Since: 2.34
 
 =end pod
 
-sub g_slist_copy_deep ( N-GSList $list, GCopyFunc $func, Pointer $user_data )
-  returns N-GSList
+sub g_slist_copy_deep ( N-GSList $list, GCopyFunc $func, Pointer $user_data --> N-GSList )
   is native(&glib-lib)
   { * }
 }}
 
-#-------------------------------------------------------------------------------
-#TM:0:g_slist_nth
 
-=begin pod
-=head2 [g_] slist_nth
 
-Gets the element at the given position in a C<N-GSList>.
 
-Returns: the element, or C<Any> if the position is off
-the end of the C<N-GSList>
 
-  method g_slist_nth ( N-GSList $list, UInt $n --> N-GSList  )
 
-=item N-GSList $list; a C<N-GSList>
-=item UInt $n; the position of the element, counting from 0
-
-=end pod
-
-sub g_slist_nth ( N-GSList $list, uint32 $n )
-  returns N-GSList
-  is native(&glib-lib)
-  { * }
-
-#`{{
-#-------------------------------------------------------------------------------
-#TM:0:g_slist_find
-
-=begin pod
-=head2 [g_] slist_find
-
-Finds the element in a C<N-GSList> which
-contains the given data.
-
-Returns: the found C<N-GSList> element,
-or C<Any> if it is not found
-
-  method g_slist_find ( N-GSList $list, Pointer $data --> N-GSList  )
-
-=item N-GSList $list; a C<N-GSList>
-=item Pointer $data; the element data to find
-
-=end pod
-
-sub g_slist_find ( N-GSList $list, Pointer $data )
-  returns N-GSList
-  is native(&glib-lib)
-  { * }
-}}
-
-#`{{
-#-------------------------------------------------------------------------------
-#TM:0:g_slist_find_custom
-
-=begin pod
-=head2 [[g_] slist_] find_custom
-
-Finds an element in a C<N-GSList>, using a supplied function to
-find the desired element. It iterates over the list, calling
-the given function which should return 0 when the desired
-element is found. The function takes two C<gconstpointer> arguments,
-the C<N-GSList> element's data as the first argument and the
-given user data.
-
-Returns: the found C<N-GSList> element, or C<Any> if it is not found
-
-  method g_slist_find_custom ( N-GSList $list, Pointer $data, GCompareFunc $func --> N-GSList  )
-
-=item N-GSList $list; a C<N-GSList>
-=item Pointer $data; user data passed to the function
-=item GCompareFunc $func; the function to call for each element. It should return 0 when the desired element is found
-
-=end pod
-
-sub g_slist_find_custom ( N-GSList $list, Pointer $data, GCompareFunc $func )
-  returns N-GSList
-  is native(&glib-lib)
-  { * }
-}}
-
-#`{{
-#-------------------------------------------------------------------------------
-#TM:0:g_slist_position
-
-=begin pod
-=head2 [g_] slist_position
-
-Gets the position of the given element
-in the C<N-GSList> (starting from 0).
-
-Returns: the position of the element in the C<N-GSList>,
-or -1 if the element is not found
-
-  method g_slist_position ( N-GSList $list, N-GSList $llink --> Int  )
-
-=item N-GSList $list; a C<N-GSList>
-=item N-GSList $llink; an element in the C<N-GSList>
-
-=end pod
-
-sub g_slist_position ( N-GSList $list, N-GSList $llink )
-  returns int32
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_slist_index
-
-=begin pod
-=head2 [g_] slist_index
-
-Gets the position of the element containing
-the given data (starting from 0).
-
-Returns: the index of the element containing the data,
-or -1 if the data is not found
-
-  method g_slist_index ( N-GSList $list, Pointer $data --> Int  )
-
-=item N-GSList $list; a C<N-GSList>
-=item Pointer $data; the data to find
-
-=end pod
-
-sub g_slist_index ( N-GSList $list, Pointer $data )
-  returns int32
-  is native(&glib-lib)
-  { * }
-}}
-
-#-------------------------------------------------------------------------------
-#TM:0:g_slist_last
-
-=begin pod
-=head2 [g_] slist_last
-
-Gets the last element in a C<N-GSList>.
-
-This function iterates over the whole list.
-
-Returns: the last element in the C<N-GSList>,
-or C<Any> if the C<N-GSList> has no elements
-
-  method g_slist_last ( N-GSList $list --> N-GSList  )
-
-=item N-GSList $list; a C<N-GSList>
-
-=end pod
-
-sub g_slist_last ( N-GSList $list )
-  returns N-GSList
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:+:g_slist_length
-
-=begin pod
-=head2 [g_] slist_length
-
-Gets the number of elements in a C<N-GSList>.
-
-This function iterates over the whole list to
-count its elements. To check whether the list is non-empty, it is faster to
-check I<list> against C<Any>.
-
-Returns: the number of elements in the C<N-GSList>
-
-  method g_slist_length ( N-GSList $list --> UInt  )
-
-=item N-GSList $list; a C<N-GSList>
-
-=end pod
-
-sub g_slist_length ( N-GSList $list )
-  returns uint32
-  is native(&glib-lib)
-  { * }
-
-#`{{
-#-------------------------------------------------------------------------------
-#TM:0:g_slist_foreach
-
-=begin pod
-=head2 [g_] slist_foreach
-
-Calls a function for each element of a C<N-GSList>.
-
-It is safe for I<func> to remove the element from I<list>, but it must
-not modify any part of the list after that element.
-
-  method g_slist_foreach ( N-GSList $list, GFunc $func, Pointer $user_data )
-
-=item N-GSList $list; a C<N-GSList>
-=item GFunc $func; the function to call with each element's data
-=item Pointer $user_data; user data to pass to the function
-
-=end pod
-
-sub g_slist_foreach ( N-GSList $list, GFunc $func, Pointer $user_data )
-  is native(&glib-lib)
-  { * }
-}}
-#`{{
-#-------------------------------------------------------------------------------
-#TM:0:g_slist_sort
-
-=begin pod
-=head2 [g_] slist_sort
-
-Sorts a C<N-GSList> using the given comparison function. The algorithm
-used is a stable sort.
-
-Returns: the start of the sorted C<N-GSList>
-
-  method g_slist_sort ( N-GSList $list, GCompareFunc $compare_func --> N-GSList  )
-
-=item N-GSList $list; a C<N-GSList>
-=item GCompareFunc $compare_func; the comparison function used to sort the C<N-GSList>. This function is passed the data from 2 elements of the C<N-GSList> and should return 0 if they are equal, a negative value if the first element comes before the second, or a positive value if the first element comes after the second.
-
-=end pod
-
-sub g_slist_sort ( N-GSList $list, GCompareFunc $compare_func )
-  returns N-GSList
-  is native(&glib-lib)
-  { * }
-}}
-
-#`{{
-#-------------------------------------------------------------------------------
-#TM:0:g_slist_sort_with_data
-
-=begin pod
-=head2 [[g_] slist_] sort_with_data
-
-Like C<g_slist_sort()>, but the sort function accepts a user data argument.
-
-Returns: new head of the list
-
-  method g_slist_sort_with_data ( N-GSList $list, GCompareDataFunc $compare_func, Pointer $user_data --> N-GSList  )
-
-=item N-GSList $list; a C<N-GSList>
-=item GCompareDataFunc $compare_func; comparison function
-=item Pointer $user_data; data to pass to comparison function
-
-=end pod
-
-sub g_slist_sort_with_data ( N-GSList $list, GCompareDataFunc $compare_func, Pointer $user_data )
-  returns N-GSList
-  is native(&glib-lib)
-  { * }
-}}
-
-#-------------------------------------------------------------------------------
-#TM:0:g_slist_nth_data
-
-=begin pod
-=head2 [[g_] slist_] nth_data
-
-Gets the data of the element at the given position.
-
-Returns: the element's data, or C<Any> if the position is off the end of the C<N-GSList>. Extra methods are added to return specific types of data.
-
-  method g_slist_nth_data ( N-GSList $list, UInt $n --> Pointer )
-  method g_slist_nth_data_str ( N-GSList $list, UInt $n --> Str )
-  method g_slist_nth_data_gobject ( N-GSList $list, UInt $n --> N-GObject )
-
-=item N-GSList $list; a C<N-GSList>
-=item UInt $n; the position of the element
-
-=end pod
-
-sub g_slist_nth_data ( N-GSList $list, uint32 $n )
-  returns Pointer
-  is native(&glib-lib)
-  { * }
-
-sub g_slist_nth_data_str ( N-GSList $list, uint32 $n --> Str )
-  is native(&gtk-lib)
-  is symbol('g_slist_nth_data')
-  { * }
-
-sub g_slist_nth_data_gobject ( N-GSList $list, uint32 $n --> N-GObject )
-  is native(&gtk-lib)
-  is symbol('g_slist_nth_data')
-  { * }
-
-#-------------------------------------------------------------------------------
-=begin pod
-=begin comment
-
-=head1 Not yet implemented methods
-
-=head3 method g_slist_free_1 ( ... )
-=head3 method g_slist_free_full ( ... )
-=head3 method g_slist_insert_sorted ( ... )
-=head3 method g_slist_insert_sorted_with_data ( ... )
-=head3 method g_slist_copy_deep ( ... )
-=head3 method g_slist_find_custom ( ... )
-=head3 method g_slist_sort ( ... )
-=head3 method g_slist_sort_with_data ( ... )
-=head3 method g_slist_foreach ( ... )
-
-=head3 method g_slist_append ( ... )
-=head3 method g_slist_prepend ( ... )
-=head3 method g_slist_insert ( ... )
-=head3 method g_slist_insert_before ( ... )
-=head3 method g_slist_concat ( ... )
-=head3 method g_slist_remove ( ... )
-=head3 method g_slist_remove_all ( ... )
-=head3 method g_slist_remove_link ( ... )
-=head3 method g_slist_delete_link ( ... )
-=head3 method g_slist_find ( ... )
-=head3 method g_slist_find_custom ( ... )
-=head3 method g_slist_position ( ... )
-=head3 method g_slist_index ( ... )
-=head3 method  ( ... )
-=head3 method  ( ... )
-
-=end comment
-=end pod
-
-#-------------------------------------------------------------------------------
-=begin pod
-=begin comment
-
-=head1 Not implemented methods
-
-=head3 method  ( ... )
-
-=end comment
-=end pod
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-=finish
 #-------------------------------------------------------------------------------
 sub g_slist_length ( N-GSList $list --> uint32 )
   is native(&gtk-lib)
