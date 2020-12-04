@@ -4,17 +4,18 @@ use v6;
 #-------------------------------------------------------------------------------
 =begin pod
 
-=TITLE Gnome::Glib::Quark
+=head1 Gnome::Glib::Quark
 
-=SUBTITLE a 2-way association between a string and a unique integer identifier
+Quark - a 2-way association between a string and a unique integer identifier
 
 =head1 Description
 
 Quarks are associations between strings and integer identifiers or a I<GQuark>. Given either the string or the I<GQuark> identifier it is possible to retrieve the other.
 
 =begin comment
-Quarks are used for both [datasets](https://developer.gnome.org/glib/stable/glib-Datasets.html) and [keyed data lists](https://developer.gnome.org/glib/stable/glib-Keyed-Data-Lists.html).
+Quarks are used for both datasets](https://developer.gnome.org/glib/stable/glib-Datasets.html) and [keyed data lists](https://developer.gnome.org/glib/stable/glib-Keyed-Data-Lists.html).
 =end comment
+
 Quarks are used for example to specify error domains, see also I<Gnome::Glib::Error>.
 
 To create a new quark from a string, use C<g_quark_from_string()>.
@@ -37,7 +38,8 @@ Another use for the string pool maintained for the quark functions is string int
   use Test;
   use Gnome::Glib::Quark;
 
-  my Int $q = $quark.try-string('my string');
+  my Gnome::Glib::Quark $quark .= new;
+  my UInt $q = $quark.try-string('my string');
   is $q, 0, 'no quark for string';
 
   $q = $quark.from-string('my 2nd string');
@@ -52,6 +54,7 @@ use NativeCall;
 use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::N-GObject;
+use Gnome::N::GlibToRakuTypes;
 
 #-------------------------------------------------------------------------------
 # /usr/include/gtk-3.0/gtk/INCLUDE
@@ -63,6 +66,7 @@ unit class Gnome::Glib::Quark:auth<github:MARTIMM>;
 #TS:1:new
 =begin pod
 =head2 new
+=head3 default, no options
 
 Create a new quark object.
 
@@ -89,9 +93,6 @@ submethod BUILD ( *%options ) {
       )
     );
   }
-
-  else {  } #elsif %options<empty>:exists {
-
 }
 
 #-------------------------------------------------------------------------------
@@ -130,10 +131,82 @@ Returns: the I<GQuark> associated with the string, or 0 if I<$string> is undefin
 
 =end pod
 
-sub g_quark_try_string ( Str $string )
-  returns int32
+sub g_quark_try_string ( Str $string --> GQuark )
   is native(&glib-lib)
   { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:g_quark_from_string
+=begin pod
+=head2 [[g_] quark_] from_string
+
+Gets the I<GQuark> identifying the given string. If the string does not currently have an associated I<GQuark>, a new I<GQuark> is created, using a copy of the string.
+
+Returns: the I<GQuark> identifying the string, or 0 if I<$string> is undefined
+
+  method g_quark_from_string ( Str $string --> Int  )
+
+=item Str $string: a string
+
+=end pod
+
+sub g_quark_from_string ( Str $string --> GQuark )
+  is native(&glib-lib)
+  { * }
+
+
+#-------------------------------------------------------------------------------
+#TM:1:g_quark_to_string
+=begin pod
+=head2 [[g_] quark_] to_string
+
+Gets the string associated with the given GQuark.
+
+  method g_quark_to_string ( Int $quark --> Str  )
+
+=end pod
+
+sub g_quark_to_string ( GQuark $quark --> Str )
+  is native(&glib-lib)
+  { * }
+
+
+
+
+
+=finish
+
+#`{{
+#-------------------------------------------------------------------------------
+#TM:0:g_quark_from_static_string
+=begin pod
+=head2 [[g_] quark_] from_static_string
+
+Gets the I<GQuark> identifying the given (static) string. If the
+string does not currently have an associated I<GQuark>, a new I<GQuark>
+is created, linked to the given string.
+
+Note that this function is identical to C<g_quark_from_string()> except
+that if a new I<GQuark> is created the string itself is used rather
+than a copy. This saves memory, but can only be used if the string
+will continue to exist until the program terminates. It can be used
+with statically allocated strings in the main program, but not with
+statically allocated memory in dynamically loaded modules, if you
+expect to ever unload the module again (e.g. do not use this
+function in GTK+ theme engines).
+
+Returns: the I<GQuark> identifying the string, or 0 if I<$string> is undefined
+
+  method g_quark_from_static_string ( Str $string --> N-GObject  )
+
+=item Str $string: a string
+
+=end pod
+
+sub g_quark_from_static_string ( Str $string --> N-GObject )
+  is native(&glib-lib)
+  { * }
+}}
 
 #`{{
 #-------------------------------------------------------------------------------
@@ -161,33 +234,10 @@ Returns: the I<GQuark> identifying the string, or 0 if I<$string> is undefined
 
 =end pod
 
-sub g_quark_from_static_string ( Str $string )
-  returns N-GObject
+sub g_quark_from_static_string ( Str $string --> N-GObject )
   is native(&glib-lib)
   { * }
 }}
-
-#-------------------------------------------------------------------------------
-#TM:1:g_quark_from_string
-=begin pod
-=head2 [[g_] quark_] from_string
-
-Gets the I<GQuark> identifying the given string. If the string does
-not currently have an associated I<GQuark>, a new I<GQuark> is created,
-using a copy of the string.
-
-Returns: the I<GQuark> identifying the string, or 0 if I<$string> is undefined
-
-  method g_quark_from_string ( Str $string --> Int  )
-
-=item Str $string: a string
-
-=end pod
-
-sub g_quark_from_string ( Str $string )
-  returns int32
-  is native(&glib-lib)
-  { * }
 
 #`{{
 #-------------------------------------------------------------------------------
@@ -208,11 +258,11 @@ Since: 2.10
 
 =end pod
 
-sub g_intern_string ( Str $string )
-  returns Str
+sub g_intern_string ( Str $string --> Str )
   is native(&glib-lib)
   { * }
 }}
+
 #`{{
 #-------------------------------------------------------------------------------
 =begin pod
@@ -233,49 +283,7 @@ Since: 2.10
 
 =end pod
 
-sub g_intern_static_string ( Str $string )
-  returns Str
+sub g_intern_static_string ( Str $string --> Str )
   is native(&glib-lib)
   { * }
 }}
-
-#-------------------------------------------------------------------------------
-#TM:1:g_quark_to_string
-=begin pod
-=head2 [[g_] quark_] to_string
-
-Gets the string associated with the given GQuark.
-
-  method g_quark_to_string ( Int $quark --> Str  )
-
-=end pod
-
-sub g_quark_to_string ( int32 $quark )
-  returns Str
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-=begin pod
-=begin comment
-
-=head1 Not yet implemented methods
-
-=head3 method  ( ... )
-
-=end comment
-=end pod
-
-#-------------------------------------------------------------------------------
-=begin pod
-=begin comment
-
-=head1 Not implemented methods
-
-=head3 method g_quark_from_static_string ( ... )
-=head3 method g_intern_string ( ... )
-=head3 method g_intern_static_string ( ... )
-=head3 method  ( ... )
-
-=end comment
-=end pod
