@@ -4,7 +4,7 @@
 #  https://www.archlinux.org/pacman/pacman.8.html
 
 os: Visual Studio 2019
-version: 0.17.3.6
+version: 0.17.3.7
 image:
   - Visual Studio 2019
 
@@ -21,12 +21,12 @@ environment:
   raku_test_all: 1
 
 install:
-  - set PATH=C:\msys64\usr\bin;C:\msys64\usr\lib;%PATH%
+  - set PATH=C:\msys64\mingw64\bin;%PATH%
   - bash -lc "pacman -S --noconfirm mingw-w64-x86_64-gtk3"
 #  - bash -lc "pacman -S --noconfirm mingw-w64-x86_64-toolchain base-devel"
   - cmd: dir C:\msys64
-  - cmd: dir C:\msys64\usr\bin
-  - cmd: dir C:\msys64\usr\lib
+  - cmd: dir C:\msys64\mingw32\bin
+  - cmd: dir C:\msys64\mingw64\bin
 
   - choco feature enable -n allowEmptyChecksums
   - choco install rakudostar
