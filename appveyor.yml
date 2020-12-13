@@ -4,7 +4,7 @@
 #  https://www.archlinux.org/pacman/pacman.8.html
 
 os: Visual Studio 2019
-version: 0.17.3.10
+#version: 0.17.3.10
 image:
   - Visual Studio 2019
 
@@ -24,8 +24,8 @@ install:
   - set PATH=C:\msys64\usr\bin;C:\msys64\mingw64\bin;%PATH%
   - bash -lc "pacman -S --noconfirm mingw-w64-x86_64-gtk3"
 #  - bash -lc "pacman -S --noconfirm mingw-w64-x86_64-toolchain base-devel"
-  - cmd: dir C:\msys64
-  - cmd: dir C:\msys64\mingw64\bin
+#  - cmd: dir C:\msys64
+#  - cmd: dir C:\msys64\mingw64\bin
 
   - choco feature enable -n allowEmptyChecksums
   - choco install rakudostar
@@ -43,10 +43,10 @@ build: off
 test_script:
   - SET PATH=%APPVEYOR_BUILD_FOLDER%\..\rakudo\install\share\perl6\site\bin;C:\msys64\mingw64\bin;%PATH%
   - zef --verbose install .
-  - cd %APPVEYOR_BUILD_FOLDER%\..
+#  - cd %APPVEYOR_BUILD_FOLDER%\..
 
 # fetch repository as zip archive
-shallow_clone: true
+#shallow_clone: true
 
 # set clone depth
 #clone_depth: 4
