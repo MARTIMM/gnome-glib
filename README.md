@@ -1,11 +1,22 @@
 ![gtk logo][logo]
-
+<!--
+[![Build Status](https://travis-ci.org/MARTIMM/gnome-glib.svg?branch=master)](https://travis-ci.org/MARTIMM/gnome-glib) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/MARTIMM/gnome-glib?branch=master&passingText=Windows%20-%20OK&failingText=Windows%20-%20FAIL&pendingText=Windows%20-%20pending&svg=true)](https://ci.appveyor.com/project/MARTIMM/gnome-glib/branch/master) [![License](http://martimm.github.io/label/License-label.svg)](http://www.perlfoundation.org/artistic_license_2_0)
+-->
 # Gnome Glib - C-based object and type system with signals and slots
 
-[![Build Status](https://travis-ci.org/MARTIMM/gnome-glib.svg?branch=master)](https://travis-ci.org/MARTIMM/gnome-glib) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/MARTIMM/gnome-glib?branch=master&passingText=Windows%20-%20OK&failingText=Windows%20-%20FAIL&pendingText=Windows%20-%20pending&svg=true)](https://ci.appveyor.com/project/MARTIMM/gnome-glib/branch/master) [![License](http://martimm.github.io/label/License-label.svg)](http://www.perlfoundation.org/artistic_license_2_0)
+![T][travis-svg] ![A][appveyor-svg] ![L][license-svg]
 
+[travis-svg]: https://travis-ci.org/MARTIMM/gnome-glib.svg?branch=master
+[travis-run]: https://travis-ci.org/MARTIMM/gnome-glib
+
+[appveyor-svg]: https://ci.appveyor.com/api/projects/status/github/MARTIMM/gnome-glib?branch=master&passingText=Windows%20-%20OK&failingText=Windows%20-%20FAIL&pendingText=Windows%20-%20pending&svg=true
+[appveyor-run]: https://ci.appveyor.com/project/MARTIMM/gnome-glib/branch/master
+
+[license-svg]: http://martimm.github.io/label/License-label.svg
+[licence-lnk]: http://www.perlfoundation.org/artistic_license_2_0
+
+<!--
 # Description
-
 # Documentation
 
 | Pdf from pod | Link to Gnome Developer |
@@ -17,6 +28,13 @@
 
 ## Release notes
 * [Release notes][changes]
+-->
+## Documentation
+[ 🔗 Website](https://martimm.github.io/gnome-gtk3/content-docs/reference-glib.html)
+[ 🔗 Travis-ci run on master branch][travis-run]
+[ 🔗 Appveyor run on master branch][appveyor-run]
+[ 🔗 License document][licence-lnk]
+[ 🔗 Release notes][changes]
 
 # Installation
 Do not install this package on its own. Instead install `Gnome::Gtk3`.
@@ -39,10 +57,9 @@ There are always some problems! If you find one please help by filing an issue a
 * Other helpful modules for their insight and use.
 
 [//]: # (---- [refs] ----------------------------------------------------------)
-[appveyor]: https://ci.appveyor.com/api/projects/status/github/MARTIMM/gnome-glib?branch=master&passingText=Windows%20-%20OK&failingText=Windows%20-%20FAIL&pendingText=Windows%20-%20pending&svg=true)](https://ci.appveyor.com/project/MARTIMM/gnome-glib/branch/master
 
 [changes]: https://github.com/MARTIMM/gnome-glib/blob/master/CHANGES.md
-[logo]: https://github.com/MARTIMM/gnome-glib/blob/master/doc/images/gtk-logo-100.png
+[logo]: https://martimm.github.io/gnome-gtk3/content-docs/images/gtk-raku.png
 [issues]: https://github.com/MARTIMM/gnome-gtk3/issues
 
 [Error]: https://developer.gnome.org/glib/stable/glib-Error-Reporting.html
