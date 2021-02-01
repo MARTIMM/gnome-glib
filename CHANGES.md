@@ -3,6 +3,7 @@
   * Copied N-GVariantType and N-GVariant from Gnome::N package.
   * Revisited VariantType module and added tests.
   * VariantIter and VariantBuilder are removed till better times.
+  * Btw, Variant modules are still on hold!
 
 * 2020-12-01 0.17.3
   * Changes to use **Gnome::N::GlibToRakuTypes**.
