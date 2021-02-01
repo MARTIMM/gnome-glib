@@ -4,9 +4,15 @@ use NativeCall;
 use Test;
 
 use Gnome::N::N-GVariant;
-use Gnome::Glib::Error;
 use Gnome::Glib::Variant;
 use Gnome::Glib::VariantType;
+
+ok 1, 'loads ok';
+done-testing;
+exit;
+
+=finish
+use Gnome::Glib::Error;
 
 use Gnome::N::X;
 #Gnome::N::debug(:on);
@@ -46,6 +52,13 @@ subtest 'ISA test', {
 }
 
 #-------------------------------------------------------------------------------
+# set environment variable 'raku-test-all' if rest must be tested too.
+unless %*ENV<raku_test_all>:exists {
+  done-testing;
+  exit;
+}
+
+#-------------------------------------------------------------------------------
 #Gnome::N::debug(:on);
 subtest 'Manipulations', {
   my ( N-GVariant $nv2, Gnome::Glib::Error $e) =
@@ -79,28 +92,6 @@ subtest 'Manipulations', {
   my Gnome::Glib::Variant $v3 .= new(:native-object($v2.new-boolean(True)));
   is $v3.get-type-string, 'b', '.new-boolean()';
 }
-
-#`{{
-#-------------------------------------------------------------------------------
-subtest 'Inherit ...', {
-}
-
-#-------------------------------------------------------------------------------
-subtest 'Interface ...', {
-}
-
-#-------------------------------------------------------------------------------
-subtest 'Properties ...', {
-}
-
-#-------------------------------------------------------------------------------
-subtest 'Themes ...', {
-}
-
-#-------------------------------------------------------------------------------
-subtest 'Signals ...', {
-}
-}}
 
 #-------------------------------------------------------------------------------
 done-testing;
