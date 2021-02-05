@@ -112,6 +112,100 @@ also is Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
 =begin pod
+=head1 Types
+=end pod
+
+#-------------------------------------------------------------------------------
+=begin pod
+=head2 Type constants
+
+=item G_VARIANT_TYPE_BOOLEAN; The type of a value that can be either TRUE or FALSE.
+
+=item G_VARIANT_TYPE_BYTE; The type of an integer value that can range from 0 to 255.
+
+=item G_VARIANT_TYPE_INT16; The type of an integer value that can range from -32768 to 32767.
+
+=item G_VARIANT_TYPE_UINT16; The type of an integer value that can range from 0 to 65535. There were about this many people living in Toronto in the 1870s.
+=item G_VARIANT_TYPE_INT32; The type of an integer value that can range from -2147483648 to 2147483647.
+
+=item G_VARIANT_TYPE_UINT32; The type of an integer value that can range from 0 to 4294967295. That's one number for everyone who was around in the late 1970s.
+
+=item G_VARIANT_TYPE_INT64; The type of an integer value that can range from -9223372036854775808 to 9223372036854775807.
+
+=item G_VARIANT_TYPE_UINT64; The type of an integer value that can range from 0 to 18446744073709551615 (inclusive). That's a really big number, but a Rubik's cube can have a bit more than twice as many possible positions.
+
+=item G_VARIANT_TYPE_HANDLE; The type of a 32bit signed integer value, that by convention, is used as an index into an array of file descriptors that are sent alongside a D-Bus message. If you are not interacting with D-Bus, then there is no reason to make use of this type.
+
+=item G_VARIANT_TYPE_DOUBLE; The type of a double precision IEEE754 floating point number. These guys go up to about 1.80e308 (plus and minus) but miss out on some numbers in between. In any case, that's far greater than the estimated number of fundamental particles in the observable universe.
+
+=item G_VARIANT_TYPE_STRING; The type of a string. "" is a string. NULL is not a string.
+
+=item G_VARIANT_TYPE_OBJECT_PATH; The type of a D-Bus object reference. These are strings of a specific format used to identify objects at a given destination on the bus. If you are not interacting with D-Bus, then there is no reason to make use of this type. If you are, then the D-Bus specification contains a precise description of valid object paths.
+
+=item G_VARIANT_TYPE_SIGNATURE; The type of a D-Bus type signature. These are strings of a specific format used as type signatures for D-Bus methods and messages. If you are not interacting with D-Bus, then there is no reason to make use of this type. If you are, then the D-Bus specification contains a precise description of valid signature strings.
+
+=item G_VARIANT_TYPE_VARIANT; The type of a box that contains any other value (including another variant).
+
+=item G_VARIANT_TYPE_ANY; An indefinite type that is a supertype of every type (including itself).
+
+=item G_VARIANT_TYPE_BASIC; An indefinite type that is a supertype of every basic (ie: non-container) type.
+
+=item G_VARIANT_TYPE_MAYBE; An indefinite type that is a supertype of every maybe type.
+
+=item G_VARIANT_TYPE_ARRAY; An indefinite type that is a supertype of every array type.
+
+=item G_VARIANT_TYPE_TUPLE; An indefinite type that is a supertype of every tuple type, regardless of the number of items in the tuple.
+
+=item G_VARIANT_TYPE_UNIT; The empty tuple type. Has only one instance. Known also as "triv" or "void".
+
+=item G_VARIANT_TYPE_DICT_ENTRY; An indefinite type that is a supertype of every dictionary entry type.
+
+=item G_VARIANT_TYPE_DICTIONARY; An indefinite type that is a supertype of every dictionary type -- that is, any array type that has an element type equal to any dictionary entry type.
+
+=item G_VARIANT_TYPE_STRINGARRAY; The type of an array of strings.
+
+=item G_VARIANT_TYPE_OBJECT_PATH_ARRAY; The type of an array of object paths.
+
+=item G_VARIANT_TYPE_BYTESTRING; The type of an array of bytes. This type is commonly used to pass around strings that may not be valid utf8. In that case, the convention is that the nul terminator character should be included as the last character in the array.
+
+=item G_VARIANT_TYPE_BYTESTRING_ARRAY; The type of an array of byte strings (an array of arrays of bytes).
+
+=item G_VARIANT_TYPE_VARDICT; The type of a dictionary mapping strings to variants (the ubiquitous "a{sv}" type).
+
+=end pod
+
+#TT:1:GVariantTypeConstants
+constant G_VARIANT_TYPE_BOOLEAN is export = 'b';
+constant G_VARIANT_TYPE_BYTE is export = 'y';
+constant G_VARIANT_TYPE_INT16 is export = 'n';
+constant G_VARIANT_TYPE_UINT16 is export = 'q';
+constant G_VARIANT_TYPE_INT32 is export = 'i';
+constant G_VARIANT_TYPE_UINT32 is export = 'u';
+constant G_VARIANT_TYPE_INT64 is export = 'x';
+constant G_VARIANT_TYPE_UINT64 is export = 't';
+constant G_VARIANT_TYPE_HANDLE is export = 'h';
+constant G_VARIANT_TYPE_DOUBLE is export = 'd';
+constant G_VARIANT_TYPE_STRING is export = 's';
+constant G_VARIANT_TYPE_OBJECT_PATH is export = 'o';
+constant G_VARIANT_TYPE_SIGNATURE is export = 'g';
+constant G_VARIANT_TYPE_VARIANT is export = 'v';
+constant G_VARIANT_TYPE_ANY is export = '*';
+constant G_VARIANT_TYPE_BASIC is export = '?';
+constant G_VARIANT_TYPE_MAYBE is export = 'm*';
+constant G_VARIANT_TYPE_ARRAY is export = 'a*';
+constant G_VARIANT_TYPE_TUPLE is export = 'r';
+constant G_VARIANT_TYPE_UNIT is export = '()';
+constant G_VARIANT_TYPE_DICT_ENTRY is export = '{?*}';
+constant G_VARIANT_TYPE_DICTIONARY is export = 'a{?*}';
+constant G_VARIANT_TYPE_STRINGARRAY is export = 'as';
+constant G_VARIANT_TYPE_OBJECT_PATH_ARRAY is export = 'ao';
+constant G_VARIANT_TYPE_BYTESTRING is export = 'ay';
+constant G_VARIANT_TYPE_BYTESTRING_ARRAY is export = 'aay';
+constant G_VARIANT_TYPE_VARDICT is export = 'a{sv}';
+#constant G_VARIANT_TYPE_ is export = '';
+
+#-------------------------------------------------------------------------------
+=begin pod
 =head1 Methods
 =head2 new
 
