@@ -1,4 +1,7 @@
 ## Release notes
+* 2021-02-07 0.18.1
+  Copied back a removed module.
+
 * 2021-01-29 0.18.0
   * Copied N-GVariantType and N-GVariant from Gnome::N package.
   * Revisited VariantType and Variant modules and added tests.
