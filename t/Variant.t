@@ -24,6 +24,13 @@ subtest 'ISA test', {
 }
 
 #-------------------------------------------------------------------------------
+# set environment variable 'raku-test-all' if rest must be tested too.
+unless %*ENV<raku_test_all>:exists {
+  done-testing;
+  exit;
+}
+
+#-------------------------------------------------------------------------------
 subtest 'Other init steps', {
 
   # 'ai' = array of signed int32
@@ -113,7 +120,6 @@ subtest 'Other init steps', {
   is $v.get-type-string, 'v', '.new(:variant)';
   $v.clear-object;
 
-
   $v .= new( :type-string<(sub)>, :parse('("abc",20,true)'));
   is $v.get-type-string, '(sub)', '.new( :type-string, :parse)';
   $v.clear-object;
@@ -198,9 +204,17 @@ subtest 'Other tests', {
   ok $v.is-container, '.is-container()';
   ok $v.is-of-type(Gnome::Glib::VariantType.new(:type-string<v>)),
     '.is-of-type()';
-
   $v.clear-object;
 
+#`{{
+  my Array $array = [];
+  for 40..50 -> $value {
+    $array.push: Gnome::Glib::Variant.new( :type-string<i>, :$value);
+  }
+  $v .= new(:$array);
+  is $v.print(False), '[40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50]',
+    '.print()';
+}}
 
 #`{{
   $v .= new(:());
