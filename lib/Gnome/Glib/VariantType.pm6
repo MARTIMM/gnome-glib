@@ -107,7 +107,7 @@ use Gnome::Glib::N-GVariantType;
 use Gnome::Glib::N-GVariantType;
 
 #-------------------------------------------------------------------------------
-unit class Gnome::Glib::VariantType:auth<github:MARTIMM>;
+unit class Gnome::Glib::VariantType:auth<github:MARTIMM>:ver<0.1.0>;
 also is Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
