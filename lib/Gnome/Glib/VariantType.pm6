@@ -311,7 +311,7 @@ method _fallback ( $native-sub --> Callable ) {
 
 #-------------------------------------------------------------------------------
 # no ref/unref for a variant type
-method native-object-ref ( $n-native-object --> N-GVariantType ) {
+method native-object-ref ( $n-native-object ) {
   $n-native-object
 }
 
