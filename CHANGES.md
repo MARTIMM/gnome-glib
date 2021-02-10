@@ -1,4 +1,8 @@
 ## Release notes
+* 2021-02-10 0.18.2
+  * Change new( :type-string, :parse) init. :type-string is now optional. Format of the :parse string can be found [here](https://developer.gnome.org/glib/stable/gvariant-text.html). You can see that a type can be inserted when it is not a default.
+  * Bugfixes caused by moved types from Gnome::N to Gnome::Glib.
+
 * 2021-02-07 0.18.1
   Copied back a removed module.
 
