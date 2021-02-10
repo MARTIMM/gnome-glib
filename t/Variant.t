@@ -3,7 +3,7 @@ use v6;
 use NativeCall;
 use Test;
 
-use Gnome::N::N-GVariant;
+use Gnome::Glib::N-GVariant;
 use Gnome::Glib::Variant;
 use Gnome::Glib::VariantType;
 
@@ -20,6 +20,18 @@ subtest 'ISA test', {
   $v .= new( :type-string<u>, :value(40));
   ok $v.is-valid, 'valid object';
   is $v.get-type-string, 'u', '.new( :type-string<u>, :value)';
+  $v.clear-object;
+
+  $v .= new( :type-string<u>, :parse<40>);
+  ok $v.is-valid, 'valid object';
+  is $v.get-type-string, 'u', '.new(:parse)';
+  is $v.get-uint32, 40, '.get-uint32()';
+  $v.clear-object;
+
+  $v .= new(:parse('int64 -40'));
+  ok $v.is-valid, 'valid object';
+  is $v.get-type-string, 'x', '.new(:parse)';
+  is $v.get-int64, -40, '.get-int64()';
   $v.clear-object;
 }
 

@@ -241,7 +241,6 @@ use Gnome::N::TopLevelClassSupport;
 use Gnome::N::GlibToRakuTypes;
 
 use Gnome::Glib::N-GVariant;
-#use Gnome::Glib::N-GVariantIter;
 use Gnome::Glib::N-GVariantType;
 use Gnome::Glib::Error;
 use Gnome::Glib::VariantType;
@@ -534,9 +533,9 @@ Creates a new variant Variant. Its type becomes 'v'.
 
 =head3 :type-string, :parse
 
-Create a new Variant object by parsing the type and data provided in strings.
+Create a new Variant object by parsing the type and data provided in strings. The format of the parse string is L<described here|https://developer.gnome.org/glib/stable/gvariant-text.html>.
 
-  multi method new ( Str :$type-string!, Str :$parse! )
+  multi method new ( Str :$type-string?, Str :$parse! )
 
 =head4 Example
 
@@ -545,6 +544,10 @@ Create a Variant tuple containing a string, an unsigned integer and a boolean (N
   my Gnome::Glib::Variant $v .= new(
     :type-string<(sub)>, :parse('("abc",20,true)')
   );
+
+Because the values in the :parse string take the default types you can also leave out the type string;
+
+  my Gnome::Glib::Variant $v .= new(:parse('("abc",20,true)'));
 
 
 =head3 :type-string, :value
@@ -696,25 +699,17 @@ submethod BUILD ( *%options ) {
 
 }}
 
-      elsif %options<type-string>:exists {
+      elsif %options<parse>:exists {
+        my Gnome::Glib::Error $e;
+        ( $no, $e) = _g_variant_parse(|%options);
 
-        if %options<value>:exists {
-          $no = _g_variant_new( %options<type-string>, %options<value>);
-        }
-
-        #elsif %options<values>:exists {
-        #  $no = _g_variant_new2( %options<type-string>, |%options<values>);
-        #}
-
-        elsif %options<parse>:exists {
-          my Gnome::Glib::Error $e;
-          ( $no, $e) = _g_variant_parse(
-            %options<type-string>, %options<parse>
-          );
-
-          die X::Gnome.new(:message($e.message)) if $e.is-valid;
-        }
+        die X::Gnome.new(:message($e.message)) if $e.is-valid;
       }
+
+      elsif %options<value>:exists {
+        $no = _g_variant_new( %options<type-string> // '', %options<value>);
+      }
+
 
       self.set-native-object($no);
     }
@@ -2339,7 +2334,7 @@ There may be implementation specific restrictions on deeply nested values, which
 
   method g_variant_parse ( Str $type-string, Str $text --> List )
 
-=item Str $type-string; String like it is used to create a Gnome::Glib::VariantType
+=item Str $type-string; String like it is used to create a Gnome::Glib::VariantType. May be undefined.
 =item Str $text; Textual representation of data.
 
 The returned List has members
@@ -2349,13 +2344,22 @@ The returned List has members
 =end pod
 }}
 
-sub _g_variant_parse ( Str:D $type-string, Str:D $text --> List ) {
-  my Gnome::Glib::VariantType $vt .= new(:$type-string);
+sub _g_variant_parse ( Str :$type-string = '', Str:D :$parse --> List ) {
+
+  my N-GVariantType $nvt;
+  if ?$type-string {
+    $nvt = Gnome::Glib::VariantType.new(
+      :$type-string
+    ).get-native-object-no-reffing;
+  }
+
+  else {
+    $nvt = N-GVariantType;
+  }
+
   my Gnome::Glib::Error $parse-error;
   my CArray[N-GError] $ne .= new(N-GError);
-  my N-GVariant $v = g_variant_parse(
-    $vt.get-native-object, $text, Str, OpaquePointer, $ne
-  );
+  my N-GVariant $v = g_variant_parse( $nvt, $parse, Str, gchar-pptr, $ne);
 
   if ?$v {
     $parse-error = Gnome::Glib::Error.new(:native-object(N-GError))
@@ -2368,8 +2372,10 @@ sub _g_variant_parse ( Str:D $type-string, Str:D $text --> List ) {
   ( $v, $parse-error)
 }
 
-sub g_variant_parse ( N-GVariantType $type, gchar-ptr $text, gchar-ptr $limit, gchar-pptr $endptr, CArray[N-GError] $error --> N-GVariant )
-  is native(&glib-lib)
+sub g_variant_parse (
+  N-GVariantType $type, gchar-ptr $text, gchar-ptr $limit,
+  gchar-pptr $endptr, CArray[N-GError] $error --> N-GVariant
+) is native(&glib-lib)
   { * }
 
 #`{{
