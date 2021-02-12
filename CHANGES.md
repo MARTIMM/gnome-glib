@@ -1,4 +1,7 @@
 ## Release notes
+* 2021-02-12 0.18.3
+  * Extracted **Gnome::Glib::MainContext**, **Gnome::Glib::MainLoop**, **Gnome::Glib::N-GMainContext** and **Gnome::Glib::N-GMainLoop** from the original module **Gnome::Glib::Main**.
+
 * 2021-02-10 0.18.2
   * Change new( :type-string, :parse) init. :type-string is now optional. Format of the :parse string can be found [here](https://developer.gnome.org/glib/stable/gvariant-text.html). You can see that a type can be inserted when it is not a default.
   * Bugfixes caused by moved types from Gnome::N to Gnome::Glib.
