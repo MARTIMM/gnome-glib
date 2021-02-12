@@ -3,7 +3,7 @@ use v6;
 #-------------------------------------------------------------------------------
 =begin pod
 
-=head1 Gnome::Glib::Error
+=head1 Gnome::Glib::Main
 
 The Main Event Loop — manages all available sources of events
 
@@ -159,7 +159,12 @@ Create a new Main object.
 #TM:1:new():
 #TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
 #TM:4:new(:build-id):Gnome::GObject::Object
-#submethod BUILD ( *%options ) { }
+
+submethod BUILD ( *%options ) {
+  Gnome::N::deprecate(
+    'used from package Main', 'methods used from MainContext and MainLoop', '0.18.3', '0.20.0'
+  );
+}
 
 #-------------------------------------------------------------------------------
 # no pod. user does not have to know about it.
