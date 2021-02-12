@@ -16,6 +16,12 @@ subtest 'ISA test', {
   isa-ok $m, Gnome::Glib::Main, '.new()';
 }
 
+#-------------------------------------------------------------------------------
+# module is splitup in smaller parts
+done-testing;
+
+=finish
+
 #`{{
 #-------------------------------------------------------------------------------
 subtest 'Manipulations', {
@@ -137,6 +143,62 @@ subtest 'Signals ...', {
   is $p.result, 'done', 'emitter finished';
 }
 }}
+
+#-------------------------------------------------------------------------------
+# method copied from Gnome::GObject::Object to test Main and MainContext
+sub start-thread (
+  $handler-object, Str:D $handler-name, Int $priority = G_PRIORITY_DEFAULT,
+  Bool :$new-context = False, Instant :$start-time = now + 1, *%user-options
+  --> Promise
+) {
+
+  # don't start thread if handler is not available
+  my Method $sh = $handler-object.^lookup($handler-name) // Method;
+  die X::Gnome.new(
+    :message("Method '$handler-name' not available in object")
+  ) unless ? $sh;
+
+  my Promise $p = Promise.at($start-time).then( {
+
+      my Gnome::Glib::Main $gmain .= new;
+
+      # This part is important that it happens in the thread where the
+      # function is invoked in that context!
+      my $gmain-context;
+      if $new-context {
+        $gmain-context = $gmain.context-new;
+        $gmain.context-push-thread-default($gmain-context);
+      }
+
+      else {
+        $gmain-context = $gmain.context-get-thread-default;
+      }
+
+      my $return-value;
+      $gmain.context-invoke-full(
+        $gmain-context, $priority,
+        -> gpointer $d {
+          CATCH { default { .message.note; .backtrace.concise.note } }
+
+          $return-value = $handler-object."$handler-name"(
+            :widget(self), :_widget(self), |%user-options
+          );
+
+          G_SOURCE_REMOVE
+        },
+        gpointer, gpointer
+      );
+
+      if $new-context {
+        $gmain-context.pop-thread-default;
+      }
+
+      $return-value
+    }
+  );
+
+  $p
+}
 
 #-------------------------------------------------------------------------------
 done-testing;
