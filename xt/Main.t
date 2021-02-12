@@ -3,10 +3,11 @@ use NativeCall;
 use Test;
 
 use Gnome::Glib::Main;
-use Gnome::Gtk3::Main;
+#use Gnome::Gtk3::Main;
 
 diag "\nGlib main loop test";
 
+#`{{
 # initialize
 my Gnome::Gtk3::Main $main .= new;
 
@@ -14,6 +15,7 @@ my Gnome::Gtk3::Main $main .= new;
 my $argc = CArray[int32].new;
 $argc[0] = 0;
 is $main.gtk-init-check( $argc, CArray[CArray[Str]]), 1, "gtk initalized";
+}}
 
 #-------------------------------------------------------------------------------
 my Gnome::Glib::Main $gmain .= new;
