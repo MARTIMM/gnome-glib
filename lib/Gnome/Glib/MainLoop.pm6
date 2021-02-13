@@ -11,9 +11,10 @@ The Main Event Loop — manages all available sources of events
 
 Note that this is a low level module, please take a look at B<Gnome::Gtk3::MainLoop> first.
 
-The main event loop manages all the available sources of events for GLib and GTK+ applications. These events can come from any number of different types of sources such as file descriptors (plain files, pipes or sockets) and timeouts. New types of event sources can also be added using C<g_source_attach()>.
+The main event loop manages all the available sources of events for GLib and GTK+ applications. These events can come from any number of different types of sources such as file descriptors (plain files, pipes or sockets) and timeouts.
+=comment  New types of event sources can also be added using C<g_source_attach()>.
 
-=comment To allow multiple independent sets of sources to be handled in different threads, each source is associated with a N-GMainContext. A N-GMainContext can only be running in a single thread, but sources can be added to it and removed from it from other threads. All functions which operate on a N-GMainContext or a built-in N-GSource are thread-safe.
+To allow multiple independent sets of sources to be handled in different threads, each source is associated with a N-GMainContext. A N-GMainContext can only be running in a single thread, but sources can be added to it and removed from it from other threads. All functions which operate on a N-GMainContext or a built-in N-GSource are thread-safe. Contexts are described by B<Gnome::Gio::MainContext>
 
 Each event source is assigned a priority. The default priority, G_PRIORITY_DEFAULT, is 0. Values less than 0 denote higher priorities. Values greater than 0 denote lower priorities. Events from high priority sources are always processed before events from lower priority sources.
 
@@ -103,10 +104,8 @@ also is Gnome::N::TopLevelClassSupport;
 =item G_PRIORITY_DEFAULT_IDLE; Use this for default priority idle functions. In GLib this priority is used when adding idle functions with g_idle_add().
 =item G_PRIORITY_LOW; Use this for very low priority background tasks. It is not used within GLib or GTK+.
 
-=begin comment
-=item G_SOURCE_REMOVE; Use this macro as the return value of a GSourceFunc to leave the GSource in the main loop.
-=item G_SOURCE_CONTINUE; Use this macro as the return value of a GSourceFunc to remove the GSource from the main loop.
-=end comment
+=item G_SOURCE_REMOVE; Use this macro as the return value of a callback handler to leave the GSource in the main loop.
+=item G_SOURCE_CONTINUE; Use this macro as the return value of a callback handler to remove the GSource from the main loop.
 
 =end pod
 #TT:0:constants:

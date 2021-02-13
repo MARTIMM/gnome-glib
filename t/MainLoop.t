@@ -36,12 +36,22 @@ unless %*ENV<raku_test_all>:exists {
 subtest "start thread with a new context", {
   class ContextHandlers {
     has $.handler-invoked = False;
+    has $count = 0;
 
     method handler1 ( Str :$opt1 --> gboolean ) {
-      diag 'handler1 called';
+      diag 'handler1 called: ' ~ $count;
       is $opt1, 'o1', 'Option :opt1 received';
       $!handler-invoked = True;
-      G_SOURCE_REMOVE
+
+      # return G_SOURCE_CONTINUE 3x, the method will then be recalled 3 times
+      if ++$count > 2 {
+        $count = 0;
+        G_SOURCE_REMOVE
+      }
+
+      else {
+        G_SOURCE_CONTINUE
+      }
     }
 
     method notify ( Str :$opt2 ) {
@@ -51,13 +61,17 @@ subtest "start thread with a new context", {
   }
 
   my ContextHandlers $ch .= new;
+
+  # there is an error when initialized both times with :default;
+  #   (process:818039): GLib-CRITICAL **: 17:54:09.597:
+  #   g_main_context_push_thread_default: assertion 'acquired_context' failed
   my Gnome::Glib::MainContext $main-context1 .= new;
   my Gnome::Glib::MainLoop $loop .= new(:context($main-context1));
 
   diag "$*THREAD.id(), Start thread";
   my Promise $p = start {
     # wait for loop to start
-    sleep(1.1);
+    sleep(.3);
 
     ok $loop.is-running, '.is-running()';
 
@@ -74,6 +88,8 @@ subtest "start thread with a new context", {
 
     diag "$*THREAD.id(), " ~
          "Use .invoke-full() to invoke sub on thread";
+
+#    $main-context2.invoke( $ch, 'handler1', :opt1<o1>);
 
     $main-context2.invoke-full(
       G_PRIORITY_DEFAULT, $ch, 'handler1', $ch, 'notify', :opt1<o1>, :opt2<o2>

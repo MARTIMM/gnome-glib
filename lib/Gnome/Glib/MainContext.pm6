@@ -143,7 +143,7 @@ method native-object-unref ( $n-native-object ) {
 
 Tries to become the owner of the specified context. If some other thread is the owner of the context, returns C<False> immediately. Ownership is properly recursive: the owner can require ownership again and will release ownership when C<release()> is called as many times as C<acquire()>.  You must be the owner of a context before you can call C<prepare()>, C<query()>, C<check()>, C<dispatch()>.
 
-Returns: C<True> if the operation succeeded, and this thread is now the owner of I<context>.
+Returns: C<True> if the operation succeeded, and this thread is now the owner of the context.
 
   method acquire ( N-GMainContext $context --> Int )
 
@@ -419,23 +419,23 @@ sub _g_main_context_get_thread_default (  --> N-GMainContext )
 =begin pod
 =head2 invoke
 
-Invokes a function in such a way that I<context> is owned during the invocation of I<function>.
+Invokes a function in such a way that the context is owned during the invocation of the callback handler.
 
-If I<context> is C<undefined> then the global default main context — as returned by C<default()> — is used.
+=comment If the context is C<undefined> then the global default main context — as returned by C<default()> — is used.
 
-If I<context> is owned by the current thread, I<function> is called directly.  Otherwise, if I<context> is the thread-default main context of the current thread and C<acquire()> succeeds, then I<function> is called and C<release()> is called afterwards.
+If the context is owned by the current thread, the callback handler is called directly.  Otherwise, if the context is the thread-default main context of the current thread and C<acquire()> succeeds, then the callback handler is called and C<release()> is called afterwards.
 
-In any other case, an idle source is created to call I<function> and that source is attached to I<context> (presumably to be run in another thread).  The idle source is attached with B<G-PRIORITY-DEFAULT> priority.  If you want a different priority, use C<invoke-full()>.
+In any other case, an idle source is created to call the callback handler and that source is attached to the context (presumably to be run in another thread).  The idle source is attached with B<G-PRIORITY-DEFAULT> priority.  If you want a different priority, use C<invoke-full()>.
 
-Note that, as with normal idle functions, I<function> should probably return C<False>.  If it returns C<True>, it will be continuously run in a loop (and may prevent this call from returning).
+Note that, as with normal idle functions, the callback handler should probably return G_SOURCE_REMOVE.  If it returns G_SOURCE_CONTINUE, it will be continuously run in a loop (and may prevent this call from returning).
 
   method invoke (
     Any:D $handler-object, Str:D $method, *%options
   )
 
-=item N-GMainContext $context; (nullable): a B<N-GMainContext>, or C<undefined>
-=item GSourceFunc $function; function to call
-=item Pointer $data; data to pass to I<function>
+=item $handler-object; The object where the callback method is defined
+=item $method; The name of the callback method
+=item %options; Options which can be provided to the handler
 
 =end pod
 
@@ -444,8 +444,15 @@ method invoke ( Any:D $handler-object, Str:D $method, *%options ) {
   g_main_context_invoke(
     self.get-native-object-no-reffing,
     sub ( gpointer $d --> gboolean ) {
-      $handler-object."$method"(|%options)
-    }, Nil
+      if $handler-object.^can($method) {
+        $handler-object."$method"(|%options)
+      }
+
+      else {
+        note "Handler method $method not found";
+        0 # == false == G_SOURCE_REMOVE
+      }
+    }, Pointer
   );
 }
 
@@ -461,17 +468,19 @@ sub g_main_context_invoke (
 =begin pod
 =head2 invoke-full
 
-Invokes a function in such a way that I<context> is owned during the invocation of I<function>.  This function is the same as C<invoke()> except that it lets you specify the priority in case I<function> ends up being scheduled as an idle and also lets you give a B<GDestroyNotify> for I<data>.  I<notify> should not assume that it is called from any particular thread or with any particular context acquired.
+Invokes a function in such a way that the context is owned during the invocation of the callback handler.  This function is the same as C<invoke()> except that it lets you specify the priority in case the callback handler ends up being scheduled as an idle and also lets you define a destroy notify handler. The notify handler should not assume that it is called from any particular thread or with any particular context acquired.
 
   method invoke-full (
-    N-GMainContext $context, Int $priority, GSourceFunc $function, Pointer $data, GDestroyNotify $notify
+    Int $priority, Any:D $handler-object, Str:D $method,
+    Any:D $handler-notify-object, Str:D $method-notify, *%options
   )
 
-=item N-GMainContext $context; (nullable): a B<N-GMainContext>, or C<undefined>
-=item Int $priority; the priority at which to run I<function>
-=item GSourceFunc $function; function to call
-=item Pointer $data; data to pass to I<function>
-=item GDestroyNotify $notify; (nullable): a function to call when I<data> is no longer in use, or C<undefined>.
+=item Int $priority; the priority at which to run the callback.
+=item $handler-object; The object where the callback method is defined.
+=item $method; The name of the callback method.
+=item $handler-notify-object; The object where the destroy notify method method is defined. This is optional.
+=item $method-notify; The name of the notify method.
+=item %options; Options which are provided to the callback handler and notify methods.
 
 =end pod
 
@@ -486,6 +495,7 @@ method invoke-full (
   g_main_context_invoke_full(
     self.get-native-object-no-reffing, $priority,
     sub ( gpointer $d --> gboolean ) {
+      return unless (?$handler-object and ?$method);
 #note 'if sub 1: ', $?LINE;
       if $handler-object.^can($method) {
         $handler-object."$method"(|%options)
@@ -496,8 +506,10 @@ method invoke-full (
         0 # == false == G_SOURCE_REMOVE
       }
     }, Pointer,
-    sub ( gpointer $d --> gboolean ) {
+    sub ( gpointer $d ) {
 #note 'if sub 2: ', $?LINE;
+      return unless (?$handler-notify-object and ?$method-notify);
+
       if $handler-notify-object.^can($method-notify) {
         $handler-notify-object."$method-notify"(|%options)
       }
@@ -522,9 +534,9 @@ sub g_main_context_invoke_full (
 =begin pod
 =head2 is-owner
 
-Determines whether this thread holds the (recursive) ownership of this B<N-GMainContext>. This is useful to know before waiting on another thread that may be blocking to get ownership of I<context>.
+Determines whether this thread holds the (recursive) ownership of this B<N-GMainContext>. This is useful to know before waiting on another thread that may be blocking to get ownership of the context.
 
-Returns: C<True> if current thread is owner of I<context>.
+Returns: C<True> if current thread is owner of the context.
 
   method is-owner ( N-GMainContext $context --> Int )
 
@@ -601,7 +613,7 @@ sub g_main_context_pending ( N-GMainContext $context --> gboolean )
 =begin pod
 =head2 pop-thread-default
 
-Pops I<context> off the thread-default context stack (verifying that it was on the top of the stack).
+Pops the context off the thread-default context stack (verifying that it was on the top of the stack).
 
   method pop-thread-default ( N-GMainContext $context )
 
@@ -655,7 +667,7 @@ sub g_main_context_prepare (
 =begin pod
 =head2 push-thread-default
 
-Acquires I<context> and sets it as the thread-default context for the current thread. This will cause certain asynchronous operations (such as most [gio][gio]-based I/O) which are started in this thread to run under I<context> and deliver their results to its main loop, rather than running under the global default context in the main thread. Note that calling this function changes the context created by C<new(:thread-default)>, not the one created by C<new(:default)>
+Acquires the context and sets it as the thread-default context for the current thread. This will cause certain asynchronous operations (such as most [gio][gio]-based I/O) which are started in this thread to run under the context and deliver their results to its main loop, rather than running under the global default context in the main thread. Note that calling this function changes the context created by C<new(:thread-default)>, not the one created by C<new(:default)>
 =comment , so it does not affect the context used by functions like C<g-idle-add()>.
 
 Normally you would call this function shortly after creating a new thread, passing it a B<Gnome::Glib::MainContext> which will be run by a B<Gnome::Glib::MainLoop> in that thread, to set a new default context for all async operations in that thread. In this case you may not need to ever call C<pop-thread-default()>, assuming you want the new B<Gnome::Glib::MainContext> to be the default for the whole lifecycle of the thread.
@@ -668,15 +680,10 @@ In some cases you may want to schedule a single operation in a non-default conte
 
   method push-thread-default ( )
 
-
 =end pod
 
 method push-thread-default ( ) {
-
-note "o: ", self.get-native-object-no-reffing.gist;
-  g_main_context_push_thread_default(
-    self.get-native-object-no-reffing
-  );
+  g_main_context_push_thread_default(self.get-native-object-no-reffing);
 }
 
 sub g_main_context_push_thread_default ( N-GMainContext $context  )
@@ -723,7 +730,7 @@ sub g_main_context_query ( N-GMainContext $context, gint $max_priority, gint-ptr
 
 Increases the reference count on a B<N-GMainContext> object by one.
 
-Returns: the I<context> that was passed in (since 2.6)
+Returns: the the context that was passed in (since 2.6)
 
   method ref ( N-GMainContext $context --> N-GMainContext )
 
@@ -878,7 +885,7 @@ sub _g_main_context_unref ( N-GMainContext $context  )
 =begin pod
 =head2 wakeup
 
-If I<context> is currently blocking in C<iteration()> waiting for a source to become ready, cause it to stop blocking and return.  Otherwise, cause the next invocation of C<iteration()> to return without blocking.  This API is useful for low-level control over B<N-GMainContext>; for example, integrating it with main loop implementations such as B<Gnome::Glib::MainLoop>.  Another related use for this function is when implementing a main loop with a termination condition, computed from multiple threads:  |[<!-- language="C" -->  B<define> NUM-TASKS 10 static volatile gint tasks-remaining = NUM-TASKS; ...   while (g-atomic-int-get (&tasks-remaining) != 0) iteration (NULL, TRUE); ]|   Then in a thread: |[<!-- language="C" -->  C<perform-work()>;  if (g-atomic-int-dec-and-test (&tasks-remaining)) wakeup (NULL); ]|
+If the context is currently blocking in C<iteration()> waiting for a source to become ready, cause it to stop blocking and return.  Otherwise, cause the next invocation of C<iteration()> to return without blocking.  This API is useful for low-level control over B<N-GMainContext>; for example, integrating it with main loop implementations such as B<Gnome::Glib::MainLoop>.  Another related use for this function is when implementing a main loop with a termination condition, computed from multiple threads:  |[<!-- language="C" -->  B<define> NUM-TASKS 10 static volatile gint tasks-remaining = NUM-TASKS; ...   while (g-atomic-int-get (&tasks-remaining) != 0) iteration (NULL, TRUE); ]|   Then in a thread: |[<!-- language="C" -->  C<perform-work()>;  if (g-atomic-int-dec-and-test (&tasks-remaining)) wakeup (NULL); ]|
 
   method wakeup ( N-GMainContext $context )
 
