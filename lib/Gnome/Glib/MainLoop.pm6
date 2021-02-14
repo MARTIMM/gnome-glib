@@ -108,7 +108,7 @@ also is Gnome::N::TopLevelClassSupport;
 =item G_SOURCE_CONTINUE; Use this macro as the return value of a callback handler to remove the GSource from the main loop.
 
 =end pod
-#TT:0:constants:
+#TT:1:constants:
 constant G_PRIORITY_HIGH is export          = -100;
 constant G_PRIORITY_DEFAULT is export       = 0;
 constant G_PRIORITY_HIGH_IDLE is export     = 100;

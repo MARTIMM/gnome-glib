@@ -137,7 +137,7 @@ method native-object-unref ( $n-native-object ) {
 }
 
 #-------------------------------------------------------------------------------
-#TM:0:acquire:
+#TM:1:acquire:
 =begin pod
 =head2 acquire
 
@@ -145,79 +145,20 @@ Tries to become the owner of the specified context. If some other thread is the 
 
 Returns: C<True> if the operation succeeded, and this thread is now the owner of the context.
 
-  method acquire ( N-GMainContext $context --> Int )
-
-=item N-GMainContext $context; a B<N-GMainContext>
+  method acquire ( --> Bool )
 
 =end pod
 
-method acquire ( N-GMainContext $context --> Int ) {
+method acquire ( --> Bool ) {
 
   g_main_context_acquire(
-    self.get-native-object-no-reffing, $context
-  );
+    self.get-native-object-no-reffing
+  ).Bool;
 }
 
 sub g_main_context_acquire ( N-GMainContext $context --> gboolean )
   is native(&glib-lib)
   { * }
-
-#`{{
-#-------------------------------------------------------------------------------
-#TM:0:add-poll:
-=begin pod
-=head2 add-poll
-
-Adds a file descriptor to the set of file descriptors polled for this context. This will very seldom be used directly. Instead a typical event source will use C<g-source-add-unix-fd()> instead.
-
-  method add-poll ( N-GMainContext $context, GPollFD $fd, Int $priority )
-
-=item N-GMainContext $context; (nullable): a B<N-GMainContext> (or C<undefined> for the default context)
-=item GPollFD $fd; a B<GPollFD> structure holding information about a file descriptor to watch.
-=item Int $priority; the priority for this file descriptor which should be the same as the priority used for C<g-source-attach()> to ensure that the file descriptor is polled whenever the results may be needed.
-
-=end pod
-
-method add-poll ( N-GMainContext $context, GPollFD $fd, Int $priority ) {
-
-  g_main_context_add_poll(
-    self.get-native-object-no-reffing, $context, $fd, $priority
-  );
-}
-
-sub g_main_context_add_poll ( N-GMainContext $context, GPollFD $fd, gint $priority  )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:check:
-=begin pod
-=head2 check
-
-Passes the results of polling back to the main loop.  You must have successfully acquired the context with C<acquire()> before you may call this function.
-
-Returns: C<True> if some sources are ready to be dispatched.
-
-  method check ( N-GMainContext $context, Int $max_priority, GPollFD $fds, Int $n_fds --> Int )
-
-=item N-GMainContext $context; a B<N-GMainContext>
-=item Int $max_priority; the maximum numerical priority of sources to check
-=item GPollFD $fds; (array length=n-fds): array of B<GPollFD>'s that was passed to the last call to C<query()>
-=item Int $n_fds; return value of C<query()>
-
-=end pod
-
-method check ( N-GMainContext $context, Int $max_priority, GPollFD $fds, Int $n_fds --> Int ) {
-
-  g_main_context_check(
-    self.get-native-object-no-reffing, $context, $max_priority, $fds, $n_fds
-  );
-}
-
-sub g_main_context_check ( N-GMainContext $context, gint $max_priority, GPollFD $fds, gint $n_fds --> gboolean )
-  is native(&glib-lib)
-  { * }
-}}
 
 #-------------------------------------------------------------------------------
 #TM:1:_g_main_context_default:
@@ -254,135 +195,20 @@ sub _g_main_context_default (  --> N-GMainContext )
 
 Dispatches all pending sources.  You must have successfully acquired the context with C<acquire()> before you may call this function.
 
-  method dispatch ( N-GMainContext $context )
-
-=item N-GMainContext $context; a B<N-GMainContext>
+  method dispatch ( )
 
 =end pod
 
-method dispatch ( N-GMainContext $context ) {
+method dispatch ( ) {
 
   g_main_context_dispatch(
-    self.get-native-object-no-reffing, $context
+    self.get-native-object-no-reffing
   );
 }
 
-sub g_main_context_dispatch ( N-GMainContext $context  )
+sub g_main_context_dispatch ( N-GMainContext $context )
   is native(&glib-lib)
   { * }
-
-#`{{
-#-------------------------------------------------------------------------------
-#TM:0:find-source-by-funcs-user-data:
-=begin pod
-=head2 find-source-by-funcs-user-data
-
-Finds a source with the given source functions and user data.  If multiple sources exist with the same source function and user data, the first one found will be returned.
-
-Returns: (transfer none): the source, if one was found, otherwise C<undefined>
-
-  method find-source-by-funcs-user-data ( N-GMainContext $context, GSourceFuncs $funcs, Pointer $user_data --> GSource )
-
-=item N-GMainContext $context; (nullable): a B<N-GMainContext> (if C<undefined>, the default context will be used).
-=item GSourceFuncs $funcs; the I<source-funcs> passed to C<g-source-new()>.
-=item Pointer $user_data; the user data from the callback.
-
-=end pod
-
-method find-source-by-funcs-user-data ( N-GMainContext $context, GSourceFuncs $funcs, Pointer $user_data --> GSource ) {
-
-  g_main_context_find_source_by_funcs_user_data(
-    self.get-native-object-no-reffing, $context, $funcs, $user_data
-  );
-}
-
-sub g_main_context_find_source_by_funcs_user_data ( N-GMainContext $context, GSourceFuncs $funcs, gpointer $user_data --> GSource )
-  is native(&glib-lib)
-  { * }
-}}
-
-#`{{
-#-------------------------------------------------------------------------------
-#TM:0:find-source-by-id:
-=begin pod
-=head2 find-source-by-id
-
-Finds a B<GSource> given a pair of context and ID.  It is a programmer error to attempt to lookup a non-existent source.  More specifically: source IDs can be reissued after a source has been destroyed and therefore it is never valid to use this function with a source ID which may have already been removed.  An example is when scheduling an idle to run in another thread with C<g-idle-add()>: the idle may already have run and been removed by the time this function is called on its (now invalid) source ID.  This source ID may have been reissued, leading to the operation being performed against the wrong source.
-
-Returns: (transfer none): the B<GSource>
-
-  method find-source-by-id ( N-GMainContext $context, UInt $source_id --> GSource )
-
-=item N-GMainContext $context; (nullable): a B<N-GMainContext> (if C<undefined>, the default context will be used)
-=item UInt $source_id; the source ID, as returned by C<g-source-get-id()>.
-
-=end pod
-
-method find-source-by-id ( N-GMainContext $context, UInt $source_id --> GSource ) {
-
-  g_main_context_find_source_by_id(
-    self.get-native-object-no-reffing, $context, $source_id
-  );
-}
-
-sub g_main_context_find_source_by_id ( N-GMainContext $context, guint $source_id --> GSource )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:find-source-by-user-data:
-=begin pod
-=head2 find-source-by-user-data
-
-Finds a source with the given user data for the callback.  If multiple sources exist with the same user data, the first one found will be returned.
-
-Returns: (transfer none): the source, if one was found, otherwise C<undefined>
-
-  method find-source-by-user-data ( N-GMainContext $context, Pointer $user_data --> GSource )
-
-=item N-GMainContext $context; a B<N-GMainContext>
-=item Pointer $user_data; the user-data for the callback.
-
-=end pod
-
-method find-source-by-user-data ( N-GMainContext $context, Pointer $user_data --> GSource ) {
-
-  g_main_context_find_source_by_user_data(
-    self.get-native-object-no-reffing, $context, $user_data
-  );
-}
-
-sub g_main_context_find_source_by_user_data ( N-GMainContext $context, gpointer $user_data --> GSource )
-  is native(&glib-lib)
-  { * }
-}}
-#`{{
-#-------------------------------------------------------------------------------
-#TM:0:get-poll-func:
-=begin pod
-=head2 get-poll-func
-
-Gets the poll function set by C<set-poll-func()>.
-
-Returns: the poll function
-
-  method get-poll-func ( N-GMainContext $context --> GPollFunc )
-
-=item N-GMainContext $context; a B<N-GMainContext>
-
-=end pod
-
-method get-poll-func ( N-GMainContext $context --> GPollFunc ) {
-
-  g_main_context_get_poll_func(
-    self.get-native-object-no-reffing, $context
-  );
-}
-
-sub g_main_context_get_poll_func ( N-GMainContext $context --> GPollFunc )
-  is native(&glib-lib)
-  { * }
-}}
 
 #-------------------------------------------------------------------------------
 #TM:1:_g_main_context_get_thread_default:
@@ -437,6 +263,12 @@ Note that, as with normal idle functions, the callback handler should probably r
 =item $method; The name of the callback method
 =item %options; Options which can be provided to the handler
 
+The callback method API must be like
+
+  method handler1 ( *%options --> Int )
+
+Where %options are free to use options given at the call to C<invoke()>. The method must return G_SOURCE_REMOVE or G_SOURCE_CONTINUE depending if it wants to be recalled again.
+
 =end pod
 
 method invoke ( Any:D $handler-object, Str:D $method, *%options ) {
@@ -470,6 +302,8 @@ sub g_main_context_invoke (
 
 Invokes a function in such a way that the context is owned during the invocation of the callback handler.  This function is the same as C<invoke()> except that it lets you specify the priority in case the callback handler ends up being scheduled as an idle and also lets you define a destroy notify handler. The notify handler should not assume that it is called from any particular thread or with any particular context acquired.
 
+B<Note: Tests have shown that returning G_SOURCE_CONTINUE does not show the same results as with C<invoke()>>.
+
   method invoke-full (
     Int $priority, Any:D $handler-object, Str:D $method,
     Any:D $handler-notify-object, Str:D $method-notify, *%options
@@ -482,6 +316,12 @@ Invokes a function in such a way that the context is owned during the invocation
 =item $method-notify; The name of the notify method.
 =item %options; Options which are provided to the callback handler and notify methods.
 
+The callback method API must be like
+
+  method handler1 ( *%options --> Int )
+
+Where %options are free to use options given at the call to C<invoke-full()>. The method must return G_SOURCE_REMOVE or G_SOURCE_CONTINUE depending if it wants to be recalled again.
+
 =end pod
 
 method invoke-full (
@@ -490,13 +330,11 @@ method invoke-full (
   Any:D $handler-notify-object, Str:D $method-notify,
   *%options
 ) {
-#note 'if: ', $?LINE;
 
   g_main_context_invoke_full(
     self.get-native-object-no-reffing, $priority,
     sub ( gpointer $d --> gboolean ) {
-      return unless (?$handler-object and ?$method);
-#note 'if sub 1: ', $?LINE;
+      return 0 unless (?$handler-object and ?$method);
       if $handler-object.^can($method) {
         $handler-object."$method"(|%options)
       }
@@ -506,10 +344,8 @@ method invoke-full (
         0 # == false == G_SOURCE_REMOVE
       }
     }, Pointer,
-    sub ( gpointer $d ) {
-#note 'if sub 2: ', $?LINE;
+    -> gpointer $d {
       return unless (?$handler-notify-object and ?$method-notify);
-
       if $handler-notify-object.^can($method-notify) {
         $handler-notify-object."$method-notify"(|%options)
       }
@@ -530,7 +366,7 @@ sub g_main_context_invoke_full (
 
 
 #-------------------------------------------------------------------------------
-#TM:0:is-owner:
+#TM:1:is-owner:
 =begin pod
 =head2 is-owner
 
@@ -538,16 +374,14 @@ Determines whether this thread holds the (recursive) ownership of this B<N-GMain
 
 Returns: C<True> if current thread is owner of the context.
 
-  method is-owner ( N-GMainContext $context --> Int )
-
-=item N-GMainContext $context; a B<N-GMainContext>
+  method is-owner ( --> Int )
 
 =end pod
 
-method is-owner ( N-GMainContext $context --> Int ) {
+method is-owner ( --> Int ) {
 
   g_main_context_is_owner(
-    self.get-native-object-no-reffing, $context
+    self.get-native-object-no-reffing
   );
 }
 
@@ -556,26 +390,25 @@ sub g_main_context_is_owner ( N-GMainContext $context --> gboolean )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:iteration:
+#TM:1:iteration:
 =begin pod
 =head2 iteration
 
-Runs a single iteration for the given main loop. This involves checking to see if any event sources are ready to be processed, then if no events sources are ready and I<may-block> is C<True>, waiting for a source to become ready, then dispatching the highest priority events sources that are ready. Otherwise, if I<may-block> is C<False> sources are not waited to become ready, only those highest priority events sources will be dispatched (if any), that are ready at this given moment without further waiting.  Note that even when I<may-block> is C<True>, it is still possible for C<iteration()> to return C<False>, since the wait may be interrupted for other reasons than an event source becoming ready.
+Runs a single iteration for the given main loop. This involves checking to see if any event sources are ready to be processed, then if no events sources are ready and I<$may-block> is C<True>, waiting for a source to become ready, then dispatching the highest priority events sources that are ready. Otherwise, if I<may-block> is C<False> sources are not waited to become ready, only those highest priority events sources will be dispatched (if any), that are ready at this given moment without further waiting.  Note that even when I<$may-block> is C<True>, it is still possible for C<iteration()> to return C<False>, since the wait may be interrupted for other reasons than an event source becoming ready.
 
 Returns: C<True> if events were dispatched.
 
-  method iteration ( N-GMainContext $context, Int $may_block --> Int )
+  method iteration ( Bool $may_block --> Bool )
 
-=item N-GMainContext $context; (nullable): a B<N-GMainContext> (if C<undefined>, the default context will be used)
-=item Int $may_block; whether the call may block.
+=item Bool $may_block; whether the call may block.
 
 =end pod
 
-method iteration ( N-GMainContext $context, Int $may_block --> Int ) {
+method iteration ( Bool $may_block --> Bool ) {
 
   g_main_context_iteration(
-    self.get-native-object-no-reffing, $context, $may_block
-  );
+    self.get-native-object-no-reffing, $may_block.Int
+  ).Bool;
 }
 
 sub g_main_context_iteration ( N-GMainContext $context, gboolean $may_block --> gboolean )
@@ -583,7 +416,7 @@ sub g_main_context_iteration ( N-GMainContext $context, gboolean $may_block --> 
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:pending:
+#TM:1:pending:
 =begin pod
 =head2 pending
 
@@ -591,17 +424,15 @@ Checks if any sources have pending events for the given context.
 
 Returns: C<True> if events are pending.
 
-  method pending ( N-GMainContext $context --> Int )
-
-=item N-GMainContext $context; (nullable): a B<N-GMainContext> (if C<undefined>, the default context will be used)
+  method pending ( --> Bool )
 
 =end pod
 
-method pending ( N-GMainContext $context --> Int ) {
+method pending ( --> Bool ) {
 
   g_main_context_pending(
-    self.get-native-object-no-reffing, $context
-  );
+    self.get-native-object-no-reffing
+  ).Bool;
 }
 
 sub g_main_context_pending ( N-GMainContext $context --> gboolean )
@@ -609,15 +440,13 @@ sub g_main_context_pending ( N-GMainContext $context --> gboolean )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:pop-thread-default:
+#TM:1:pop-thread-default:
 =begin pod
 =head2 pop-thread-default
 
 Pops the context off the thread-default context stack (verifying that it was on the top of the stack).
 
-  method pop-thread-default ( N-GMainContext $context )
-
-=item N-GMainContext $context; (nullable): a B<N-GMainContext> object, or C<undefined>
+  method pop-thread-default ( )
 
 =end pod
 
@@ -632,47 +461,19 @@ sub g_main_context_pop_thread_default ( N-GMainContext $context  )
   is native(&glib-lib)
   { * }
 
-#`{{
 #-------------------------------------------------------------------------------
-#TM:0:prepare:
-=begin pod
-=head2 prepare
-
-Prepares to poll sources within a main loop. The resulting information for polling is determined by calling C<query()>.  You must have successfully acquired the context with C<acquire()> before you may call this function.
-
-Returns: C<True> if some source is ready to be dispatched prior to polling.
-
-  method prepare ( N-GMainContext $context, Int-ptr $priority --> Int )
-
-=item N-GMainContext $context; a B<N-GMainContext>
-=item Int-ptr $priority; location to store priority of highest priority source already ready.
-
-=end pod
-
-method prepare ( N-GMainContext $context, Int-ptr $priority --> Int ) {
-
-  g_main_context_prepare(
-    self.get-native-object-no-reffing, $context, $priority
-  );
-}
-
-sub g_main_context_prepare (
-  N-GMainContext $context, gint $priority is rw --> gboolean
-) is native(&glib-lib)
-  { * }
-}}
-
-#-------------------------------------------------------------------------------
-#TM:0:push-thread-default:
+#TM:1:push-thread-default:
 =begin pod
 =head2 push-thread-default
 
-Acquires the context and sets it as the thread-default context for the current thread. This will cause certain asynchronous operations (such as most [gio][gio]-based I/O) which are started in this thread to run under the context and deliver their results to its main loop, rather than running under the global default context in the main thread. Note that calling this function changes the context created by C<new(:thread-default)>, not the one created by C<new(:default)>
+Acquires the context and sets it as the thread-default context for the current thread. This will cause certain asynchronous operations (such as most gio-based I/O) which are started in this thread to run under the context and deliver their results to its main loop, rather than running under the global default context in the main thread. Note that calling this function changes the context created by C<new(:thread-default)>, not the one created by C<new(:default)>.
 =comment , so it does not affect the context used by functions like C<g-idle-add()>.
 
 Normally you would call this function shortly after creating a new thread, passing it a B<Gnome::Glib::MainContext> which will be run by a B<Gnome::Glib::MainLoop> in that thread, to set a new default context for all async operations in that thread. In this case you may not need to ever call C<pop-thread-default()>, assuming you want the new B<Gnome::Glib::MainContext> to be the default for the whole lifecycle of the thread.
 
-=comment If you don't have control over how the new thread was created (e.g. if the thread isn't newly created, or if the thread life cycle is managed by a B<GThreadPool>), it is always suggested to wrap the logic that needs to use the new B<Gnome::Glib::MainContext> inside a C<push-thread-default()> / C<pop-thread-default()> pair, otherwise threads that are re-used will end up never explicitly releasing the B<Gnome::Glib::MainContext> reference they hold.
+If you don't have control over how the new thread was created (e.g. if the thread isn't newly created
+=comment , or if the thread life cycle is managed by a B<GThreadPool>)
+, it is always suggested to wrap the logic that needs to use the new B<Gnome::Glib::MainContext> inside a C<push-thread-default()> / C<pop-thread-default()> pair, otherwise threads that are re-used will end up never explicitly releasing the B<Gnome::Glib::MainContext> reference they hold.
 
 In some cases you may want to schedule a single operation in a non-default context, or temporarily use a non-default context in the main thread. In that case, you can wrap the call to the asynchronous operation inside a C<push-thread-default()> / C<pop-thread-default()> pair, but it is up to you to ensure that no other asynchronous operations accidentally get started while the non-default context is active.
 
@@ -689,38 +490,6 @@ method push-thread-default ( ) {
 sub g_main_context_push_thread_default ( N-GMainContext $context  )
   is native(&glib-lib)
   { * }
-
-#`{{
-#-------------------------------------------------------------------------------
-#TM:0:query:
-=begin pod
-=head2 query
-
-Determines information necessary to poll this main loop.  You must have successfully acquired the context with C<acquire()> before you may call this function.
-
-Returns: the number of records actually stored in I<fds>, or, if more than I<n-fds> records need to be stored, the number of records that need to be stored.
-
-  method query ( N-GMainContext $context, Int $max_priority, Int-ptr $timeout_, GPollFD $fds, Int $n_fds --> Int )
-
-=item N-GMainContext $context; a B<N-GMainContext>
-=item Int $max_priority; maximum priority source to check
-=item Int-ptr $timeout_; (out): location to store timeout to be used in polling
-=item GPollFD $fds; (out caller-allocates) (array length=n-fds): location to store B<GPollFD> records that need to be polled.
-=item Int $n_fds; (in): length of I<fds>.
-
-=end pod
-
-method query ( N-GMainContext $context, Int $max_priority, Int-ptr $timeout_, GPollFD $fds, Int $n_fds --> Int ) {
-
-  g_main_context_query(
-    self.get-native-object-no-reffing, $context, $max_priority, $timeout_, $fds, $n_fds
-  );
-}
-
-sub g_main_context_query ( N-GMainContext $context, gint $max_priority, gint-ptr $timeout_, GPollFD $fds, gint $n_fds --> gint )
-  is native(&glib-lib)
-  { * }
-}}
 
 #-------------------------------------------------------------------------------
 #TM:1:_g_main_context_ref:
@@ -751,8 +520,9 @@ sub _g_main_context_ref ( N-GMainContext $context --> N-GMainContext )
   is native(&glib-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
-#TM:0:ref-thread-default:
+# TM:0:ref-thread-default:
 =begin pod
 =head2 ref-thread-default
 
@@ -775,86 +545,31 @@ method ref-thread-default ( --> N-GMainContext ) {
 sub g_main_context_ref_thread_default (  --> N-GMainContext )
   is native(&glib-lib)
   { * }
+}}
 
 #-------------------------------------------------------------------------------
-#TM:0:release:
+#TM:1:release:
 =begin pod
 =head2 release
 
 Releases ownership of a context previously acquired by this thread with C<acquire()>. If the context was acquired multiple times, the ownership will be released only when C<release()> is called as many times as it was acquired.
 
-  method release ( N-GMainContext $context )
-
-=item N-GMainContext $context; a B<N-GMainContext>
+  method release ( )
 
 =end pod
 
-method release ( N-GMainContext $context ) {
+method release ( ) {
 
   g_main_context_release(
-    self.get-native-object-no-reffing, $context
+    self.get-native-object-no-reffing
   );
 }
 
 sub g_main_context_release ( N-GMainContext $context  )
   is native(&glib-lib)
   { * }
-
-#`{{
 #-------------------------------------------------------------------------------
-#TM:0:remove-poll:
-=begin pod
-=head2 remove-poll
-
-Removes file descriptor from the set of file descriptors to be polled for a particular context.
-
-  method remove-poll ( N-GMainContext $context, GPollFD $fd )
-
-=item N-GMainContext $context; a B<N-GMainContext>
-=item GPollFD $fd; a B<GPollFD> descriptor previously added with C<add-poll()>
-
-=end pod
-
-method remove-poll ( N-GMainContext $context, GPollFD $fd ) {
-
-  g_main_context_remove_poll(
-    self.get-native-object-no-reffing, $context, $fd
-  );
-}
-
-sub g_main_context_remove_poll ( N-GMainContext $context, GPollFD $fd  )
-  is native(&glib-lib)
-  { * }
-}}
-#`{{
-#-------------------------------------------------------------------------------
-#TM:0:set-poll-func:
-=begin pod
-=head2 set-poll-func
-
-Sets the function to use to handle polling of file descriptors. It will be used instead of the C<poll()> system call  (or GLib's replacement function, which is used where  C<poll()> isn't available).  This function could possibly be used to integrate the GLib event loop with an external event loop.
-
-  method set-poll-func ( N-GMainContext $context, GPollFunc $func )
-
-=item N-GMainContext $context; a B<N-GMainContext>
-=item GPollFunc $func; the function to call to poll all file descriptors
-
-=end pod
-
-method set-poll-func ( N-GMainContext $context, GPollFunc $func ) {
-
-  g_main_context_set_poll_func(
-    self.get-native-object-no-reffing, $context, $func
-  );
-}
-
-sub g_main_context_set_poll_func ( N-GMainContext $context, GPollFunc $func  )
-  is native(&glib-lib)
-  { * }
-}}
-
-#-------------------------------------------------------------------------------
-#TM:`:_g_main_context_unref:
+#TM:1:_g_main_context_unref:
 #`{{
 =begin pod
 =head2 unref
@@ -881,22 +596,20 @@ sub _g_main_context_unref ( N-GMainContext $context  )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:wakeup:
+#TM:1:wakeup:
 =begin pod
 =head2 wakeup
 
 If the context is currently blocking in C<iteration()> waiting for a source to become ready, cause it to stop blocking and return.  Otherwise, cause the next invocation of C<iteration()> to return without blocking.  This API is useful for low-level control over B<N-GMainContext>; for example, integrating it with main loop implementations such as B<Gnome::Glib::MainLoop>.  Another related use for this function is when implementing a main loop with a termination condition, computed from multiple threads:  |[<!-- language="C" -->  B<define> NUM-TASKS 10 static volatile gint tasks-remaining = NUM-TASKS; ...   while (g-atomic-int-get (&tasks-remaining) != 0) iteration (NULL, TRUE); ]|   Then in a thread: |[<!-- language="C" -->  C<perform-work()>;  if (g-atomic-int-dec-and-test (&tasks-remaining)) wakeup (NULL); ]|
 
-  method wakeup ( N-GMainContext $context )
-
-=item N-GMainContext $context; a B<N-GMainContext>
+  method wakeup ( )
 
 =end pod
 
-method wakeup ( N-GMainContext $context ) {
+method wakeup ( ) {
 
   g_main_context_wakeup(
-    self.get-native-object-no-reffing, $context
+    self.get-native-object-no-reffing
   );
 }
 
@@ -930,4 +643,284 @@ method new ( --> N-GMainContext ) {
 sub _g_main_context_new ( --> N-GMainContext )
   is native(&glib-lib)
   is symbol('g_main_context_new')
+  { * }
+
+
+
+
+
+
+
+
+=finish
+
+#-------------------------------------------------------------------------------
+#TM:0:add-poll:
+=begin pod
+=head2 add-poll
+
+Adds a file descriptor to the set of file descriptors polled for this context. This will very seldom be used directly. Instead a typical event source will use C<g-source-add-unix-fd()> instead.
+
+  method add-poll ( N-GMainContext $context, GPollFD $fd, Int $priority )
+
+=item N-GMainContext $context; (nullable): a B<N-GMainContext> (or C<undefined> for the default context)
+=item GPollFD $fd; a B<GPollFD> structure holding information about a file descriptor to watch.
+=item Int $priority; the priority for this file descriptor which should be the same as the priority used for C<g-source-attach()> to ensure that the file descriptor is polled whenever the results may be needed.
+
+=end pod
+
+method add-poll ( N-GMainContext $context, GPollFD $fd, Int $priority ) {
+
+  g_main_context_add_poll(
+    self.get-native-object-no-reffing, $context, $fd, $priority
+  );
+}
+
+sub g_main_context_add_poll ( N-GMainContext $context, GPollFD $fd, gint $priority  )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:check:
+=begin pod
+=head2 check
+
+Passes the results of polling back to the main loop.  You must have successfully acquired the context with C<acquire()> before you may call this function.
+
+Returns: C<True> if some sources are ready to be dispatched.
+
+  method check ( N-GMainContext $context, Int $max_priority, GPollFD $fds, Int $n_fds --> Bool )
+
+=item N-GMainContext $context; a B<N-GMainContext>
+=item Int $max_priority; the maximum numerical priority of sources to check
+=item GPollFD $fds; (array length=n-fds): array of B<GPollFD>'s that was passed to the last call to C<query()>
+=item Int $n_fds; return value of C<query()>
+
+=end pod
+
+method check ( N-GMainContext $context, Int $max_priority, GPollFD $fds, Int $n_fds --> Bool ) {
+
+  g_main_context_check(
+    self.get-native-object-no-reffing, $context, $max_priority, $fds, $n_fds
+  ).Bool;
+}
+
+sub g_main_context_check ( N-GMainContext $context, gint $max_priority, GPollFD $fds, gint $n_fds --> gboolean )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:remove-poll:
+=begin pod
+=head2 remove-poll
+
+Removes file descriptor from the set of file descriptors to be polled for a particular context.
+
+  method remove-poll ( N-GMainContext $context, GPollFD $fd )
+
+=item N-GMainContext $context; a B<N-GMainContext>
+=item GPollFD $fd; a B<GPollFD> descriptor previously added with C<add-poll()>
+
+=end pod
+
+method remove-poll ( N-GMainContext $context, GPollFD $fd ) {
+
+  g_main_context_remove_poll(
+    self.get-native-object-no-reffing, $context, $fd
+  );
+}
+
+sub g_main_context_remove_poll ( N-GMainContext $context, GPollFD $fd  )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:set-poll-func:
+=begin pod
+=head2 set-poll-func
+
+Sets the function to use to handle polling of file descriptors. It will be used instead of the C<poll()> system call  (or GLib's replacement function, which is used where  C<poll()> isn't available).  This function could possibly be used to integrate the GLib event loop with an external event loop.
+
+  method set-poll-func ( N-GMainContext $context, GPollFunc $func )
+
+=item N-GMainContext $context; a B<N-GMainContext>
+=item GPollFunc $func; the function to call to poll all file descriptors
+
+=end pod
+
+method set-poll-func ( N-GMainContext $context, GPollFunc $func ) {
+
+  g_main_context_set_poll_func(
+    self.get-native-object-no-reffing, $context, $func
+  );
+}
+
+sub g_main_context_set_poll_func ( N-GMainContext $context, GPollFunc $func  )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:query:
+=begin pod
+=head2 query
+
+Determines information necessary to poll this main loop.  You must have successfully acquired the context with C<acquire()> before you may call this function.
+
+Returns: the number of records actually stored in I<fds>, or, if more than I<n-fds> records need to be stored, the number of records that need to be stored.
+
+  method query ( N-GMainContext $context, Int $max_priority, Int-ptr $timeout_, GPollFD $fds, Int $n_fds --> Int )
+
+=item N-GMainContext $context; a B<N-GMainContext>
+=item Int $max_priority; maximum priority source to check
+=item Int-ptr $timeout_; (out): location to store timeout to be used in polling
+=item GPollFD $fds; (out caller-allocates) (array length=n-fds): location to store B<GPollFD> records that need to be polled.
+=item Int $n_fds; (in): length of I<fds>.
+
+=end pod
+
+method query ( N-GMainContext $context, Int $max_priority, Int-ptr $timeout_, GPollFD $fds, Int $n_fds --> Int ) {
+
+  g_main_context_query(
+    self.get-native-object-no-reffing, $context, $max_priority, $timeout_, $fds, $n_fds
+  );
+}
+
+sub g_main_context_query ( N-GMainContext $context, gint $max_priority, gint-ptr $timeout_, GPollFD $fds, gint $n_fds --> gint )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:prepare:
+=begin pod
+=head2 prepare
+
+Prepares to poll sources within a main loop. The resulting information for polling is determined by calling C<query()>.  You must have successfully acquired the context with C<acquire()> before you may call this function.
+
+Returns: C<True> if some source is ready to be dispatched prior to polling.
+
+  method prepare ( N-GMainContext $context, Int-ptr $priority --> Int )
+
+=item N-GMainContext $context; a B<N-GMainContext>
+=item Int-ptr $priority; location to store priority of highest priority source already ready.
+
+=end pod
+
+method prepare ( N-GMainContext $context, Int-ptr $priority --> Int ) {
+
+  g_main_context_prepare(
+    self.get-native-object-no-reffing, $context, $priority
+  );
+}
+
+sub g_main_context_prepare (
+  N-GMainContext $context, gint $priority is rw --> gboolean
+) is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:find-source-by-funcs-user-data:
+=begin pod
+=head2 find-source-by-funcs-user-data
+
+Finds a source with the given source functions and user data.  If multiple sources exist with the same source function and user data, the first one found will be returned.
+
+Returns: (transfer none): the source, if one was found, otherwise C<undefined>
+
+  method find-source-by-funcs-user-data ( N-GMainContext $context, GSourceFuncs $funcs, Pointer $user_data --> GSource )
+
+=item N-GMainContext $context; (nullable): a B<N-GMainContext> (if C<undefined>, the default context will be used).
+=item GSourceFuncs $funcs; the I<source-funcs> passed to C<g-source-new()>.
+=item Pointer $user_data; the user data from the callback.
+
+=end pod
+
+method find-source-by-funcs-user-data ( N-GMainContext $context, GSourceFuncs $funcs, Pointer $user_data --> GSource ) {
+
+  g_main_context_find_source_by_funcs_user_data(
+    self.get-native-object-no-reffing, $context, $funcs, $user_data
+  );
+}
+
+sub g_main_context_find_source_by_funcs_user_data ( N-GMainContext $context, GSourceFuncs $funcs, gpointer $user_data --> GSource )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:find-source-by-id:
+=begin pod
+=head2 find-source-by-id
+
+Finds a B<GSource> given a pair of context and ID.  It is a programmer error to attempt to lookup a non-existent source.  More specifically: source IDs can be reissued after a source has been destroyed and therefore it is never valid to use this function with a source ID which may have already been removed.  An example is when scheduling an idle to run in another thread with C<g-idle-add()>: the idle may already have run and been removed by the time this function is called on its (now invalid) source ID.  This source ID may have been reissued, leading to the operation being performed against the wrong source.
+
+Returns: (transfer none): the B<GSource>
+
+  method find-source-by-id ( N-GMainContext $context, UInt $source_id --> GSource )
+
+=item N-GMainContext $context; (nullable): a B<N-GMainContext> (if C<undefined>, the default context will be used)
+=item UInt $source_id; the source ID, as returned by C<g-source-get-id()>.
+
+=end pod
+
+method find-source-by-id ( N-GMainContext $context, UInt $source_id --> GSource ) {
+
+  g_main_context_find_source_by_id(
+    self.get-native-object-no-reffing, $context, $source_id
+  );
+}
+
+sub g_main_context_find_source_by_id ( N-GMainContext $context, guint $source_id --> GSource )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:find-source-by-user-data:
+=begin pod
+=head2 find-source-by-user-data
+
+Finds a source with the given user data for the callback.  If multiple sources exist with the same user data, the first one found will be returned.
+
+Returns: (transfer none): the source, if one was found, otherwise C<undefined>
+
+  method find-source-by-user-data ( N-GMainContext $context, Pointer $user_data --> GSource )
+
+=item N-GMainContext $context; a B<N-GMainContext>
+=item Pointer $user_data; the user-data for the callback.
+
+=end pod
+
+method find-source-by-user-data ( N-GMainContext $context, Pointer $user_data --> GSource ) {
+
+  g_main_context_find_source_by_user_data(
+    self.get-native-object-no-reffing, $context, $user_data
+  );
+}
+
+sub g_main_context_find_source_by_user_data ( N-GMainContext $context, gpointer $user_data --> GSource )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:get-poll-func:
+=begin pod
+=head2 get-poll-func
+
+Gets the poll function set by C<set-poll-func()>.
+
+Returns: the poll function
+
+  method get-poll-func ( N-GMainContext $context --> GPollFunc )
+
+=item N-GMainContext $context; a B<N-GMainContext>
+
+=end pod
+
+method get-poll-func ( N-GMainContext $context --> GPollFunc ) {
+
+  g_main_context_get_poll_func(
+    self.get-native-object-no-reffing, $context
+  );
+}
+
+sub g_main_context_get_poll_func ( N-GMainContext $context --> GPollFunc )
+  is native(&glib-lib)
   { * }

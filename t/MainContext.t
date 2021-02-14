@@ -5,14 +5,14 @@ use Test;
 
 use Gnome::N::GlibToRakuTypes;
 
-use Gnome::Glib::MainLoop;
+#use Gnome::Glib::MainLoop;
 use Gnome::Glib::MainContext;
 
 #use Gnome::N::X;
 #Gnome::N::debug(:on);
 
 #-------------------------------------------------------------------------------
-my Gnome::Glib::MainLoop $ml;
+#my Gnome::Glib::MainLoop $ml;
 my Gnome::Glib::MainContext $mc;
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {

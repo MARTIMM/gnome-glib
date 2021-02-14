@@ -13,6 +13,7 @@ use Gnome::Glib::MainContext;
 
 #-------------------------------------------------------------------------------
 my Gnome::Glib::MainLoop $ml;
+my Gnome::Glib::MainContext $mc;
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
   $ml .= new;
@@ -38,18 +39,21 @@ subtest "start thread with a new context", {
     has $.handler-invoked = False;
     has $count = 0;
 
-    method handler1 ( Str :$opt1 --> gboolean ) {
-      diag 'handler1 called: ' ~ $count;
+    method handler1 ( Str :$opt1, Bool :$invoke-full = False --> gboolean ) {
+      diag [~] $*THREAD.id, ' handler1 called: ', $count,
+           ', invoke-full: ', $invoke-full;
       is $opt1, 'o1', 'Option :opt1 received';
       $!handler-invoked = True;
 
       # return G_SOURCE_CONTINUE 3x, the method will then be recalled 3 times
       if ++$count > 2 {
         $count = 0;
+        diag $*THREAD.id ~ ' Return G_SOURCE_REMOVE';
         G_SOURCE_REMOVE
       }
 
       else {
+        diag $*THREAD.id ~ ' Return G_SOURCE_CONTINUE';
         G_SOURCE_CONTINUE
       }
     }
@@ -73,6 +77,18 @@ subtest "start thread with a new context", {
     # wait for loop to start
     sleep(.3);
 
+    #---------------------------------------------------------------------------
+    subtest "manipulations ...", {
+      $mc .= new(:default);
+      ok $mc.acquire, '.acquire()';
+      nok $mc.iteration(False), '.iteration()';
+      nok $mc.pending, '.pending()';
+      ok $mc.is-owner, '.is-owner()';
+#      ok 1, $mc.dispatch // '.dispatch()';
+      ok 1, $mc.wakeup // '.wakeup()';
+      ok 1, $mc.release // '.release()';
+    }
+
     ok $loop.is-running, '.is-running()';
 
     diag "$*THREAD.id(), " ~
@@ -89,10 +105,11 @@ subtest "start thread with a new context", {
     diag "$*THREAD.id(), " ~
          "Use .invoke-full() to invoke sub on thread";
 
-#    $main-context2.invoke( $ch, 'handler1', :opt1<o1>);
+    $main-context2.invoke( $ch, 'handler1', :opt1<o1>);
 
     $main-context2.invoke-full(
-      G_PRIORITY_DEFAULT, $ch, 'handler1', $ch, 'notify', :opt1<o1>, :opt2<o2>
+      G_PRIORITY_DEFAULT, $ch, 'handler1', $ch, 'notify',
+      :opt1<o1>, :opt2<o2>, :invoke-full
     );
 
     diag [~] $*THREAD.id(), ', ',
