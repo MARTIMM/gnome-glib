@@ -259,6 +259,10 @@ Note that, as with normal idle functions, the callback handler should probably r
     Any:D $handler-object, Str:D $method, *%options
   )
 
+  method invoke-raw (
+    Callable:D $function ( gpointer --> gboolean )
+  )
+
 =item $handler-object; The object where the callback method is defined
 =item $method; The name of the callback method
 =item %options; Options which can be provided to the handler
@@ -276,6 +280,7 @@ method invoke ( Any:D $handler-object, Str:D $method, *%options ) {
   g_main_context_invoke(
     self.get-native-object-no-reffing,
     sub ( gpointer $d --> gboolean ) {
+      CATCH { default { .message.note; .backtrace.concise.note } }
       if $handler-object.^can($method) {
         $handler-object."$method"(|%options)
       }
@@ -286,6 +291,12 @@ method invoke ( Any:D $handler-object, Str:D $method, *%options ) {
       }
     }, Pointer
   );
+}
+
+method invoke-raw ( Callable:D $function ) {
+  g_main_context_invoke(
+    self.get-native-object-no-reffing, $function, Pointer
+  )
 }
 
 sub g_main_context_invoke (
@@ -309,6 +320,17 @@ B<Note: Tests have shown that returning G_SOURCE_CONTINUE does not show the same
     Any:D $handler-notify-object, Str:D $method-notify, *%options
   )
 
+The callback method API must be like
+
+  method handler1 ( *%options --> Int )
+
+Alternatively
+
+  method invoke-full-raw (
+    Int $priority, Callable:D $function ( gpointer --> Int ),
+    Callable $notify ( gpointer )
+  )
+
 =item Int $priority; the priority at which to run the callback.
 =item $handler-object; The object where the callback method is defined.
 =item $method; The name of the callback method.
@@ -316,9 +338,38 @@ B<Note: Tests have shown that returning G_SOURCE_CONTINUE does not show the same
 =item $method-notify; The name of the notify method.
 =item %options; Options which are provided to the callback handler and notify methods.
 
-The callback method API must be like
+The handler gets a pointer pointing to user data which is never provided. So it can be ignored.
 
-  method handler1 ( *%options --> Int )
+
+Example where all invoke forms are shown
+
+  class ContextHandlers {
+    method handler1 ( Str :$opt1, Bool :$invoke-full = False --> gboolean ) {
+      …
+    }
+
+    method notify ( Str :$opt2 ) {
+      …
+    }
+  }
+
+  $main-context2.invoke( $ch, 'handler1', :opt1<o1>);
+
+  $main-context2.invoke-full(
+    G_PRIORITY_DEFAULT, $ch, 'handler1', $ch, 'notify',
+    :opt1<o1>, :opt2<o2>, :invoke-full
+  );
+
+  $main-context2.invoke-raw(
+    -> Pointer $d { $ch.'handler1'(:opt1<o1>); },
+  );
+
+  $main-context2.invoke-full-raw(
+    G_PRIORITY_DEFAULT,
+    -> Pointer $d { $ch.'handler1'( :opt1<o1>, :invoke-full); },
+    -> Pointer $d { $ch.'notify'( :opt2<o2>); },
+  );
+
 
 Where %options are free to use options given at the call to C<invoke-full()>. The method must return G_SOURCE_REMOVE or G_SOURCE_CONTINUE depending if it wants to be recalled again.
 
@@ -334,6 +385,7 @@ method invoke-full (
   g_main_context_invoke_full(
     self.get-native-object-no-reffing, $priority,
     sub ( gpointer $d --> gboolean ) {
+      CATCH { default { .message.note; .backtrace.concise.note } }
       return 0 unless (?$handler-object and ?$method);
       if $handler-object.^can($method) {
         $handler-object."$method"(|%options)
@@ -345,6 +397,7 @@ method invoke-full (
       }
     }, Pointer,
     -> gpointer $d {
+      CATCH { default { .message.note; .backtrace.concise.note } }
       return unless (?$handler-notify-object and ?$method-notify);
       if $handler-notify-object.^can($method-notify) {
         $handler-notify-object."$method-notify"(|%options)
@@ -357,13 +410,21 @@ method invoke-full (
   );
 }
 
+method invoke-full-raw (
+  gint $priority, Callable:D $function, Callable $notify
+) {
+  g_main_context_invoke_full(
+    self.get-native-object-no-reffing, $priority, $function,
+    Pointer, $notify
+  )
+}
+
 sub g_main_context_invoke_full (
   N-GMainContext $context, gint $priority,
   Callable $function ( gpointer ), gpointer,
   Callable $notify ( gpointer )
 ) is native(&glib-lib)
   { * }
-
 
 #-------------------------------------------------------------------------------
 #TM:1:is-owner:

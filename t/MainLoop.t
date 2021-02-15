@@ -40,6 +40,8 @@ subtest "start thread with a new context", {
     has $count = 0;
 
     method handler1 ( Str :$opt1, Bool :$invoke-full = False --> gboolean ) {
+#CATCH { .note; }
+
       diag [~] $*THREAD.id, ' handler1 called: ', $count,
            ', invoke-full: ', $invoke-full;
       is $opt1, 'o1', 'Option :opt1 received';
@@ -59,6 +61,7 @@ subtest "start thread with a new context", {
     }
 
     method notify ( Str :$opt2 ) {
+#CATCH { .note; }
       diag "$*THREAD.id(), In notify handler";
       is $opt2, 'o2', 'option :opt2 received';
     }
@@ -74,6 +77,7 @@ subtest "start thread with a new context", {
 
   diag "$*THREAD.id(), Start thread";
   my Promise $p = start {
+#CATCH { .note; }
     # wait for loop to start
     sleep(.3);
 
@@ -110,6 +114,16 @@ subtest "start thread with a new context", {
     $main-context2.invoke-full(
       G_PRIORITY_DEFAULT, $ch, 'handler1', $ch, 'notify',
       :opt1<o1>, :opt2<o2>, :invoke-full
+    );
+
+    $main-context2.invoke-raw(
+      -> Pointer $d { $ch.'handler1'(:opt1<o1>); },
+    );
+
+    $main-context2.invoke-full-raw(
+      G_PRIORITY_DEFAULT,
+      -> Pointer $d { $ch.'handler1'( :opt1<o1>, :invoke-full); },
+      -> Pointer $d { $ch.'notify'( :opt2<o2>); },
     );
 
     diag [~] $*THREAD.id(), ', ',
