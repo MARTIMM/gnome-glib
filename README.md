@@ -15,26 +15,14 @@
 [license-svg]: http://martimm.github.io/label/License-label.svg
 [licence-lnk]: http://www.perlfoundation.org/artistic_license_2_0
 
-<!--
-# Description
-# Documentation
 
-| Pdf from pod | Link to Gnome Developer |
-|-------|--------------|
-| Gnome::Glib::Error |
-| Gnome::Glib::List |  [Doubly-Linked Lists][List]
-| Gnome::Glib::Main |  [The Main Event Loop][Main]
-| Gnome::Glib::SList |  [Singly-Linked Lists][SList]
-
-## Release notes
-* [Release notes][changes]
--->
 ## Documentation
-[ 🔗 Website](https://martimm.github.io/gnome-gtk3/content-docs/reference-glib.html)
-[ 🔗 Travis-ci run on master branch][travis-run]
-[ 🔗 Appveyor run on master branch][appveyor-run]
-[ 🔗 License document][licence-lnk]
-[ 🔗 Release notes][changes]
+* [ 🔗 Website](https://martimm.github.io/gnome-gtk3/content-docs/reference-glib.html)
+* [ 🔗 Travis-ci run on master branch][travis-run]
+* [ 🔗 Appveyor run on master branch][appveyor-run]
+* [ 🔗 License document][licence-lnk]
+* [ 🔗 Release notes][changes]
+* [ 🔗 Issues](https://github.com/MARTIMM/gnome-gtk3/issues)
 
 # Installation
 Do not install this package on its own. Instead install `Gnome::Gtk3`.
