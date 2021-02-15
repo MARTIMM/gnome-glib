@@ -1,4 +1,7 @@
 ## Release notes
+* 2021-02-15 0.18.4
+  * Added raw versions of `invoke()` and `invoke-full()`.
+
 * 2021-02-12 0.18.3
   * Extracted **Gnome::Glib::MainContext**, **Gnome::Glib::MainLoop**, **Gnome::Glib::N-GMainContext** and **Gnome::Glib::N-GMainLoop** from the original module **Gnome::Glib::Main**.
 
