@@ -106,25 +106,30 @@ subtest "start thread with a new context", {
     my Gnome::Glib::MainContext $main-context2 .= new;
     $main-context2.push-thread-default;
 
-    diag "$*THREAD.id(), " ~
-         "Use .invoke-full() to invoke sub on thread";
+#    diag "$*THREAD.id(), Use .invoke-full() to invoke sub on thread";
 
     $main-context2.invoke( $ch, 'handler1', :opt1<o1>);
-
-    $main-context2.invoke-full(
-      G_PRIORITY_DEFAULT, $ch, 'handler1', $ch, 'notify',
-      :opt1<o1>, :opt2<o2>, :invoke-full
-    );
 
     $main-context2.invoke-raw(
       -> Pointer $d { $ch.'handler1'(:opt1<o1>); },
     );
 
-    $main-context2.invoke-full-raw(
-      G_PRIORITY_DEFAULT,
-      -> Pointer $d { $ch.'handler1'( :opt1<o1>, :invoke-full); },
-      -> Pointer $d { $ch.'notify'( :opt2<o2>); },
-    );
+    if %*ENV<appveyor_tests>:exists {
+      diag 'tests of invoke-full*() skipped; windows makes an infinite loop of it …';
+    }
+
+    else {
+      $main-context2.invoke-full(
+        G_PRIORITY_DEFAULT, $ch, 'handler1', $ch, 'notify',
+        :opt1<o1>, :opt2<o2>, :invoke-full
+      );
+
+      $main-context2.invoke-full-raw(
+        G_PRIORITY_DEFAULT,
+        -> Pointer $d { $ch.'handler1'( :opt1<o1>, :invoke-full); },
+        -> Pointer $d { $ch.'notify'( :opt2<o2>); },
+      );
+    }
 
     diag [~] $*THREAD.id(), ', ',
          'Use .pop-thread-default() to remove the context';
