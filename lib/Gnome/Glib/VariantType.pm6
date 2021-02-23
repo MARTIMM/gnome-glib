@@ -1031,7 +1031,7 @@ sub _g_variant_type_new_tuple ( @items --> N-GVariantType ) {
 
   # get a pointer to the sub, then cast it to a sub with the proper
   # signature. after that, the sub can be called, returning a value.
-  state $ptr = cglobal( &gtk-lib, 'g_variant_type_new_tuple', Pointer);
+  state $ptr = cglobal( &glib-lib, 'g_variant_type_new_tuple', Pointer);
   my Callable $f = nativecast( $signature, $ptr);
 
   $f( $no, $count)
