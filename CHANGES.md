@@ -1,4 +1,9 @@
 ## Release notes
+* 2021-02-22 0.19.0
+  * Added **Gnome::Glib::N-GVariantDict** and **Gnome::Glib::VariantDict** modules.
+  * Added `.new(:tuple)` to **Gnome::Glib::N-GVariantType**.
+  * Added `.new(:dict)` to **Gnome::Glib::N-GVariant**.
+
 * 2021-02-15 0.18.4
   * Added raw versions of `invoke()` and `invoke-full()`.
 
