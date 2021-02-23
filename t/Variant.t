@@ -7,12 +7,16 @@ use Gnome::Glib::N-GVariant;
 use Gnome::Glib::Variant;
 use Gnome::Glib::VariantType;
 
+#use Gnome::N::X;
+#Gnome::N::debug(:on);
+
 #-------------------------------------------------------------------------------
 my Gnome::Glib::VariantType $vt;
 my Gnome::Glib::Variant $v;
 
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
+
   $v .= new(:native-object(N-GVariant));
   isa-ok $v, Gnome::Glib::Variant, '.new(:native-object)';
   nok $v.is-valid, 'undefined obj not valid';
@@ -72,6 +76,15 @@ subtest 'Other init steps', {
   $v .= new(:byte-string-array([<abc def ghi>]));
   is $v.get-type-string, 'aay', '.new(:byte-string-array)';
   $v.clear-object;
+
+  # '{sv}' = dict entry of string key and variant value, an integer
+  $v .= new(
+    :dict(
+      Gnome::Glib::Variant.new(:parse<'width'>),
+      Gnome::Glib::Variant.new(:parse('<200>'))
+    )
+  );
+  is $v.print, Q:q/{'width', <200>}/, '.new(:dict); ' ~ $v.print;
 
   # 'd' = double
   $v .= new(:double(10.2));

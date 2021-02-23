@@ -8,24 +8,33 @@ use v6;
 
 Strongly typed value datatype
 
-
 =head1 Description
 
 B<Gnome::Glib::Variant> is a variant datatype; it can contain one or more values along with information about the type of the values.
 
 A B<Gnome::Glib::Variant> may contain simple types, like an integer, or a boolean value; or complex types, like an array of two strings, or a dictionary of key value pairs. A B<Gnome::Glib::Variant> is also immutable: once it's been created neither its type nor its content can be modified further.
 
-Gnome::Glib::Variant is useful whenever data needs to be serialized, for example when sending method parameters in DBus, or when saving settings using GSettings.
+B<Gnome::Glib::Variant> is useful whenever data needs to be serialized, for example when sending method parameters in DBus, or when saving settings using B<Gnome::Glib::Settings>.
 
 When creating a new B<Gnome::Glib::Variant>, you pass the data you want to store in it along with a string representing the type of data you wish to pass to it.
 
 For instance, if you want to create a B<Gnome::Glib::Variant> holding an integer value you can use:
 
-  my Gnome::Glib::Variant $v .= new( :type-string<ui>, :values([ 40, -40]));
+  my Gnome::Glib::Variant $v .= new(
+    :type-string<u>, :value(42)
+  );
 
-The string "u" in the first argument tells B<Gnome::Glib::Variant> that the data passed to the constructor (40) is going to be an unsigned integer.
+The string "u" in the first argument tells B<Gnome::Glib::Variant> that the data passed to the constructor (40) is going to be an unsigned 32 bit integer.
 
-More advanced examples of B<Gnome::Glib::Variant> in use can be found in documentation for [GVariant format strings][gvariant-format-strings-pointers].
+As an alternative you can write
+
+  my Gnome::Glib::Variant $v .= new(:parse('-42'));
+
+where the default used type is a signed 32 bit integer. To use an other integer type, write the type with it.
+
+  my Gnome::Glib::Variant $v .= new(:parse('uint64 42'));
+
+More advanced examples of B<Gnome::Glib::Variant> in use can be found in documentation for GVariant format strings.
 
 The range of possible values is determined by the type.
 
@@ -33,9 +42,7 @@ The type system used by B<Gnome::Glib::Variant> is B<Gnome::Glib::VariantType>.
 
 B<Gnome::Glib::Variant> instances always have a type and a value (which are given at construction time). The type and value of a B<Gnome::Glib::Variant> instance can never change other than by the B<Gnome::Glib::Variant> itself being destroyed. A B<Gnome::Glib::Variant> cannot contain a pointer.
 
-=begin comment
-B<Gnome::Glib::Variant> is reference counted using C<g_variant_ref()> and C<g_variant_unref()>.  B<Gnome::Glib::Variant> also has floating reference counts -- see C<g_variant_ref_sink()>.
-=end comment
+=comment B<Gnome::Glib::Variant> is reference counted using C<g_variant_ref()> and C<g_variant_unref()>.  B<Gnome::Glib::Variant> also has floating reference counts -- see C<g_variant_ref_sink()>.
 
 B<Gnome::Glib::Variant> is completely threadsafe.  A B<Gnome::Glib::Variant> instance can be concurrently accessed in any way from any number of threads without problems.
 
@@ -49,9 +56,7 @@ A B<Gnome::Glib::Variant>'s size is limited mainly by any lower level operating 
 
 For convenience to C programmers, B<Gnome::Glib::Variant> features powerful varargs-based value construction and destruction.  This feature is designed to be embedded in other libraries.
 
-=begin comment
-There is a Python-inspired text language for describing B<Gnome::Glib::Variant> values.  B<Gnome::Glib::Variant> includes a printer for this language and a parser with type inferencing.
-=end comment
+=comment There is a Python-inspired text language for describing B<Gnome::Glib::Variant> values.  B<Gnome::Glib::Variant> includes a printer for this language and a parser with type inferencing.
 
 
 =head2 Memory Use
@@ -207,21 +212,16 @@ child.
 
 =head3 Summary
 
-To put the entire example together, for our dictionary mapping
-strings to variants (with two entries, as given above), we are
-using 91 bytes of memory for type information, 29 bytes of memory
-for the serialised data, 16 bytes for buffer management and 24
-bytes for the B<Gnome::Glib::Variant> instance, or a total of 160 bytes, plus
-malloc overhead.  If we were to use C<g_variant_get_child_value()> to
-access the two dictionary entries, we would use an additional 48
-bytes.  If we were to have other dictionaries of the same type, we
-would use more memory for the serialised data and buffer
-management for those dictionaries, but the type information would
-be shared.
+To put the entire example together, for our dictionary mapping strings to variants (with two entries, as given above), we are using 91 bytes of memory for type information, 29 bytes of memory for the serialised data, 16 bytes for buffer management and 24 bytes for the B<Gnome::Glib::Variant> instance, or a total of 160 bytes, plus malloc overhead.  If we were to use C<g_variant_get_child_value()> to access the two dictionary entries, we would use an additional 48 bytes.  If we were to have other dictionaries of the same type, we would use more memory for the serialised data and buffer management for those dictionaries, but the type information would be shared.
 
 =head2 See Also
 
-[Gnome::Glib::VariantType](VariantType.html), [gvariant format strings](https://developer.gnome.org/glib/stable/gvariant-format-strings.html), [gvariant text format](https://developer.gnome.org/glib/stable/gvariant-text.html).
+[Gnome::Glib::VariantType](VariantType.html), [variant format strings](https://developer.gnome.org/glib/stable/gvariant-format-strings.html), [variant text format](https://developer.gnome.org/glib/stable/gvariant-text.html).
+
+ =item L<Variant dictionaries|VariantDict.html>
+ =item L<Variant types|VariantType.html>
+ =item L<Variant format strings|https://developer.gnome.org/glib/stable/gvariant-format-strings.html>
+ =item L<Variant text format|https://developer.gnome.org/glib/stable/gvariant-text.html>
 
 =head1 Synopsis
 =head2 Declaration
@@ -253,86 +253,6 @@ also is Gnome::N::TopLevelClassSupport;
 =begin pod
 =head1 Types
 =end pod
-
-#`{{
-
-#-------------------------------------------------------------------------------
-=begin pod
-=head2 class N-GVariantDict
-
-GVariantDict is a mutable interface to GVariant dictionaries.
-
-It can be used for doing a sequence of dictionary lookups in an efficient way on an existing GVariant dictionary or it can be used to construct new dictionaries with a hashtable-like interface. It can also be used for taking existing dictionaries and modifying them in order to create new ones.
-
-GVariantDict can only be used with G_VARIANT_TYPE_VARDICT dictionaries.
-
-It is possible to use GVariantDict allocated on the stack or on the heap. When using a stack-allocated GVariantDict, you begin with a call to g_variant_dict_init() and free the resources with a call to g_variant_dict_clear().
-
-Heap-allocated GVariantDict follows normal refcounting rules: you allocate it with g_variant_dict_new() and use g_variant_dict_ref() and g_variant_dict_unref().
-
-g_variant_dict_end() is used to convert the GVariantDict back into a dictionary-type GVariant. When used with stack-allocated instances, this also implicitly frees all associated memory, but for heap-allocated instances, you must still call g_variant_dict_unref() afterwards.
-
-You will typically want to use a heap-allocated GVariantDict when you expose it as part of an API. For most other uses, the stack-allocated form will be more convenient.
-
-Consider the following two examples that do the same thing in each style: take an existing dictionary and look up the "count" uint32 key, adding 1 to it if it is found, or returning an error if the key is not found. Each returns the new dictionary as a floating GVariant.
-Using a stack-allocated GVariantDict
-
-GVariant *
-add_to_count (GVariant  *orig,
-              GError   **error)
-{
-  GVariantDict dict;
-  guint32 count;
-
-  g_variant_dict_init (&dict, orig);
-  if (!g_variant_dict_lookup (&dict, "count", "u", &count))
-    {
-      g_set_error (...);
-      g_variant_dict_clear (&dict);
-      return NULL;
-    }
-
-  g_variant_dict_insert (&dict, "count", "u", count + 1);
-
-  return g_variant_dict_end (&dict);
-}
-
-Using heap-allocated GVariantDict
-
-GVariant *
-add_to_count (GVariant  *orig,
-              GError   **error)
-{
-  GVariantDict *dict;
-  GVariant *result;
-  guint32 count;
-
-  dict = g_variant_dict_new (orig);
-
-  if (g_variant_dict_lookup (dict, "count", "u", &count))
-    {
-      g_variant_dict_insert (dict, "count", "u", count + 1);
-      result = g_variant_dict_end (dict);
-    }
-  else
-    {
-      g_set_error (...);
-      result = NULL;
-    }
-
-  g_variant_dict_unref (dict);
-
-  return result;
-}
-
-=end pod
-
-# TT:1:N-GVariantDict:
-class N-GVariantDict
-  is repr('CPointer')
-  is export
-  { }
-}}
 
 #-------------------------------------------------------------------------------
 =begin pod
@@ -432,6 +352,25 @@ Creates a new byte-string-array Variant. Its type becomes 'aay'. which is essent
 
   multi method new ( Array :$byte-string-array! )
 
+
+=head3 :dict
+
+Creates a new dictionary Variant. Its type becomes '{}'.
+
+  multi method new ( List :$dict! )
+
+The List C<$dict> has two values, a I<key> and a I<value> and must both be valid B<Gnome::Glib::Variant> objects. I<key> must be a value of a basic type (ie: not a container). It will mostly be a string (variant type 's').
+
+=head4 Example
+
+  my Gnome::Glib::Variant $v .= new(
+    :dict(
+      Gnome::Glib::Variant.new(:parse<width>),
+      Gnome::Glib::Variant.new(:parse<200>)
+    )
+  );
+
+  say $v.print; #
 
 =head3 :double
 
@@ -570,6 +509,7 @@ Create a Variant object using a native object from elsewhere. See also B<Gnome::
 #TM:1:new(:byte):
 #TM:1:new(:byte-string):
 #TM:1:new(:byte-string-array):
+#TM:1:new(:dict):
 #TM:1:new(:double):
 #TM:1:new(:int16):
 #TM:1:new(:int32):
@@ -587,7 +527,7 @@ Create a Variant object using a native object from elsewhere. See also B<Gnome::
 submethod BUILD ( *%options ) {
 
   # prevent creating wrong native-objects
-  if self.^name eq 'Gnome::Glib::Variant' or ?%options<GVariant> {
+  if self.^name eq 'Gnome::Glib::Variant' #`{{or ?%options<GVariant>}} {
 
     # check if native object is set by other parent class BUILDers
     if self.is-valid { }
@@ -632,6 +572,15 @@ submethod BUILD ( *%options ) {
           $ba[$i++] = $s;
         }
         $no = _g_variant_new_bytestring_array( $ba, $i);
+      }
+
+      elsif %options<dict>:exists {
+        my $no1 = %options<dict>[0];
+        $no1 .= get-native-object-no-reffing unless $no1 ~~ N-GVariant;
+        my $no2 = %options<dict>[1];
+        $no2 .= get-native-object-no-reffing unless $no2 ~~ N-GVariant;
+
+        $no = _g_variant_new_dict_entry( $no1, $no2);
       }
 
       elsif %options<double>:exists {
@@ -703,7 +652,9 @@ submethod BUILD ( *%options ) {
         my Gnome::Glib::Error $e;
         ( $no, $e) = _g_variant_parse(|%options);
 
-        die X::Gnome.new(:message($e.message)) if $e.is-valid;
+        die X::Gnome.new(
+          :message("\nVariant parse error: $e.message()")
+        ) if $e.is-valid;
       }
 
       elsif %options<value>:exists {
@@ -849,325 +800,6 @@ method compare ( Pointer $one, Pointer $two --> Int ) {
 }
 
 sub g_variant_compare ( gpointer $one, gpointer $two --> gint )
-  is native(&glib-lib)
-  { * }
-}}
-#`{{
-#-------------------------------------------------------------------------------
-## TM:0:dict-clear:
-=begin pod
-=head2 dict-clear
-
-Releases all memory associated with a B<GVariantDict> without freeing the B<GVariantDict> structure itself.  It typically only makes sense to do this on a stack-allocated B<GVariantDict> if you want to abort building the value part-way through.  This function need not be called if you call C<g_variant_dict_end()> and it also doesn't need to be called on dicts allocated with g_variant_dict_new (see C<g_variant_dict_unref()> for that).  It is valid to call this function on either an initialised B<GVariantDict> or one that was previously cleared by an earlier call to C<g_variant_dict_clear()> but it is not valid to call this function on uninitialised memory.
-
-  method dict-clear ( GVariantDict $dict )
-
-=item GVariantDict $dict; a B<GVariantDict>
-
-=end pod
-
-method dict-clear ( GVariantDict $dict ) {
-
-  g_variant_dict_clear(
-    self.get-native-object-no-reffing, $dict
-  );
-}
-
-sub g_variant_dict_clear ( GVariantDict $dict  )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-## TM:0:dict-contains:
-=begin pod
-=head2 dict-contains
-
-Checks if I<key> exists in I<dict>.
-
-Returns: C<1> if I<key> is in I<dict>
-
-  method dict-contains ( GVariantDict $dict,  Str  $key --> Int )
-
-=item GVariantDict $dict; a B<GVariantDict>
-=item  Str  $key; the key to lookup in the dictionary
-
-=end pod
-
-method dict-contains ( GVariantDict $dict,  Str  $key --> Int ) {
-
-  g_variant_dict_contains(
-    self.get-native-object-no-reffing, $dict, $key
-  );
-}
-
-sub g_variant_dict_contains ( GVariantDict $dict, gchar-ptr $key --> gboolean )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-## TM:0:dict-end:
-=begin pod
-=head2 dict-end
-
-Returns the current value of I<dict> as a B<N-GVariant> of type C<G_VARIANT_TYPE_VARDICT>, clearing it in the process.  It is not permissible to use I<dict> in any way after this call except for reference counting operations (in the case of a heap-allocated B<GVariantDict>) or by reinitialising it with C<g_variant_dict_init()> (in the case of stack-allocated).
-
-Returns: (transfer none): a new, floating, B<N-GVariant>
-
-  method dict-end ( GVariantDict $dict --> N-GVariant )
-
-=item GVariantDict $dict; a B<GVariantDict>
-
-=end pod
-
-method dict-end ( GVariantDict $dict --> N-GVariant ) {
-
-  g_variant_dict_end(
-    self.get-native-object-no-reffing, $dict
-  );
-}
-
-sub g_variant_dict_end ( GVariantDict $dict --> N-GVariant )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-## TM:0:dict-init:
-=begin pod
-=head2 dict-init
-
-Initialises a B<GVariantDict> structure.  If I<from_asv> is given, it is used to initialise the dictionary.  This function completely ignores the previous contents of I<dict>.  On one hand this means that it is valid to pass in completely uninitialised memory.  On the other hand, this means that if you are initialising over top of an existing B<GVariantDict> you need to first call C<g_variant_dict_clear()> in order to avoid leaking memory.  You must not call C<g_variant_dict_ref()> or C<g_variant_dict_unref()> on a B<GVariantDict> that was initialised with this function.  If you ever pass a reference to a B<GVariantDict> outside of the control of your own code then you should assume that the person receiving that reference may try to use reference counting; you should use C<g_variant_dict_new()> instead of this function.
-
-  method dict-init ( GVariantDict $dict, N-GVariant $from_asv )
-
-=item GVariantDict $dict; a B<GVariantDict>
-=item N-GVariant $from_asv; (nullable): the initial value for I<dict>
-
-=end pod
-
-method dict-init ( GVariantDict $dict, N-GVariant $from_asv ) {
-  my $no = …;
-  $no .= get-native-object-no-reffing unless $no ~~ N-GVariant;
-
-  g_variant_dict_init(
-    self.get-native-object-no-reffing, $dict, $from_asv
-  );
-}
-
-sub g_variant_dict_init ( GVariantDict $dict, N-GVariant $from_asv  )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-## TM:0:dict-insert:
-=begin pod
-=head2 dict-insert
-
-Inserts a value into a B<GVariantDict>.  This call is a convenience wrapper that is exactly equivalent to calling C<g_variant_new()> followed by C<g_variant_dict_insert_value()>.
-
-  method dict-insert ( GVariantDict $dict,  Str  $key,  Str  $format_string )
-
-=item GVariantDict $dict; a B<GVariantDict>
-=item  Str  $key; the key to insert a value for
-=item  Str  $format_string; a B<N-GVariant> varargs format string @...: arguments, as per I<format_string>
-
-=end pod
-
-method dict-insert ( GVariantDict $dict,  Str  $key,  Str  $format_string ) {
-
-  g_variant_dict_insert(
-    self.get-native-object-no-reffing, $dict, $key, $format_string
-  );
-}
-
-sub g_variant_dict_insert ( GVariantDict $dict, gchar-ptr $key, gchar-ptr $format_string, Any $any = Any  )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-## TM:0:dict-insert-value:
-=begin pod
-=head2 dict-insert-value
-
-Inserts (or replaces) a key in a B<GVariantDict>.  I<value> is consumed if it is floating.
-
-  method dict-insert-value ( GVariantDict $dict,  Str  $key, N-GVariant $value )
-
-=item GVariantDict $dict; a B<GVariantDict>
-=item  Str  $key; the key to insert a value for
-=item N-GVariant $value; the value to insert
-
-=end pod
-
-method dict-insert-value ( GVariantDict $dict,  Str  $key, N-GVariant $value ) {
-  my $no = …;
-  $no .= get-native-object-no-reffing unless $no ~~ N-GVariant;
-
-  g_variant_dict_insert_value(
-    self.get-native-object-no-reffing, $dict, $key, $value
-  );
-}
-
-sub g_variant_dict_insert_value ( GVariantDict $dict, gchar-ptr $key, N-GVariant $value  )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-## TM:0:dict-lookup:
-=begin pod
-=head2 dict-lookup
-
-Looks up a value in a B<GVariantDict>.  This function is a wrapper around C<g_variant_dict_lookup_value()> and C<g_variant_get()>.  In the case that C<Any> would have been returned, this function returns C<0>.  Otherwise, it unpacks the returned value and returns C<1>.  I<format_string> determines the C types that are used for unpacking the values and also determines if the values are copied or borrowed, see the section on [GVariant format strings][gvariant-format-strings-pointers].
-
-Returns: C<1> if a value was unpacked
-
-  method dict-lookup ( GVariantDict $dict,  Str  $key,  Str  $format_string --> Int )
-
-=item GVariantDict $dict; a B<GVariantDict>
-=item  Str  $key; the key to lookup in the dictionary
-=item  Str  $format_string; a GVariant format string @...: the arguments to unpack the value into
-
-=end pod
-
-method dict-lookup ( GVariantDict $dict,  Str  $key,  Str  $format_string --> Int ) {
-
-  g_variant_dict_lookup(
-    self.get-native-object-no-reffing, $dict, $key, $format_string
-  );
-}
-
-sub g_variant_dict_lookup ( GVariantDict $dict, gchar-ptr $key, gchar-ptr $format_string, Any $any = Any --> gboolean )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-## TM:0:dict-lookup-value:
-=begin pod
-=head2 dict-lookup-value
-
-Looks up a value in a B<GVariantDict>.  If I<key> is not found in I<dictionary>, C<Any> is returned.  The I<expected_type> string specifies what type of value is expected. If the value associated with I<key> has a different type then C<Any> is returned.  If the key is found and the value has the correct type, it is returned.  If I<expected_type> was specified then any non-C<Any> return value will have this type.
-
-Returns: (transfer full): the value of the dictionary key, or C<Any>
-
-  method dict-lookup-value ( GVariantDict $dict,  Str  $key, N-GVariantType $expected_type --> N-GVariant )
-
-=item GVariantDict $dict; a B<GVariantDict>
-=item  Str  $key; the key to lookup in the dictionary
-=item N-GVariantType $expected_type; (nullable): a B<GVariantType>, or C<Any>
-
-=end pod
-
-method dict-lookup-value ( GVariantDict $dict,  Str  $key, N-GVariantType $expected_type --> N-GVariant ) {
-  my $no = …;
-  $no .= get-native-object-no-reffing unless $no ~~ N-GVariantType;
-
-  g_variant_dict_lookup_value(
-    self.get-native-object-no-reffing, $dict, $key, $expected_type
-  );
-}
-
-sub g_variant_dict_lookup_value ( GVariantDict $dict, gchar-ptr $key, N-GVariantType $expected_type --> N-GVariant )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-## TM:0:dict-new:
-=begin pod
-=head2 dict-new
-
-Allocates and initialises a new B<GVariantDict>.  You should call C<g_variant_dict_unref()> on the return value when it is no longer needed.  The memory will not be automatically freed by any other call.  In some cases it may be easier to place a B<GVariantDict> directly on the stack of the calling function and initialise it with C<g_variant_dict_init()>.  This is particularly useful when you are using B<GVariantDict> to construct a B<N-GVariant>.
-
-Returns: (transfer full): a B<GVariantDict>
-
-  method dict-new ( --> GVariantDict )
-
-
-=end pod
-
-method dict-new ( --> GVariantDict ) {
-
-  g_variant_dict_new(
-    self.get-native-object-no-reffing,
-  );
-}
-
-sub g_variant_dict_new ( N-GVariant $from_asv --> GVariantDict )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-## TM:0:dict-ref:
-=begin pod
-=head2 dict-ref
-
-Increases the reference count on I<dict>.  Don't call this on stack-allocated B<GVariantDict> instances or bad things will happen.
-
-Returns: (transfer full): a new reference to I<dict>
-
-  method dict-ref ( GVariantDict $dict --> GVariantDict )
-
-=item GVariantDict $dict; a heap-allocated B<GVariantDict>
-
-=end pod
-
-method dict-ref ( GVariantDict $dict --> GVariantDict ) {
-
-  g_variant_dict_ref(
-    self.get-native-object-no-reffing, $dict
-  );
-}
-
-sub g_variant_dict_ref ( GVariantDict $dict --> GVariantDict )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-## TM:0:dict-remove:
-=begin pod
-=head2 dict-remove
-
-Removes a key and its associated value from a B<GVariantDict>.
-
-Returns: C<1> if the key was found and removed
-
-  method dict-remove ( GVariantDict $dict,  Str  $key --> Int )
-
-=item GVariantDict $dict; a B<GVariantDict>
-=item  Str  $key; the key to remove
-
-=end pod
-
-method dict-remove ( GVariantDict $dict,  Str  $key --> Int ) {
-
-  g_variant_dict_remove(
-    self.get-native-object-no-reffing, $dict, $key
-  );
-}
-
-sub g_variant_dict_remove ( GVariantDict $dict, gchar-ptr $key --> gboolean )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-## TM:0:dict-unref:
-=begin pod
-=head2 dict-unref
-
-Decreases the reference count on I<dict>.  In the event that there are no more references, releases all memory associated with the B<GVariantDict>.  Don't call this on stack-allocated B<GVariantDict> instances or bad things will happen.
-
-  method dict-unref ( GVariantDict $dict )
-
-=item GVariantDict $dict; (transfer full): a heap-allocated B<GVariantDict>
-
-=end pod
-
-method dict-unref ( GVariantDict $dict ) {
-
-  g_variant_dict_unref(
-    self.get-native-object-no-reffing, $dict
-  );
-}
-
-sub g_variant_dict_unref ( GVariantDict $dict  )
   is native(&glib-lib)
   { * }
 }}
@@ -1338,7 +970,7 @@ sub g_variant_equal ( gpointer $one, gpointer $two --> gboolean )
 =begin pod
 =head2 get
 
-Deconstructs a B<N-GVariant> instance.  Think of this function as an analogue to C<scanf()>.  The arguments that are expected by this function are entirely determined by I<format_string>.  I<format_string> also restricts the permissible types of I<value>.  It is an error to give a value with an incompatible type.  See the section on [GVariant format strings][gvariant-format-strings]. Please note that the syntax of the format string is very likely to be extended in the future.  I<format_string> determines the C types that are used for unpacking the values and also determines if the values are copied or borrowed, see the section on [GVariant format strings][gvariant-format-strings-pointers].
+Deconstructs a B<N-GVariant> instance.  Think of this function as an analogue to C<scanf()>.  The arguments that are expected by this function are entirely determined by I<format_string>.  I<format_string> also restricts the permissible types of I<value>.  It is an error to give a value with an incompatible type.  See the section on GVariant format strings. Please note that the syntax of the format string is very likely to be extended in the future.  I<format_string> determines the C types that are used for unpacking the values and also determines if the values are copied or borrowed
 
   method get (  Str  $format_string )
 
@@ -2236,13 +1868,14 @@ sub g_variant_is_signature ( gchar-ptr $string --> gboolean )
   is native(&glib-lib)
   { * }
 }}
+
 #`{{
 #-------------------------------------------------------------------------------
 #TM:0:lookup:
 =begin pod
 =head2 lookup
 
-Looks up a value in a dictionary B<N-GVariant>.  This function is a wrapper around C<g_variant_lookup_value()> and C<g_variant_get()>.  In the case that C<Any> would have been returned, this function returns C<0>.  Otherwise, it unpacks the returned value and returns C<1>.  I<format_string> determines the C types that are used for unpacking the values and also determines if the values are copied or borrowed, see the section on [GVariant format strings][gvariant-format-strings-pointers].  This function is currently implemented with a linear scan.  If you plan to do many lookups then B<GVariantDict> may be more efficient.
+Looks up a value in a dictionary B<N-GVariant>.  This function is a wrapper around C<g_variant_lookup_value()> and C<g_variant_get()>.  In the case that C<Any> would have been returned, this function returns C<0>.  Otherwise, it unpacks the returned value and returns C<1>.  I<format_string> determines the C types that are used for unpacking the values and also determines if the values are copied or borrowed, see the section on [GVariant format strings][gvariant-format-strings-pointers].  This function is currently implemented with a linear scan.  If you plan to do many lookups then B<N-GVariantDict> may be more efficient.
 
 Returns: C<1> if a value was unpacked
 
@@ -2264,13 +1897,15 @@ sub g_variant_lookup ( N-GVariant $dictionary, gchar-ptr $key, gchar-ptr $format
   is native(&glib-lib)
   { * }
 }}
+
 #`{{
+
 #-------------------------------------------------------------------------------
 # TM:0:lookup-value:
 =begin pod
 =head2 lookup-value
 
-Looks up a value in a dictionary B<N-GVariant>.  This function works with dictionaries of the type a{s*} (and equally well with type a{o*}, but we only further discuss the string case for sake of clarity).  In the event that I<dictionary> has the type a{sv}, the I<expected_type> string specifies what type of value is expected to be inside of the variant. If the value inside the variant has a different type then C<Any> is returned. In the event that I<dictionary> has a value type other than v then I<expected_type> must directly match the value type and it is used to unpack the value directly or an error occurs.  In either case, if I<key> is not found in I<dictionary>, C<Any> is returned.  If the key is found and the value has the correct type, it is returned.  If I<expected_type> was specified then any non-C<Any> return value will have this type.  This function is currently implemented with a linear scan.  If you plan to do many lookups then B<GVariantDict> may be more efficient.
+Looks up a value in a dictionary B<N-GVariant>. This function works with dictionaries of the type a{s*} (and equally well with type a{o*}, but we only further discuss the string case for sake of clarity). In the event that I<dictionary> has the type a{sv}, the I<expected_type> string specifies what type of value is expected to be inside of the variant. If the value inside the variant has a different type then undefined is returned. In the event that I<dictionary> has a value type other than v then I<expected_type> must directly match the value type and it is used to unpack the value directly or an error occurs.  In either case, if I<key> is not found in I<dictionary>, C<Any> is returned.  If the key is found and the value has the correct type, it is returned.  If I<expected_type> was specified then any non-C<Any> return value will have this type.  This function is currently implemented with a linear scan.  If you plan to do many lookups then B<N-GVariantDict> may be more efficient.
 
 Returns: (transfer full): the value of the dictionary key, or C<Any>
 
@@ -2281,19 +1916,25 @@ Returns: (transfer full): the value of the dictionary key, or C<Any>
 
 =end pod
 
-method lookup-value (  Str  $key, N-GVariantType $expected_type --> N-GVariant ) {
-  my $no = …;
+method lookup-value (
+  Str $key, N-GVariantType $expected_type --> N-GVariant
+) {
+  my $no = $expected_type;
   $no .= get-native-object-no-reffing unless $no ~~ N-GVariantType;
 
   g_variant_lookup_value(
-    self.get-native-object-no-reffing, $key, $expected_type
+    self.get-native-object-no-reffing, $key, $no
   );
 }
 
-sub g_variant_lookup_value ( N-GVariant $dictionary, gchar-ptr $key, N-GVariantType $expected_type --> N-GVariant )
-  is native(&glib-lib)
+sub g_variant_lookup_value (
+  N-GVariant $dictionary, gchar-ptr $key, N-GVariantType $expected_type
+  --> N-GVariant
+) is native(&glib-lib)
   { * }
+}}
 
+#`{{
 #-------------------------------------------------------------------------------
 # TM:0:n-children:
 =begin pod
@@ -2319,7 +1960,7 @@ sub g_variant_n_children ( N-GVariant $value --> gsize )
 }}
 
 #-------------------------------------------------------------------------------
-# TM:1:_g_variant_parse:
+#TM:1:_g_variant_parse:
 #`{{
 =begin pod
 =head2 parse
@@ -2434,17 +2075,17 @@ sub g_variant_parse_error_quark (  --> GQuark )
 =begin pod
 =head2 print
 
-Pretty-prints I<value> in the format understood by C<g_variant_parse()>. If I<type_annotate> is C<True>, then type information is included in the output.
+Pretty-prints I<value> in the format understood by C<parse()>. If I<$type_annotate> is C<True>, then type information is included in the output.
 
 Returns: a newly-allocated string holding the result.
 
-  method print ( Bool $type_annotate -->  Str  )
+  method print ( Bool $type_annotate = False --> Str )
 
 =item Int $type_annotate; C<True> if type information should be included in the output
 
 =end pod
 
-method print ( Bool $type_annotate -->  Str  ) {
+method print ( Bool $type_annotate = False --> Str ) {
 
   g_variant_print(
     self.get-native-object-no-reffing, $type_annotate.Int
@@ -2521,8 +2162,6 @@ sub g_variant_ref_sink ( N-GVariant $value --> N-GVariant )
 =begin pod
 =head2 store
 
-
-
   method store ( Pointer $data )
 
 =item Pointer $data;
@@ -2546,10 +2185,7 @@ sub g_variant_store ( N-GVariant $value, gpointer $data  )
 =begin pod
 =head2 take-ref
 
-
-
   method take-ref ( --> N-GVariant )
-
 
 =end pod
 
@@ -2877,33 +2513,37 @@ Returns: (transfer none): a new floating B<N-GVariant> instance
 =end pod
 }}
 
-sub _g_variant_new_bytestring_array ( gchar-pptr $strv, gssize $length --> N-GVariant )
-  is native(&glib-lib)
+sub _g_variant_new_bytestring_array (
+  gchar-pptr $strv, gssize $length --> N-GVariant
+) is native(&glib-lib)
   is symbol('g_variant_new_bytestring_array')
   { * }
 
 #-------------------------------------------------------------------------------
-# TM:1:_g_variant_new_dict_entry:
+#TM:1:_g_variant_new_dict_entry:
 #`{{
+
 =begin pod
-=head2 _g_variant_new_dict_entry
+=head2 dict-entry
 
-Creates a new dictionary entry B<N-GVariant>. I<key> and I<value> must be non-C<Any>. I<key> must be a value of a basic type (ie: not a container).  If the I<key> or I<value> are floating references (see C<g_variant_ref_sink()>), the new instance takes ownership of them as if via C<g_variant_ref_sink()>.
+Creates a new dictionary entry B<Gnome::Glib::VariantDict>. I<key> and I<value> must be defined. I<key> must be a value of a basic type (ie: not a container).
 
-Returns: (transfer none): a floating reference to a new dictionary entry B<N-GVariant>
+=comment  If the I<key> or I<value> are floating references (see C<g_variant_ref_sink()>), the new instance takes ownership of them as if via C<g_variant_ref_sink()>.
 
-  method _g_variant_new_dict_entry ( N-GVariant $value --> N-GVariant )
+Returns: a floating reference to a new dictionary entry B<Gnome::Glib::VariantDict>
 
-=item N-GVariant $value; a B<N-GVariant>, the value
+  method _g_variant_new_dict_entry ( N-GVariant $key, N-GVariant $value --> N-GVariant )
+
+=item N-GVariant $value; a B<Gnome::Glib::VariantDict>, the value
 
 =end pod
 }}
-#`{{
-sub _g_variant_new_dict_entry ( N-GVariant $key, N-GVariant $value --> N-GVariant )
-  is native(&glib-lib)
+
+sub _g_variant_new_dict_entry (
+  N-GVariant $key, N-GVariant $value --> N-GVariant
+) is native(&glib-lib)
   is symbol('g_variant_new_dict_entry')
   { * }
-}}
 
 #-------------------------------------------------------------------------------
 #TM:1:_g_variant_new_double:
