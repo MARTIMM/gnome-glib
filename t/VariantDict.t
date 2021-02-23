@@ -1,6 +1,6 @@
 use v6;
 #use lib '../gnome-native/lib';
-use lib '../gnome-glib/lib';
+#use lib '../gnome-glib/lib';
 use NativeCall;
 use Test;
 
@@ -11,7 +11,7 @@ use Gnome::Glib::VariantDict;
 use Gnome::Glib::VariantType;
 use Gnome::Glib::N-GVariant;
 
-use Gnome::N::X;
+#use Gnome::N::X;
 #Gnome::N::debug(:on);
 
 #-------------------------------------------------------------------------------

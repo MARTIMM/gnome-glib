@@ -386,29 +386,6 @@ sub g_variant_dict_remove ( N-GVariantDict $dict, gchar-ptr $key --> gboolean )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:1:_g_variant_new_dict_entry:
-
-=begin pod
-=head2 _g_variant_new_dict_entry
-
-Creates a new dictionary entry B<Gnome::Glib::VariantDict>. I<key> and I<value> must be non-C<Any>. I<key> must be a value of a basic type (ie: not a container).  If the I<key> or I<value> are floating references (see C<g_variant_ref_sink()>), the new instance takes ownership of them as if via C<g_variant_ref_sink()>.
-
-Returns: a floating reference to a new dictionary entry B<Gnome::Glib::VariantDict>
-
-  method _g_variant_new_dict_entry ( N-GVariant $value --> N-GVariant )
-
-=item N-GVariant $value; a B<Gnome::Glib::VariantDict>, the value
-
-=end pod
-
-sub _g_variant_new_dict_entry (
-  N-GVariant $key, N-GVariant $value --> N-GVariantDict
-)
-  is native(&glib-lib)
-  is symbol('g_variant_new_dict_entry')
-  { * }
-
-#-------------------------------------------------------------------------------
 #TM:1:_g_variant_dict_ref:
 #`{{
 =begin pod
