@@ -18,16 +18,18 @@ subtest 'ISA test', {
   ok $vt.is-valid, '.is-valid()';
 
   $vt2 .= new(:array($vt));
-  is $vt2.dup-string, 'ab', '.new(:array)';
+  is $vt2.dup-string, 'ab', '.new(:array): ' ~ $vt2.dup-string;
   $vt2.clear-object;
 
   $vt2 .= new(:maybe($vt));
-  is $vt2.dup-string, 'mb', '.new(:maybe)';
+  is $vt2.dup-string, 'mb', '.new(:maybe): ' ~ $vt2.dup-string;
   $vt2.clear-object;
 
-#  $vt2 .= new(:tuple($vt));
-#  is $vt2.dup-string, 'mb', '.new(:tuple)';
-#  $vt2.clear-object;
+  my Gnome::Glib::VariantType $vt-a .= new(:type-string<s>);
+  my Gnome::Glib::VariantType $vt-b .= new(:type-string<i>);
+  $vt2 .= new(:tuple($vt,$vt-a,$vt-b));
+  is $vt2.dup-string, '(bsi)', '.new(:tuple): ' ~ $vt2.dup-string;
+  $vt2.clear-object;
 
   $vt2 = $vt.copy;
   isa-ok $vt2, Gnome::Glib::VariantType, '.copy()';
@@ -56,7 +58,7 @@ subtest 'Manipulations', {
 
   $vt .= new(:type-string<ai>);
   ok $vt.is-subtype-of($vt), '.is-subtype-of()';
-  is $vt.element.dup-string, 'i', '.element()';
+  is $vt.element.dup-string, 'i', '.element(): ' ~ $vt.dup-string;
 
   $vt .= new(:type-string<(aby)>);
   ok $vt.is-container, '.is-container()';
@@ -90,8 +92,8 @@ subtest 'Manipulations', {
   nok $vt.is-definite, 'not definite';
 
   $vt .= new(:type-string<(aby)>);
-  is $vt.first.dup-string, 'ab', '.first()';
-  is $vt.first.next.dup-string, 'y', '.next()';
+  is $vt.first.dup-string, 'ab', '.first(): ' ~ $vt.dup-string;
+  is $vt.first.next.dup-string, 'y', '.next(): ' ~ $vt.dup-string;
   is $vt.n-items, 2, '.n-items()';
 }
 

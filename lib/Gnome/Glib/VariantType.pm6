@@ -209,16 +209,6 @@ constant G_VARIANT_TYPE_VARDICT is export = 'a{sv}';
 =head1 Methods
 =head2 new
 
-=head3 :type-string
-
-Creates a new B<Gnome::Glib::VariantType> corresponding to the type string given
-by I<$type_string>.
-=comment TODO Can DESTROY be used in this case? Call C<.clear-object()> to free the data.
-
-It is a programmer error to call this function with an invalid type string. The string is checked to be sure resulting in a (in)valid object. Test with C<.is-valid()> to be sure.
-
-  multi method new ( Str :$type-string! )
-
 =head3 :array
 
 Constructs the type corresponding to an array of elements of the given type in C<$array>.
@@ -238,6 +228,16 @@ Constructs a new tuple type from I<items> given by the array $tuple.
 
   multi method new ( Array[N-GVariantType] :$tuple! )
 =end comment
+
+=head3 :type-string
+
+Creates a new B<Gnome::Glib::VariantType> corresponding to the type string given
+by I<$type_string>.
+=comment TODO Can DESTROY be used in this case? Call C<.clear-object()> to free the data.
+
+It is a programmer error to call this function with an invalid type string. The string is checked to be sure resulting in a (in)valid object. Test with C<.is-valid()> to be sure.
+
+  multi method new ( Str :$type-string! )
 
 =head3 :native-object
 
@@ -277,6 +277,10 @@ submethod BUILD ( *%options ) {
         $no = %options<maybe>;
         $no .= get-native-object-no-reffing unless $no ~~ N-GVariantType;
         $no = _g_variant_type_new_maybe($no);
+      }
+
+      elsif %options<tuple> {
+        $no = _g_variant_type_new_tuple(%options<tuple>);
       }
 
       ##`{{ when there are no defaults use this
@@ -321,6 +325,381 @@ method native-object-unref ( $n-native-object ) {
 }
 
 #-------------------------------------------------------------------------------
+#TM:1:copy:
+=begin pod
+=head2 copy
+
+Makes a copy of a B<GVariantType>.  It is appropriate to call C<clear-object()> on the return value.
+
+Returns: a new B<GVariantType>
+
+  method copy ( --> Gnome::Glib::VariantType )
+
+=end pod
+
+method copy ( --> Gnome::Glib::VariantType ) {
+  Gnome::Glib::VariantType.new(
+    :native-object(g_variant_type_copy(self.get-native-object-no-reffing))
+  );
+}
+
+sub g_variant_type_copy ( N-GVariantType $type --> N-GVariantType )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:dup-string:
+=begin pod
+=head2 dup-string
+
+Returns a copy of the type string corresponding to I<type>.
+
+Returns: (transfer full): the corresponding type string
+
+  method dup-string ( -->  Str  )
+
+=end pod
+
+method dup-string ( -->  Str  ) {
+
+  g_variant_type_dup_string(
+    self.get-native-object-no-reffing,
+  );
+}
+
+sub g_variant_type_dup_string ( N-GVariantType $type --> gchar-ptr )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:element:
+=begin pod
+=head2 element
+
+Determines the element type of an array or maybe type.  This function may only be used with array or maybe types.
+
+Returns: the element type of I<type>
+
+  method element ( --> Gnome::Glib::VariantType )
+
+=end pod
+
+method element ( --> Gnome::Glib::VariantType ) {
+  Gnome::Glib::VariantType.new(
+    :native-object(g_variant_type_element(self.get-native-object-no-reffing))
+  );
+}
+
+sub g_variant_type_element ( N-GVariantType $type --> N-GVariantType )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:equal:
+=begin pod
+=head2 equal
+
+Compares this type and I<$type2> for equality.  Only returns C<True> if the types are exactly equal.  Even if one type is an indefinite type and the other is a subtype of it, C<False> will be returned if they are not exactly equal. If you want to check for subtypes, use C<is-subtype-of()>.
+
+=comment The argument types of I<type1> and I<type2> are only B<gconstpointer> to allow use with B<GHashTable> without function pointer casting.  For both arguments, a valid B<GVariantType> must be provided.
+
+  method equal ( N-GVariantType $type2 --> Bool )
+
+=item N-GVariantType $type2; a B<GVariantType>
+
+=end pod
+
+method equal ( $type2 --> Bool ) {
+  my $no = $type2;
+  $no .= get-native-object-no-reffing unless $no ~~ N-GVariantType;
+
+  g_variant_type_equal(
+    self.get-native-object-no-reffing, $no
+  ).Bool;
+}
+
+sub g_variant_type_equal (
+  N-GVariantType $type1, N-GVariantType $type2 --> gboolean
+) is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:first:
+=begin pod
+=head2 first
+
+Determines the first item type of a tuple or dictionary entry type.  This function may only be used with tuple or dictionary entry types, but must not be used with the generic tuple type C<G_VARIANT_TYPE_TUPLE>.  In the case of a dictionary entry type, this returns the type of the key.  C<Any> is returned in case of I<type> being C<G_VARIANT_TYPE_UNIT>.  This call, together with C<g_variant_type_next()> provides an iterator interface over tuple and dictionary entry types.
+
+Returns: the first item type of I<type>, or invalid
+
+  method first ( --> N-GVariantType )
+
+=end pod
+
+method first ( --> Gnome::Glib::VariantType ) {
+  Gnome::Glib::VariantType.new(
+    :native-object(g_variant_type_first(self.get-native-object-no-reffing))
+  );
+}
+
+sub g_variant_type_first ( N-GVariantType $type --> N-GVariantType )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:get-string-length:
+=begin pod
+=head2 get-string-length
+
+Returns the length of the type string corresponding to the given I<type>.  This function must be used to determine the valid extent of the memory region returned by C<g_variant_type_peek_string()>.
+
+Returns: the length of the corresponding type string
+
+  method get-string-length ( --> UInt )
+
+=end pod
+
+method get-string-length ( --> UInt ) {
+
+  g_variant_type_get_string_length(
+    self.get-native-object-no-reffing,
+  );
+}
+
+sub g_variant_type_get_string_length ( N-GVariantType $type --> gsize )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:hash:
+=begin pod
+=head2 hash
+
+Hashes I<type>.
+=comment The argument type of I<type> is only B<gconstpointer> to allow use with B<GHashTable> without function pointer casting.  A valid B<GVariantType> must be provided.
+
+Returns: the hash value
+
+  method hash ( N-GVariantType $type --> UInt )
+
+=item N-GVariantType $type; a B<N-GVariantType>
+
+=end pod
+
+method hash ( --> UInt ) {
+
+  g_variant_type_hash(
+    self.get-native-object-no-reffing
+  );
+}
+
+sub g_variant_type_hash ( N-GVariantType $type --> guint )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:is-array:
+=begin pod
+=head2 is-array
+
+Determines if the given I<type> is an array type.  This is true if the type string for I<type> starts with an 'a'.  This function returns C<True> for any indefinite type for which every definite subtype is an array type -- C<G_VARIANT_TYPE_ARRAY>, for example.
+
+Returns: C<True> if I<type> is an array type
+
+  method is-array ( --> Bool )
+
+
+=end pod
+
+method is-array ( --> Bool ) {
+
+  g_variant_type_is_array(
+    self.get-native-object-no-reffing,
+  ).Bool;
+}
+
+sub g_variant_type_is_array ( N-GVariantType $type --> gboolean )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:is-basic:
+=begin pod
+=head2 is-basic
+
+Determines if the given I<type> is a basic type.  Basic types are booleans, bytes, integers, doubles, strings, object paths and signatures.  Only a basic type may be used as the key of a dictionary entry.  This function returns C<False> for all indefinite types except C<G_VARIANT_TYPE_BASIC>.
+
+Returns: C<True> if I<type> is a basic type
+
+  method is-basic ( --> Bool )
+
+=end pod
+
+method is-basic ( --> Bool ) {
+
+  g_variant_type_is_basic(
+    self.get-native-object-no-reffing,
+  ).Bool;
+}
+
+sub g_variant_type_is_basic ( N-GVariantType $type --> gboolean )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:is-container:
+=begin pod
+=head2 is-container
+
+Determines if the given I<type> is a container type.  Container types are any array, maybe, tuple, or dictionary entry types plus the variant type.  This function returns C<True> for any indefinite type for which every definite subtype is a container -- C<G_VARIANT_TYPE_ARRAY>, for example.
+
+Returns: C<True> if I<type> is a container type
+
+  method is-container ( --> Bool )
+
+
+=end pod
+
+method is-container ( --> Bool ) {
+
+  g_variant_type_is_container(
+    self.get-native-object-no-reffing,
+  ).Bool;
+}
+
+sub g_variant_type_is_container ( N-GVariantType $type --> gboolean )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:is-definite:
+=begin pod
+=head2 is-definite
+
+Determines if the given I<type> is definite (ie: not indefinite).  A type is definite if its type string does not contain any indefinite type characters ('*', '?', or 'r').  A B<GVariant> instance may not have an indefinite type, so calling this function on the result of C<g_variant_get_type()> will always result in C<True> being returned.  Calling this function on an indefinite type like C<G_VARIANT_TYPE_ARRAY>, however, will result in C<False> being returned.
+
+Returns: C<True> if I<type> is definite
+
+  method is-definite ( --> Bool )
+
+
+=end pod
+
+method is-definite ( --> Bool ) {
+
+  g_variant_type_is_definite(
+    self.get-native-object-no-reffing,
+  ).Bool;
+}
+
+sub g_variant_type_is_definite ( N-GVariantType $type --> gboolean )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:is-dict-entry:
+=begin pod
+=head2 is-dict-entry
+
+Determines if the given I<type> is a dictionary entry type.  This is true if the type string for I<type> starts with a '{'.  This function returns C<True> for any indefinite type for which every definite subtype is a dictionary entry type -- C<G_VARIANT_TYPE_DICT_ENTRY>, for example.
+
+Returns: C<True> if I<type> is a dictionary entry type
+
+  method is-dict-entry ( --> Bool )
+
+
+=end pod
+
+method is-dict-entry ( --> Bool ) {
+
+  g_variant_type_is_dict_entry(
+    self.get-native-object-no-reffing,
+  ).Bool;
+}
+
+sub g_variant_type_is_dict_entry ( N-GVariantType $type --> gboolean )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:is-maybe:
+=begin pod
+=head2 is-maybe
+
+Determines if the given I<type> is a maybe type.  This is true if the type string for I<type> starts with an 'm'.  This function returns C<True> for any indefinite type for which every definite subtype is a maybe type -- C<G_VARIANT_TYPE_MAYBE>, for example.
+
+Returns: C<True> if I<type> is a maybe type
+
+  method is-maybe ( --> Bool )
+
+
+=end pod
+
+method is-maybe ( --> Bool ) {
+
+  g_variant_type_is_maybe(
+    self.get-native-object-no-reffing,
+  ).Bool;
+}
+
+sub g_variant_type_is_maybe ( N-GVariantType $type --> gboolean )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:is-subtype-of:
+=begin pod
+=head2 is-subtype-of
+
+Checks if this type is a subtype of I<$supertype>.  This function returns C<True> if I<type> is a subtype of I<$supertype>.  All types are considered to be subtypes of themselves.  Aside from that, only indefinite types can have subtypes.
+
+Returns: C<True> if I<type> is a subtype of I<$supertype>
+
+  method is-subtype-of ( N-GVariantType $supertype --> Bool )
+
+=item N-GVariantType $supertype; a B<GVariantType>
+
+=end pod
+
+method is-subtype-of ( $supertype --> Bool ) {
+  my $no = $supertype;
+  $no .= get-native-object-no-reffing unless $no ~~ N-GVariantType;
+
+  g_variant_type_is_subtype_of(
+    self.get-native-object-no-reffing, $no
+  ).Bool;
+}
+
+sub g_variant_type_is_subtype_of ( N-GVariantType $type, N-GVariantType $supertype --> gboolean )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:is-tuple:
+=begin pod
+=head2 is-tuple
+
+Determines if the given I<type> is a tuple type.  This is true if the type string for I<type> starts with a '(' or if I<type> is C<G_VARIANT_TYPE_TUPLE>.  This function returns C<True> for any indefinite type for which every definite subtype is a tuple type -- C<G_VARIANT_TYPE_TUPLE>, for example.
+
+Returns: C<True> if I<type> is a tuple type
+
+  method is-tuple ( --> Bool )
+
+
+=end pod
+
+method is-tuple ( --> Bool ) {
+
+  g_variant_type_is_tuple(
+    self.get-native-object-no-reffing,
+  ).Bool;
+}
+
+sub g_variant_type_is_tuple ( N-GVariantType $type --> gboolean )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
 #TM:1::string-is-valid
 =begin pod
 =head2 string-is-valid
@@ -342,6 +721,129 @@ method string-is-valid ( Str $type_string --> Bool ) {
 sub g_variant_type_string_is_valid ( gchar-ptr $type_string --> gboolean )
   is native(&glib-lib)
   { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:is-variant:
+=begin pod
+=head2 is-variant
+
+Determines if the given I<type> is the variant type.
+
+Returns: C<True> if I<type> is the variant type
+
+  method is-variant ( --> Bool )
+
+=end pod
+
+method is-variant ( --> Bool ) {
+
+  g_variant_type_is_variant(
+    self.get-native-object-no-reffing,
+  ).Bool;
+}
+
+sub g_variant_type_is_variant ( N-GVariantType $type --> gboolean )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:key:
+=begin pod
+=head2 key
+
+Determines the key type of a dictionary entry type.  This function may only be used with a dictionary entry type.  Other than the additional restriction, this call is equivalent to C<g_variant_type_first()>.
+
+Returns: the key type of the dictionary entry
+
+  method key ( --> Gnome::Glib::VariantType )
+
+
+=end pod
+
+method key ( --> Gnome::Glib::VariantType ) {
+  Gnome::Glib::VariantType.new(
+    :native-object(g_variant_type_key(self.get-native-object-no-reffing))
+  );
+}
+
+sub g_variant_type_key ( N-GVariantType $type --> N-GVariantType )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:n-items:
+=begin pod
+=head2 n-items
+
+Determines the number of items contained in a tuple or dictionary entry type.  This function may only be used with tuple or dictionary entry types, but must not be used with the generic tuple type C<G_VARIANT_TYPE_TUPLE>.  In the case of a dictionary entry type, this function will always return 2.
+
+Returns: the number of items in I<type>
+
+  method n-items ( --> UInt )
+
+
+=end pod
+
+method n-items ( --> UInt ) {
+
+  g_variant_type_n_items(
+    self.get-native-object-no-reffing,
+  );
+}
+
+sub g_variant_type_n_items ( N-GVariantType $type --> gsize )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:next:
+=begin pod
+=head2 next
+
+Determines the next item type of a tuple or dictionary entry type.  I<type> must be the result of a previous call to C<first()> or C<next()>.  If called on the key type of a dictionary entry then this call returns the value type.  If called on the value type of a dictionary entry then this call returns C<Any>.  For tuples, C<Any> is returned when I<type> is the last item in a tuple.
+
+Returns: the next B<Gnome::Glib::VariantType> after I<type>, or invalid
+
+  method next ( --> Gnome::Glib::VariantType )
+
+=end pod
+
+method next ( --> Gnome::Glib::VariantType ) {
+  Gnome::Glib::VariantType.new(
+    :native-object(g_variant_type_next(self.get-native-object-no-reffing))
+  );
+}
+
+sub g_variant_type_next ( N-GVariantType $type --> N-GVariantType )
+  is native(&glib-lib)
+  { * }
+
+#`{{
+#-------------------------------------------------------------------------------
+# TM:1:peek-string:
+=begin pod
+=head2 peek-string
+
+Returns the type string corresponding to the given I<type>.  The result is not nul-terminated; in order to determine its length you must call C<get-string-length()>.  To get a nul-terminated string, see C<g_variant_type_dup_string()>.
+
+Returns: the corresponding type string (not nul-terminated)
+
+  method peek-string ( -->  Str  )
+
+
+=end pod
+
+method peek-string ( -->  Str  ) {
+
+  g_variant_type_peek_string(
+    self.get-native-object-no-reffing,
+  );
+}
+
+sub g_variant_type_peek_string ( N-GVariantType $type --> gchar-ptr )
+  is native(&glib-lib)
+  { * }
+}}
 
 #`{{
 #-------------------------------------------------------------------------------
@@ -375,6 +877,30 @@ sub g_variant_type_string_scan ( Str $string, Str $limit, CArray[Str] $endptr --
 }}
 
 #-------------------------------------------------------------------------------
+#TM:1:value:
+=begin pod
+=head2 value
+
+Determines the value type of a dictionary entry type.  This function may only be used with a dictionary entry type.
+
+Returns: the value type of the dictionary entry
+
+  method value ( --> Gnome::Glib::VariantType )
+
+
+=end pod
+
+method value ( --> Gnome::Glib::VariantType ) {
+  Gnome::Glib::VariantType.new(
+    :native-object(g_variant_type_value(self.get-native-object-no-reffing))
+  );
+}
+
+sub g_variant_type_value ( N-GVariantType $type --> N-GVariantType )
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
 #`{{ User must not know about it, they have to use clear-object()
 #
 #TM:0:g_variant_type_free:
@@ -392,29 +918,6 @@ Frees a B<Gnome::Glib::VariantType> that was allocated with C<g_variant_type_cop
 sub _g_variant_type_free ( N-GVariantType $type )
   is native(&glib-lib)
   is symbol('g_variant_type_free')
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:copy:
-=begin pod
-=head2 copy
-
-Makes a copy of a B<GVariantType>.  It is appropriate to call C<.clear-object()> on the return value.
-
-Returns: a new B<GVariantType>
-
-  method copy ( --> Gnome::Glib::VariantType )
-
-=end pod
-
-method copy ( --> Gnome::Glib::VariantType ) {
-  Gnome::Glib::VariantType.new(
-    :native-object(g_variant_type_copy(self.get-native-object-no-reffing))
-  );
-}
-
-sub g_variant_type_copy ( N-GVariantType $type --> N-GVariantType )
-  is native(&glib-lib)
   { * }
 
 #-------------------------------------------------------------------------------
@@ -444,505 +947,6 @@ sub _g_variant_type_new ( Str $type_string --> N-GVariantType )
   is symbol('g_variant_type_new')
   { * }
 
-
-#-------------------------------------------------------------------------------
-#TM:1:get-string-length:
-=begin pod
-=head2 get-string-length
-
-Returns the length of the type string corresponding to the given I<type>.  This function must be used to determine the valid extent of the memory region returned by C<g_variant_type_peek_string()>.
-
-Returns: the length of the corresponding type string
-
-  method get-string-length ( --> UInt )
-
-=end pod
-
-method get-string-length ( --> UInt ) {
-
-  g_variant_type_get_string_length(
-    self.get-native-object-no-reffing,
-  );
-}
-
-sub g_variant_type_get_string_length ( N-GVariantType $type --> gsize )
-  is native(&glib-lib)
-  { * }
-
-#`{{
-#-------------------------------------------------------------------------------
-# TM:1:peek-string:
-=begin pod
-=head2 peek-string
-
-Returns the type string corresponding to the given I<type>.  The result is not nul-terminated; in order to determine its length you must call C<get-string-length()>.  To get a nul-terminated string, see C<g_variant_type_dup_string()>.
-
-Returns: the corresponding type string (not nul-terminated)
-
-  method peek-string ( -->  Str  )
-
-
-=end pod
-
-method peek-string ( -->  Str  ) {
-
-  g_variant_type_peek_string(
-    self.get-native-object-no-reffing,
-  );
-}
-
-sub g_variant_type_peek_string ( N-GVariantType $type --> gchar-ptr )
-  is native(&glib-lib)
-  { * }
-}}
-
-#-------------------------------------------------------------------------------
-#TM:1:dup-string:
-=begin pod
-=head2 dup-string
-
-Returns a copy of the type string corresponding to I<type>.
-
-Returns: (transfer full): the corresponding type string
-
-  method dup-string ( -->  Str  )
-
-=end pod
-
-method dup-string ( -->  Str  ) {
-
-  g_variant_type_dup_string(
-    self.get-native-object-no-reffing,
-  );
-}
-
-sub g_variant_type_dup_string ( N-GVariantType $type --> gchar-ptr )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:is-definite:
-=begin pod
-=head2 is-definite
-
-Determines if the given I<type> is definite (ie: not indefinite).  A type is definite if its type string does not contain any indefinite type characters ('*', '?', or 'r').  A B<GVariant> instance may not have an indefinite type, so calling this function on the result of C<g_variant_get_type()> will always result in C<True> being returned.  Calling this function on an indefinite type like C<G_VARIANT_TYPE_ARRAY>, however, will result in C<False> being returned.
-
-Returns: C<True> if I<type> is definite
-
-  method is-definite ( --> Bool )
-
-
-=end pod
-
-method is-definite ( --> Bool ) {
-
-  g_variant_type_is_definite(
-    self.get-native-object-no-reffing,
-  ).Bool;
-}
-
-sub g_variant_type_is_definite ( N-GVariantType $type --> gboolean )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:is-container:
-=begin pod
-=head2 is-container
-
-Determines if the given I<type> is a container type.  Container types are any array, maybe, tuple, or dictionary entry types plus the variant type.  This function returns C<True> for any indefinite type for which every definite subtype is a container -- C<G_VARIANT_TYPE_ARRAY>, for example.
-
-Returns: C<True> if I<type> is a container type
-
-  method is-container ( --> Bool )
-
-
-=end pod
-
-method is-container ( --> Bool ) {
-
-  g_variant_type_is_container(
-    self.get-native-object-no-reffing,
-  ).Bool;
-}
-
-sub g_variant_type_is_container ( N-GVariantType $type --> gboolean )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:is-basic:
-=begin pod
-=head2 is-basic
-
-Determines if the given I<type> is a basic type.  Basic types are booleans, bytes, integers, doubles, strings, object paths and signatures.  Only a basic type may be used as the key of a dictionary entry.  This function returns C<False> for all indefinite types except C<G_VARIANT_TYPE_BASIC>.
-
-Returns: C<True> if I<type> is a basic type
-
-  method is-basic ( --> Bool )
-
-=end pod
-
-method is-basic ( --> Bool ) {
-
-  g_variant_type_is_basic(
-    self.get-native-object-no-reffing,
-  ).Bool;
-}
-
-sub g_variant_type_is_basic ( N-GVariantType $type --> gboolean )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:is-maybe:
-=begin pod
-=head2 is-maybe
-
-Determines if the given I<type> is a maybe type.  This is true if the type string for I<type> starts with an 'm'.  This function returns C<True> for any indefinite type for which every definite subtype is a maybe type -- C<G_VARIANT_TYPE_MAYBE>, for example.
-
-Returns: C<True> if I<type> is a maybe type
-
-  method is-maybe ( --> Bool )
-
-
-=end pod
-
-method is-maybe ( --> Bool ) {
-
-  g_variant_type_is_maybe(
-    self.get-native-object-no-reffing,
-  ).Bool;
-}
-
-sub g_variant_type_is_maybe ( N-GVariantType $type --> gboolean )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:is-array:
-=begin pod
-=head2 is-array
-
-Determines if the given I<type> is an array type.  This is true if the type string for I<type> starts with an 'a'.  This function returns C<True> for any indefinite type for which every definite subtype is an array type -- C<G_VARIANT_TYPE_ARRAY>, for example.
-
-Returns: C<True> if I<type> is an array type
-
-  method is-array ( --> Bool )
-
-
-=end pod
-
-method is-array ( --> Bool ) {
-
-  g_variant_type_is_array(
-    self.get-native-object-no-reffing,
-  ).Bool;
-}
-
-sub g_variant_type_is_array ( N-GVariantType $type --> gboolean )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:is-tuple:
-=begin pod
-=head2 is-tuple
-
-Determines if the given I<type> is a tuple type.  This is true if the type string for I<type> starts with a '(' or if I<type> is C<G_VARIANT_TYPE_TUPLE>.  This function returns C<True> for any indefinite type for which every definite subtype is a tuple type -- C<G_VARIANT_TYPE_TUPLE>, for example.
-
-Returns: C<True> if I<type> is a tuple type
-
-  method is-tuple ( --> Bool )
-
-
-=end pod
-
-method is-tuple ( --> Bool ) {
-
-  g_variant_type_is_tuple(
-    self.get-native-object-no-reffing,
-  ).Bool;
-}
-
-sub g_variant_type_is_tuple ( N-GVariantType $type --> gboolean )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:is-dict-entry:
-=begin pod
-=head2 is-dict-entry
-
-Determines if the given I<type> is a dictionary entry type.  This is true if the type string for I<type> starts with a '{'.  This function returns C<True> for any indefinite type for which every definite subtype is a dictionary entry type -- C<G_VARIANT_TYPE_DICT_ENTRY>, for example.
-
-Returns: C<True> if I<type> is a dictionary entry type
-
-  method is-dict-entry ( --> Bool )
-
-
-=end pod
-
-method is-dict-entry ( --> Bool ) {
-
-  g_variant_type_is_dict_entry(
-    self.get-native-object-no-reffing,
-  ).Bool;
-}
-
-sub g_variant_type_is_dict_entry ( N-GVariantType $type --> gboolean )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:is-variant:
-=begin pod
-=head2 is-variant
-
-Determines if the given I<type> is the variant type.
-
-Returns: C<True> if I<type> is the variant type
-
-  method is-variant ( --> Bool )
-
-=end pod
-
-method is-variant ( --> Bool ) {
-
-  g_variant_type_is_variant(
-    self.get-native-object-no-reffing,
-  ).Bool;
-}
-
-sub g_variant_type_is_variant ( N-GVariantType $type --> gboolean )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:hash:
-=begin pod
-=head2 hash
-
-Hashes I<type>.
-=comment The argument type of I<type> is only B<gconstpointer> to allow use with B<GHashTable> without function pointer casting.  A valid B<GVariantType> must be provided.
-
-Returns: the hash value
-
-  method hash ( N-GVariantType $type --> UInt )
-
-=item N-GVariantType $type; a B<N-GVariantType>
-
-=end pod
-
-method hash ( --> UInt ) {
-
-  g_variant_type_hash(
-    self.get-native-object-no-reffing
-  );
-}
-
-sub g_variant_type_hash ( N-GVariantType $type --> guint )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:equal:
-=begin pod
-=head2 equal
-
-Compares this type and I<$type2> for equality.  Only returns C<True> if the types are exactly equal.  Even if one type is an indefinite type and the other is a subtype of it, C<False> will be returned if they are not exactly equal. If you want to check for subtypes, use C<is-subtype-of()>.
-
-=constant The argument types of I<type1> and I<type2> are only B<gconstpointer> to allow use with B<GHashTable> without function pointer casting.  For both arguments, a valid B<GVariantType> must be provided.
-
-  method equal ( N-GVariantType $type2 --> Bool )
-
-=item N-GVariantType $type2; a B<GVariantType>
-
-=end pod
-
-method equal ( $type2 --> Bool ) {
-  my $no = $type2;
-  $no .= get-native-object-no-reffing unless $no ~~ N-GVariantType;
-
-  g_variant_type_equal(
-    self.get-native-object-no-reffing, $no
-  ).Bool;
-}
-
-sub g_variant_type_equal (
-  N-GVariantType $type1, N-GVariantType $type2 --> gboolean
-) is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:is-subtype-of:
-=begin pod
-=head2 is-subtype-of
-
-Checks if this type is a subtype of I<$supertype>.  This function returns C<True> if I<type> is a subtype of I<$supertype>.  All types are considered to be subtypes of themselves.  Aside from that, only indefinite types can have subtypes.
-
-Returns: C<True> if I<type> is a subtype of I<$supertype>
-
-  method is-subtype-of ( N-GVariantType $supertype --> Bool )
-
-=item N-GVariantType $supertype; a B<GVariantType>
-
-=end pod
-
-method is-subtype-of ( $supertype --> Bool ) {
-  my $no = $supertype;
-  $no .= get-native-object-no-reffing unless $no ~~ N-GVariantType;
-
-  g_variant_type_is_subtype_of(
-    self.get-native-object-no-reffing, $no
-  ).Bool;
-}
-
-sub g_variant_type_is_subtype_of ( N-GVariantType $type, N-GVariantType $supertype --> gboolean )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:element:
-=begin pod
-=head2 element
-
-Determines the element type of an array or maybe type.  This function may only be used with array or maybe types.
-
-Returns: the element type of I<type>
-
-  method element ( --> Gnome::Glib::VariantType )
-
-=end pod
-
-method element ( --> Gnome::Glib::VariantType ) {
-  Gnome::Glib::VariantType.new(
-    :native-object(g_variant_type_element(self.get-native-object-no-reffing))
-  );
-}
-
-sub g_variant_type_element ( N-GVariantType $type --> N-GVariantType )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:first:
-=begin pod
-=head2 first
-
-Determines the first item type of a tuple or dictionary entry type.  This function may only be used with tuple or dictionary entry types, but must not be used with the generic tuple type C<G_VARIANT_TYPE_TUPLE>.  In the case of a dictionary entry type, this returns the type of the key.  C<Any> is returned in case of I<type> being C<G_VARIANT_TYPE_UNIT>.  This call, together with C<g_variant_type_next()> provides an iterator interface over tuple and dictionary entry types.
-
-Returns: the first item type of I<type>, or invalid
-
-  method first ( --> N-GVariantType )
-
-=end pod
-
-method first ( --> Gnome::Glib::VariantType ) {
-  Gnome::Glib::VariantType.new(
-    :native-object(g_variant_type_first(self.get-native-object-no-reffing))
-  );
-}
-
-sub g_variant_type_first ( N-GVariantType $type --> N-GVariantType )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:next:
-=begin pod
-=head2 next
-
-Determines the next item type of a tuple or dictionary entry type.  I<type> must be the result of a previous call to C<first()> or C<next()>.  If called on the key type of a dictionary entry then this call returns the value type.  If called on the value type of a dictionary entry then this call returns C<Any>.  For tuples, C<Any> is returned when I<type> is the last item in a tuple.
-
-Returns: the next B<Gnome::Glib::VariantType> after I<type>, or invalid
-
-  method next ( --> Gnome::Glib::VariantType )
-
-=end pod
-
-method next ( --> Gnome::Glib::VariantType ) {
-  Gnome::Glib::VariantType.new(
-    :native-object(g_variant_type_next(self.get-native-object-no-reffing))
-  );
-}
-
-sub g_variant_type_next ( N-GVariantType $type --> N-GVariantType )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:n-items:
-=begin pod
-=head2 n-items
-
-Determines the number of items contained in a tuple or dictionary entry type.  This function may only be used with tuple or dictionary entry types, but must not be used with the generic tuple type C<G_VARIANT_TYPE_TUPLE>.  In the case of a dictionary entry type, this function will always return 2.
-
-Returns: the number of items in I<type>
-
-  method n-items ( --> UInt )
-
-
-=end pod
-
-method n-items ( --> UInt ) {
-
-  g_variant_type_n_items(
-    self.get-native-object-no-reffing,
-  );
-}
-
-sub g_variant_type_n_items ( N-GVariantType $type --> gsize )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:key:
-=begin pod
-=head2 key
-
-Determines the key type of a dictionary entry type.  This function may only be used with a dictionary entry type.  Other than the additional restriction, this call is equivalent to C<g_variant_type_first()>.
-
-Returns: the key type of the dictionary entry
-
-  method key ( --> Gnome::Glib::VariantType )
-
-
-=end pod
-
-method key ( --> Gnome::Glib::VariantType ) {
-  Gnome::Glib::VariantType.new(
-    :native-object(g_variant_type_key(self.get-native-object-no-reffing))
-  );
-}
-
-sub g_variant_type_key ( N-GVariantType $type --> N-GVariantType )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:value:
-=begin pod
-=head2 value
-
-Determines the value type of a dictionary entry type.  This function may only be used with a dictionary entry type.
-
-Returns: the value type of the dictionary entry
-
-  method value ( --> Gnome::Glib::VariantType )
-
-
-=end pod
-
-method value ( --> Gnome::Glib::VariantType ) {
-  Gnome::Glib::VariantType.new(
-    :native-object(g_variant_type_value(self.get-native-object-no-reffing))
-  );
-}
-
-sub g_variant_type_value ( N-GVariantType $type --> N-GVariantType )
-  is native(&glib-lib)
-  { * }
 
 #-------------------------------------------------------------------------------
 #TM:1:_g_variant_type_new_array:
@@ -986,7 +990,6 @@ sub _g_variant_type_new_maybe ( N-GVariantType $element --> N-GVariantType )
   is symbol('g_variant_type_new_maybe')
   { * }
 
-#`{{
 #-------------------------------------------------------------------------------
 #TM:0:_g_variant_type_new_tuple:
 #`{{
@@ -997,7 +1000,9 @@ Constructs a new tuple type, from I<items>.  I<length> is the number of items in
 
 Returns: (transfer full): a new tuple B<GVariantType>
 
-  method _g_variant_type_new_tuple (  $const GVariantType * const *items, Int $length --> N-GVariantType )
+  method _g_variant_type_new_tuple (
+    *@items --> N-GVariantType
+  )
 
 =item  $const GVariantType * const *items; (array length=length): an array of B<GVariantTypes>, one for each item
 =item Int $length; the length of I<items>, or -1
@@ -1005,11 +1010,37 @@ Returns: (transfer full): a new tuple B<GVariantType>
 =end pod
 }}
 
-sub _g_variant_type_new_tuple (  $const GVariantType * const *items, gint $length --> N-GVariantType )
-  is native(&glib-lib)
-  is symbol('g_variant_type_new_tuple')
-  { * }
-}}
+sub _g_variant_type_new_tuple ( @items --> N-GVariantType ) {
+  my $no = CArray[N-GVariantType].new;
+  my $count = 0;
+  for @items -> $item is copy {
+    $item .= get-native-object-no-reffing unless $item ~~ N-GVariantType;
+    $no[$count++] = $item;
+  }
+
+  my @parameter-list = (
+    Parameter.new(:type(CArray[N-GVariantType])), # GVariantType * const *items
+    Parameter.new(:type(gint))
+  );
+
+  # create signature
+  my Signature $signature .= new(
+    :params(|@parameter-list),
+    :returns(N-GVariantType)
+  );
+
+  # get a pointer to the sub, then cast it to a sub with the proper
+  # signature. after that, the sub can be called, returning a value.
+  state $ptr = cglobal( &gtk-lib, 'g_variant_type_new_tuple', Pointer);
+  my Callable $f = nativecast( $signature, $ptr);
+
+  $f( $no, $count)
+}
+
+#  is native(&glib-lib)
+#  is symbol('g_variant_type_new_tuple')
+#  { * }
+
 
 #`{{
 #-------------------------------------------------------------------------------
@@ -1085,612 +1116,6 @@ method string-get-depth- (  Str  $type_string --> UInt ) {
 }
 
 sub g_variant_type_string_get_depth_ ( gchar-ptr $type_string --> gsize )
-  is native(&glib-lib)
-  { * }
-}}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-=finish
-#-------------------------------------------------------------------------------
-#TM:1:g_variant_type_get_string_length:
-=begin pod
-=head2 [g_variant_type_] get_string_length
-
-Returns the length of the type string corresponding to the given
-I<type>.  This function must be used to determine the valid extent of
-the memory region returned by C<g_variant_type_peek_string()>.
-
-Returns: the length of the corresponding type string
-
-  method g_variant_type_get_string_length ( --> UInt )
-
-=end pod
-
-sub g_variant_type_get_string_length ( N-GVariantType $type --> uint64 )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:g_variant_type_peek_string:
-=begin pod
-=head2 [g_variant_type_] peek_string
-
-Returns the type string corresponding to the given I<type>.  The result is not nul-terminated; in order to determine its length you must call C<g_variant_type_get_string_length()>. To get a nul-terminated string, see C<g_variant_type_dup_string()>.
-
-Returns: the corresponding type string (not nul-terminated)
-
-  method g_variant_type_peek_string ( --> Str )
-
-
-=end pod
-
-sub g_variant_type_peek_string ( N-GVariantType $type --> Str )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_variant_type_dup_string:
-=begin pod
-=head2 [g_variant_type_] dup_string
-
-Returns a newly-allocated copy of the type string corresponding to I<type>.  The returned string is nul-terminated.  It is appropriate to call C<g_free()> on the return value.
-
-Returns: (transfer full): the corresponding type string
-
-  method g_variant_type_dup_string ( --> Str )
-
-=end pod
-
-sub g_variant_type_dup_string ( N-GVariantType $type --> Str )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:g_variant_type_is_definite:
-=begin pod
-=head2 [g_variant_type_] is_definite
-
-Determines if the given I<type> is definite (ie: not indefinite). A type is definite if its type string does not contain any indefinite type characters ('*', '?', or 'r').
-
-A B<Gnome::Glib::Variant> instance may not have an indefinite type, so calling this function on the result of C<g_variant_get_type()> will always result in C<True> being returned.  Calling this function on an indefinite type like C<G_VARIANT_TYPE_ARRAY>, however, will result in C<False> being returned.
-
-Returns: C<True> if I<type> is definite
-
-  method g_variant_type_is_definite ( --> Int )
-
-
-=end pod
-
-sub g_variant_type_is_definite ( N-GVariantType $type --> int32 )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:g_variant_type_is_container:
-=begin pod
-=head2 [g_variant_type_] is_container
-
-Determines if the given I<type> is a container type.
-
-Container types are any array, maybe, tuple, or dictionary
-entry types plus the variant type.
-
-This function returns C<True> for any indefinite type for which every
-definite subtype is a container -- C<G_VARIANT_TYPE_ARRAY>, for
-example.
-
-Returns: C<True> if I<type> is a container type
-
-  method g_variant_type_is_container ( --> Int )
-
-
-=end pod
-
-sub g_variant_type_is_container ( N-GVariantType $type --> int32 )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:g_variant_type_is_basic:
-=begin pod
-=head2 [g_variant_type_] is_basic
-
-Determines if the given I<type> is a basic type.
-
-Basic types are booleans, bytes, integers, doubles, strings, object
-paths and signatures.
-
-Only a basic type may be used as the key of a dictionary entry.
-
-This function returns C<False> for all indefinite types except
-C<G_VARIANT_TYPE_BASIC>.
-
-Returns: C<True> if I<type> is a basic type
-
-  method g_variant_type_is_basic ( --> Int )
-
-
-=end pod
-
-sub g_variant_type_is_basic ( N-GVariantType $type --> int32 )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:g_variant_type_is_maybe:
-=begin pod
-=head2 [g_variant_type_] is_maybe
-
-Determines if the given I<type> is a maybe type.  This is true if the
-type string for I<type> starts with an 'm'.
-
-This function returns C<True> for any indefinite type for which every
-definite subtype is a maybe type -- C<G_VARIANT_TYPE_MAYBE>, for
-example.
-
-Returns: C<True> if I<type> is a maybe type
-
-  method g_variant_type_is_maybe ( --> Int )
-
-
-=end pod
-
-sub g_variant_type_is_maybe ( N-GVariantType $type --> int32 )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:g_variant_type_is_array:
-=begin pod
-=head2 [g_variant_type_] is_array
-
-Determines if the given I<type> is an array type.  This is true if the
-type string for I<type> starts with an 'a'.
-
-This function returns C<True> for any indefinite type for which every
-definite subtype is an array type -- C<G_VARIANT_TYPE_ARRAY>, for
-example.
-
-Returns: C<True> if I<type> is an array type
-
-  method g_variant_type_is_array ( --> Int )
-
-
-=end pod
-
-sub g_variant_type_is_array ( N-GVariantType $type --> int32 )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:g_variant_type_is_tuple:
-=begin pod
-=head2 [g_variant_type_] is_tuple
-
-Determines if the given I<type> is a tuple type.  This is true if the
-type string for I<type> starts with a '(' or if I<type> is
-C<G_VARIANT_TYPE_TUPLE>.
-
-This function returns C<True> for any indefinite type for which every
-definite subtype is a tuple type -- C<G_VARIANT_TYPE_TUPLE>, for
-example.
-
-Returns: C<True> if I<type> is a tuple type
-
-  method g_variant_type_is_tuple ( --> Int )
-
-
-=end pod
-
-sub g_variant_type_is_tuple ( N-GVariantType $type --> int32 )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:g_variant_type_is_dict_entry:
-=begin pod
-=head2 [g_variant_type_] is_dict_entry
-
-Determines if the given I<type> is a dictionary entry type.  This is
-true if the type string for I<type> starts with a '{'.
-
-This function returns C<True> for any indefinite type for which every
-definite subtype is a dictionary entry type --
-C<G_VARIANT_TYPE_DICT_ENTRY>, for example.
-
-Returns: C<True> if I<type> is a dictionary entry type
-
-  method g_variant_type_is_dict_entry ( --> Int )
-
-
-=end pod
-
-sub g_variant_type_is_dict_entry ( N-GVariantType $type --> int32 )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_variant_type_is_variant:
-=begin pod
-=head2 [g_variant_type_] is_variant
-
-Determines if the given I<type> is the variant type.
-
-Returns: C<True> if I<type> is the variant type
-
-  method g_variant_type_is_variant ( --> Int )
-
-
-=end pod
-
-sub g_variant_type_is_variant ( N-GVariantType $type --> int32 )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_variant_type_hash:
-=begin pod
-=head2 g_variant_type_hash
-
-Hashes I<type>.
-
-The argument type of I<type> is only B<gconstpointer> to allow use with
-B<GHashTable> without function pointer casting.  A valid
-B<Gnome::Glib::VariantType> must be provided.
-
-Returns: the hash value
-
-  method g_variant_type_hash ( Pointer $type --> UInt )
-
-=item Pointer $type; (type Gnome::Glib::VariantType): a B<Gnome::Glib::VariantType>
-
-=end pod
-
-sub g_variant_type_hash ( Pointer $type --> uint32 )
-  is native(&glib-lib)
-  { * }
-
-#`{{
-#-------------------------------------------------------------------------------
-#TM:0:g_variant_type_equal:
-=begin pod
-=head2 g_variant_type_equal
-
-Compares I<type1> and I<type2> for equality.
-
-Only returns C<True> if the types are exactly equal.  Even if one type
-is an indefinite type and the other is a subtype of it, C<False> will
-be returned if they are not exactly equal.  If you want to check for
-subtypes, use C<g_variant_type_is_subtype_of()>.
-
-The argument types of I<type1> and I<type2> are only B<gconstpointer> to
-allow use with B<GHashTable> without function pointer casting.  For
-both arguments, a valid B<Gnome::Glib::VariantType> must be provided.
-
-Returns: C<True> if I<type1> and I<type2> are exactly equal
-
-  method g_variant_type_equal ( N-GVariantType $type2 --> Int )
-
-=item N-GVariantType $type2; a native B<Gnome::Glib::VariantType>
-
-=end pod
-
-sub g_variant_type_equal (
-  CArray[N-GVariantType] $type1, CArray[N-GVariantType] $type2 --> int32
-) is native(&glib-lib)
-  { * }
-}}
-
-#-------------------------------------------------------------------------------
-#TM:0:g_variant_type_is_subtype_of:
-=begin pod
-=head2 [g_variant_type_] is_subtype_of
-
-Checks if I<type> is a subtype of I<supertype>.
-
-This function returns C<True> if I<type> is a subtype of I<supertype>.  All
-types are considered to be subtypes of themselves.  Aside from that,
-only indefinite types can have subtypes.
-
-Returns: C<True> if I<type> is a subtype of I<supertype>
-
-  method g_variant_type_is_subtype_of ( N-GVariantType $supertype --> Int )
-
-=item N-GVariantType $supertype; a B<Gnome::Glib::VariantType>
-
-=end pod
-
-sub g_variant_type_is_subtype_of ( N-GVariantType $type, N-GVariantType $supertype --> int32 )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_variant_type_element:
-=begin pod
-=head2 g_variant_type_element
-
-Determines the element type of an array or maybe type. This function may only be used with array or maybe types.
-
-Returns: (transfer none): the element type of I<type>
-
-  method g_variant_type_element ( --> N-GVariantType )
-
-
-=end pod
-
-sub g_variant_type_element ( N-GVariantType $type --> N-GVariantType )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_variant_type_first:
-=begin pod
-=head2 g_variant_type_first
-
-Determines the first item type of a tuple or dictionary entry
-type.
-
-This function may only be used with tuple or dictionary entry types,
-but must not be used with the generic tuple type
-C<G_VARIANT_TYPE_TUPLE>.
-
-In the case of a dictionary entry type, this returns the type of
-the key.
-
-C<Any> is returned in case of I<type> being C<G_VARIANT_TYPE_UNIT>.
-
-This call, together with C<g_variant_type_next()> provides an iterator
-interface over tuple and dictionary entry types.
-
-Returns: (transfer none): the first item type of I<type>, or C<Any>
-
-  method g_variant_type_first ( --> N-GVariantType )
-
-
-=end pod
-
-sub g_variant_type_first ( N-GVariantType $type --> N-GVariantType )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_variant_type_next:
-=begin pod
-=head2 g_variant_type_next
-
-Determines the next item type of a tuple or dictionary entry
-type.
-
-I<type> must be the result of a previous call to
-C<g_variant_type_first()> or C<g_variant_type_next()>.
-
-If called on the key type of a dictionary entry then this call
-returns the value type.  If called on the value type of a dictionary
-entry then this call returns C<Any>.
-
-For tuples, C<Any> is returned when I<type> is the last item in a tuple.
-
-Returns: (transfer none): the next B<Gnome::Glib::VariantType> after I<type>, or C<Any>
-
-  method g_variant_type_next ( --> N-GVariantType )
-
-
-=end pod
-
-sub g_variant_type_next ( N-GVariantType $type --> N-GVariantType )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_variant_type_n_items:
-=begin pod
-=head2 [g_variant_type_] n_items
-
-Determines the number of items contained in a tuple or
-dictionary entry type.
-
-This function may only be used with tuple or dictionary entry types,
-but must not be used with the generic tuple type
-C<G_VARIANT_TYPE_TUPLE>.
-
-In the case of a dictionary entry type, this function will always
-return 2.
-
-Returns: the number of items in I<type>
-
-  method g_variant_type_n_items ( --> UInt )
-
-
-=end pod
-
-sub g_variant_type_n_items ( N-GVariantType $type --> uint64 )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_variant_type_key:
-=begin pod
-=head2 g_variant_type_key
-
-Determines the key type of a dictionary entry type.
-
-This function may only be used with a dictionary entry type.  Other
-than the additional restriction, this call is equivalent to
-C<g_variant_type_first()>.
-
-Returns: (transfer none): the key type of the dictionary entry
-
-  method g_variant_type_key ( --> N-GVariantType )
-
-
-=end pod
-
-sub g_variant_type_key ( N-GVariantType $type --> N-GVariantType )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_variant_type_value:
-=begin pod
-=head2 g_variant_type_value
-
-Determines the value type of a dictionary entry type.
-
-This function may only be used with a dictionary entry type.
-
-Returns: (transfer none): the value type of the dictionary entry
-
-  method g_variant_type_value ( --> N-GVariantType )
-
-
-=end pod
-
-sub g_variant_type_value ( N-GVariantType $type --> N-GVariantType )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_variant_type_new_array:
-=begin pod
-=head2 [g_variant_type_] new_array
-
-Constructs the type corresponding to an array of elements of the
-type I<type>.
-
-It is appropriate to call C<g_variant_type_free()> on the return value.
-
-Returns: (transfer full): a new array B<Gnome::Glib::VariantType>
-
-  method g_variant_type_new_array ( --> N-GVariantType )
-
-
-=end pod
-
-sub g_variant_type_new_array ( N-GVariantType $element --> N-GVariantType )
-  is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:g_variant_type_new_maybe:
-=begin pod
-=head2 [g_variant_type_] new_maybe
-
-Constructs the type corresponding to a maybe instance containing
-type I<type> or Nothing.
-
-It is appropriate to call C<g_variant_type_free()> on the return value.
-
-Returns: (transfer full): a new maybe B<Gnome::Glib::VariantType>
-
-  method g_variant_type_new_maybe ( --> N-GVariantType )
-
-
-=end pod
-
-sub g_variant_type_new_maybe ( N-GVariantType $element --> N-GVariantType )
-  is native(&glib-lib)
-  { * }
-
-#`{{
-#-------------------------------------------------------------------------------
-#TM:0:g_variant_type_new_tuple:
-=begin pod
-=head2 [g_variant_type_] new_tuple
-
-Constructs a new tuple type, from I<items>.
-
-I<length> is the number of items in I<items>, or -1 to indicate that
-I<items> is C<Any>-terminated.
-
-It is appropriate to call C<g_variant_type_free()> on the return value.
-
-Returns: (transfer full): a new tuple B<Gnome::Glib::VariantType>
-
-  method g_variant_type_new_tuple ( GVariantType $items, Int $length --> N-GVariantType )
-
-=item  $const GVariantType * const *items; (array length=length): an array of B<GVariantTypes>, one for each item
-=item Int $length; the length of I<items>, or -1
-
-=end pod
-
-sub g_variant_type_new_tuple (  $const GVariantType * const *items, int32 $length --> N-GVariantType )
-  is native(&glib-lib)
-  { * }
-}}
-
-#-------------------------------------------------------------------------------
-#TM:0:g_variant_type_new_dict_entry:
-=begin pod
-=head2 [g_variant_type_] new_dict_entry
-
-Constructs the type corresponding to a dictionary entry with a key
-of type I<key> and a value of type I<value>.
-
-It is appropriate to call C<g_variant_type_free()> on the return value.
-
-Returns: (transfer full): a new dictionary entry B<Gnome::Glib::VariantType>
-
-  method g_variant_type_new_dict_entry ( N-GVariantType $value --> N-GVariantType )
-
-=item N-GVariantType $value; a B<Gnome::Glib::VariantType>
-
-=end pod
-
-sub g_variant_type_new_dict_entry ( N-GVariantType $key, N-GVariantType $value --> N-GVariantType )
-  is native(&glib-lib)
-  { * }
-
-#`{{
-#-------------------------------------------------------------------------------
-# TM:0:g_variant_type_checked_:
-=begin pod
-=head2 [g_variant_type_] checked_
-
-
-
-  method g_variant_type_checked_ (  $const gchar * --> N-GVariantType )
-
-=item  $const gchar *;
-
-=end pod
-
-sub g_variant_type_checked_ (  $const gchar * --> N-GVariantType )
-  is native(&glib-lib)
-  { * }
-}}
-
-#`{{
-#-------------------------------------------------------------------------------
-#TM:0:g_variant_type_string_get_depth_:
-=begin pod
-=head2 [g_variant_type_] string_get_depth_
-
-Get the maximum depth of the nested types in I<type_string>. A basic type will
-return depth 1, and a container type will return a greater value. The depth
-of a tuple is 1 plus the depth of its deepest child type.
-
-If I<type_string> is not a valid B<Gnome::Glib::Variant> type string, 0 will be returned.
-
-Returns: depth of I<type_string>, or 0 on error
-  method g_variant_type_string_get_depth_ ( Str $type_string --> UInt )
-
-=item Str $type_string; a pointer to any string
-
-=end pod
-
-sub g_variant_type_string_get_depth_ ( Str $type_string --> uint64 )
   is native(&glib-lib)
   { * }
 }}
