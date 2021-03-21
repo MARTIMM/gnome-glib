@@ -1,4 +1,9 @@
 ## Release notes
+* 2021-03-03 0.20.0
+<!--
+  * Add **Gnome::Glib::OptionGroup** and **Gnome::Glib::OptionContext**. Raku does have its own commandline option parsing but some of the Gio/Gtk classes like Application does handle them differently with full bells and whistles.
+-->
+
 * 2021-02-22 0.19.0
   * Added **Gnome::Glib::N-GVariantDict** and **Gnome::Glib::VariantDict** modules.
   * Added `.new(:tuple)` to **Gnome::Glib::N-GVariantType**.
