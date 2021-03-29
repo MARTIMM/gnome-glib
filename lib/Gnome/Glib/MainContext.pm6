@@ -8,7 +8,7 @@ use v6;
 
 =head1 Description
 
-See for more information L<here at module Gnome::Glib::Main|Main.html>.
+See for more information L<here at module Gnome::Glib::MainLoop|MainLoop.html>.
 
 =head1 Synopsis
 =head2 Declaration
@@ -23,14 +23,10 @@ See for more information L<here at module Gnome::Glib::Main|Main.html>.
 use NativeCall;
 
 #use Gnome::N::X;
-#use Gnome::N::N-GObject;
+use Gnome::N::N-GObject;
 use Gnome::N::NativeLib;
 use Gnome::N::GlibToRakuTypes;
 use Gnome::N::TopLevelClassSupport;
-
-use Gnome::Glib::N-GMainContext;
-use Gnome::Glib::N-GMainLoop;
-#use Gnome::Glib::MainLoop;
 
 #-------------------------------------------------------------------------------
 unit class Gnome::Glib::MainContext:auth<github:MARTIMM>:ver<0.1.0>;
@@ -60,13 +56,15 @@ Set this object to the global default main context. This is the main context use
 
 =head3 :thread-default
 
-Gets the thread-default B<N-GMainContext> for this thread. Asynchronous operations that want to be able to be run in contexts other than the default one should call this method.
+Gets the thread-default I<MainContext> for this thread. Asynchronous operations that want to be able to be run in contexts other than the default one should call this method.
 
   multi method new ( :default! )
 
 =end pod
 
 #TM:1:new():
+#TM:4:new(:default):Gnome::GObject::Object
+#TM:4:new(:thread-default):Gnome::GObject::Object
 #TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
 submethod BUILD ( *%options ) {
 
@@ -156,7 +154,7 @@ method acquire ( --> Bool ) {
   ).Bool;
 }
 
-sub g_main_context_acquire ( N-GMainContext $context --> gboolean )
+sub g_main_context_acquire ( N-GObject $context --> gboolean )
   is native(&glib-lib)
   { * }
 
@@ -170,12 +168,12 @@ Returns the global default main context. This is the main context used for main 
 
 Returns: (transfer none): the global default main context.
 
-  method default ( --> N-GMainContext )
+  method default ( --> N-GObject )
 
 
 =end pod
 
-method default ( --> N-GMainContext ) {
+method default ( --> N-GObject ) {
 
   g_main_context_default(
     self.get-native-object-no-reffing,
@@ -183,8 +181,55 @@ method default ( --> N-GMainContext ) {
 }
 }}
 
-sub _g_main_context_default (  --> N-GMainContext )
+sub _g_main_context_default (  --> N-GObject )
   is symbol('g_main_context_default')
+  is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:depth:
+=begin pod
+=head2 depth
+
+Returns the depth of the stack of calls to C<g-main-context-dispatch()> on any B<Gnome::Glib::MainContext> in the current thread. That is, when called from the toplevel, it gives 0. When called from within a callback from C<g-main-context-iteration()> (or C<g-main-loop-run()>, etc.) it returns 1. When called from within a callback to a recursive call to C<g-main-context-iteration()>, it returns 2. And so forth.
+
+This function is useful in a situation like the following: Imagine an extremely simple "garbage collected" system.
+
+=begin comment
+|[<!-- language="C" --> static GList *free-list;
+
+gpointer allocate-memory (gsize size) { gpointer result = g-malloc (size); free-list = g-list-prepend (free-list, result); return result; }
+
+void free-allocated-memory (void) { GList *l; for (l = free-list; l; l = l->next); g-free (l->data); g-list-free (free-list); free-list = NULL; }
+
+[...]
+
+while (TRUE); { g-main-context-iteration (NULL, TRUE); C<free-allocated-memory()>; } ]|
+=end comment
+
+This works from an application, however, if you want to do the same thing from a library, it gets more difficult, since you no longer control the main loop. You might think you can simply use an idle function to make the call to C<free-allocated-memory()>, but that doesn't work, since the idle function could be called from a recursive callback. This can be fixed by using C<g-main-depth()>
+
+=begin comment
+|[<!-- language="C" --> gpointer allocate-memory (gsize size) { FreeListBlock *block = g-new (FreeListBlock, 1); block->mem = g-malloc (size); block->depth = C<g-main-depth()>; free-list = g-list-prepend (free-list, block); return block->mem; }
+
+void free-allocated-memory (void) { GList *l; int depth = C<g-main-depth()>; for (l = free-list; l; ); { GList *next = l->next; FreeListBlock *block = l->data; if (block->depth > depth) { g-free (block->mem); g-free (block); free-list = g-list-delete-link (free-list, l); } l = next; } } ]|
+=end comment
+
+There is a temptation to use C<depth()> to solve problems with reentrancy. For instance, while waiting for data to be received from the network in response to a menu item, the menu item might be selected again. It might seem that one could make the menu item's callback return immediately and do nothing if C<depth()> returns a value greater than 1. However, this should be avoided since the user then sees selecting the menu item do nothing. Furthermore, you'll find yourself adding these checks all over your code, since there are doubtless many, many things that the user could do. Instead, you can use the following techniques:
+
+1. Use C<Gnome::Gtk3::widget-set-sensitive()> or modal dialogs to prevent the user from interacting with elements while the main loop is recursing.
+
+2. Avoid main loop recursion in situations where you can't handle arbitrary callbacks. Instead, structure your code so that you simply return to the main loop and then get called again when there is more work to do.
+
+  method depth ( --> Int )
+
+=end pod
+
+method depth ( --> Int ) {
+  g_main_depth(self.get-native-object-no-reffing)
+}
+
+sub g_main_depth ( --> gint )
   is native(&glib-lib)
   { * }
 
@@ -206,7 +251,7 @@ method dispatch ( ) {
   );
 }
 
-sub g_main_context_dispatch ( N-GMainContext $context )
+sub g_main_context_dispatch ( N-GObject $context )
   is native(&glib-lib)
   { * }
 
@@ -216,18 +261,18 @@ sub g_main_context_dispatch ( N-GMainContext $context )
 =begin pod
 =head2 get-thread-default
 
-Gets the thread-default B<N-GMainContext> for this thread. Asynchronous operations that want to be able to be run in contexts other than the default one should call this method or C<ref-thread-default()> to get a B<N-GMainContext> to add their B<GSources> to. (Note that even in single-threaded programs applications may sometimes want to temporarily push a non-default context, so it is not safe to assume that this will always return C<undefined> if you are running in the default thread.)
+Gets the thread-default I<MainContext> for this thread. Asynchronous operations that want to be able to be run in contexts other than the default one should call this method or C<ref-thread-default()> to get a I<MainContext> to add their B<GSources> to. (Note that even in single-threaded programs applications may sometimes want to temporarily push a non-default context, so it is not safe to assume that this will always return C<undefined> if you are running in the default thread.)
 
 If you need to hold a reference on the context, use C<ref-thread-default()> instead.
 
-Returns: (transfer none): the thread-default B<N-GMainContext>, or C<undefined> if the thread-default context is the global default context.
+Returns: (transfer none): the thread-default I<MainContext>, or C<undefined> if the thread-default context is the global default context.
 
-  method get-thread-default ( --> N-GMainContext )
+  method get-thread-default ( --> N-GObject )
 
 
 =end pod
 
-method get-thread-default ( --> N-GMainContext ) {
+method get-thread-default ( --> N-GObject ) {
 
   g_main_context_get_thread_default(
     self.get-native-object-no-reffing,
@@ -235,15 +280,16 @@ method get-thread-default ( --> N-GMainContext ) {
 }
 }}
 
-sub _g_main_context_get_thread_default (  --> N-GMainContext )
+sub _g_main_context_get_thread_default (  --> N-GObject )
   is symbol('g_main_context_get_thread_default')
   is native(&glib-lib)
   { * }
 
 #-------------------------------------------------------------------------------
 #TM:0:invoke:
+#TM:1:invoke-raw:
 =begin pod
-=head2 invoke
+=head2 invoke and invoke-raw
 
 Invokes a function in such a way that the context is owned during the invocation of the callback handler.
 
@@ -300,7 +346,7 @@ method invoke-raw ( Callable:D $function ) {
 }
 
 sub g_main_context_invoke (
-  N-GMainContext $context,
+  N-GObject $context,
   Callable $function ( gpointer --> gboolean ),
   gpointer $data
 ) is native(&glib-lib)
@@ -308,8 +354,9 @@ sub g_main_context_invoke (
 
 #-------------------------------------------------------------------------------
 #TM:0:invoke-full:
+#TM:0:invoke-full-raw:
 =begin pod
-=head2 invoke-full
+=head2 invoke-full and invoke-full-raw
 
 Invokes a function in such a way that the context is owned during the invocation of the callback handler.  This function is the same as C<invoke()> except that it lets you specify the priority in case the callback handler ends up being scheduled as an idle and also lets you define a destroy notify handler. The notify handler should not assume that it is called from any particular thread or with any particular context acquired.
 
@@ -420,7 +467,7 @@ method invoke-full-raw (
 }
 
 sub g_main_context_invoke_full (
-  N-GMainContext $context, gint $priority,
+  N-GObject $context, gint $priority,
   Callable $function ( gpointer ), gpointer,
   Callable $notify ( gpointer )
 ) is native(&glib-lib)
@@ -431,7 +478,7 @@ sub g_main_context_invoke_full (
 =begin pod
 =head2 is-owner
 
-Determines whether this thread holds the (recursive) ownership of this B<N-GMainContext>. This is useful to know before waiting on another thread that may be blocking to get ownership of the context.
+Determines whether this thread holds the (recursive) ownership of this I<MainContext>. This is useful to know before waiting on another thread that may be blocking to get ownership of the context.
 
 Returns: C<True> if current thread is owner of the context.
 
@@ -446,7 +493,7 @@ method is-owner ( --> Int ) {
   );
 }
 
-sub g_main_context_is_owner ( N-GMainContext $context --> gboolean )
+sub g_main_context_is_owner ( N-GObject $context --> gboolean )
   is native(&glib-lib)
   { * }
 
@@ -472,7 +519,7 @@ method iteration ( Bool $may_block --> Bool ) {
   ).Bool;
 }
 
-sub g_main_context_iteration ( N-GMainContext $context, gboolean $may_block --> gboolean )
+sub g_main_context_iteration ( N-GObject $context, gboolean $may_block --> gboolean )
   is native(&glib-lib)
   { * }
 
@@ -496,7 +543,7 @@ method pending ( --> Bool ) {
   ).Bool;
 }
 
-sub g_main_context_pending ( N-GMainContext $context --> gboolean )
+sub g_main_context_pending ( N-GObject $context --> gboolean )
   is native(&glib-lib)
   { * }
 
@@ -518,7 +565,7 @@ method pop-thread-default ( ) {
   );
 }
 
-sub g_main_context_pop_thread_default ( N-GMainContext $context  )
+sub g_main_context_pop_thread_default ( N-GObject $context  )
   is native(&glib-lib)
   { * }
 
@@ -548,7 +595,7 @@ method push-thread-default ( ) {
   g_main_context_push_thread_default(self.get-native-object-no-reffing);
 }
 
-sub g_main_context_push_thread_default ( N-GMainContext $context  )
+sub g_main_context_push_thread_default ( N-GObject $context  )
   is native(&glib-lib)
   { * }
 
@@ -558,17 +605,17 @@ sub g_main_context_push_thread_default ( N-GMainContext $context  )
 =begin pod
 =head2 ref
 
-Increases the reference count on a B<N-GMainContext> object by one.
+Increases the reference count on a I<MainContext> object by one.
 
 Returns: the the context that was passed in (since 2.6)
 
-  method ref ( N-GMainContext $context --> N-GMainContext )
+  method ref ( N-GObject $context --> N-GObject )
 
-=item N-GMainContext $context; a B<N-GMainContext>
+=item N-GObject $context; a I<MainContext>
 
 =end pod
 
-method ref ( N-GMainContext $context --> N-GMainContext ) {
+method ref ( N-GObject $context --> N-GObject ) {
 
   g_main_context_ref(
     self.get-native-object-no-reffing, $context
@@ -576,7 +623,7 @@ method ref ( N-GMainContext $context --> N-GMainContext ) {
 }
 }}
 
-sub _g_main_context_ref ( N-GMainContext $context --> N-GMainContext )
+sub _g_main_context_ref ( N-GObject $context --> N-GObject )
   is symbol('g_main_context_ref')
   is native(&glib-lib)
   { * }
@@ -587,23 +634,23 @@ sub _g_main_context_ref ( N-GMainContext $context --> N-GMainContext )
 =begin pod
 =head2 ref-thread-default
 
-Gets the thread-default B<N-GMainContext> for this thread, as with C<get-thread-default()>, but also adds a reference to it with C<ref()>. In addition, unlike C<get-thread-default()>, if the thread-default context is the global default context, this will return that B<N-GMainContext> (with a ref added to it) rather than returning C<undefined>.
+Gets the thread-default I<MainContext> for this thread, as with C<get-thread-default()>, but also adds a reference to it with C<ref()>. In addition, unlike C<get-thread-default()>, if the thread-default context is the global default context, this will return that I<MainContext> (with a ref added to it) rather than returning C<undefined>.
 
-Returns: (transfer full): the thread-default B<N-GMainContext>. Unref with C<unref()> when you are done with it.
+Returns: (transfer full): the thread-default I<MainContext>. Unref with C<unref()> when you are done with it.
 
-  method ref-thread-default ( --> N-GMainContext )
+  method ref-thread-default ( --> N-GObject )
 
 
 =end pod
 
-method ref-thread-default ( --> N-GMainContext ) {
+method ref-thread-default ( --> N-GObject ) {
 
   g_main_context_ref_thread_default(
     self.get-native-object-no-reffing,
   );
 }
 
-sub g_main_context_ref_thread_default (  --> N-GMainContext )
+sub g_main_context_ref_thread_default (  --> N-GObject )
   is native(&glib-lib)
   { * }
 }}
@@ -626,7 +673,7 @@ method release ( ) {
   );
 }
 
-sub g_main_context_release ( N-GMainContext $context  )
+sub g_main_context_release ( N-GObject $context  )
   is native(&glib-lib)
   { * }
 #-------------------------------------------------------------------------------
@@ -635,15 +682,15 @@ sub g_main_context_release ( N-GMainContext $context  )
 =begin pod
 =head2 unref
 
-Decreases the reference count on a B<N-GMainContext> object by one. If the result is zero, free the context and free all associated memory.
+Decreases the reference count on a I<MainContext> object by one. If the result is zero, free the context and free all associated memory.
 
-  method unref ( N-GMainContext $context )
+  method unref ( N-GObject $context )
 
-=item N-GMainContext $context; a B<N-GMainContext>
+=item N-GObject $context; a I<MainContext>
 
 =end pod
 
-method unref ( N-GMainContext $context ) {
+method unref ( N-GObject $context ) {
 
   g_main_context_unref(
     self.get-native-object-no-reffing, $context
@@ -651,7 +698,7 @@ method unref ( N-GMainContext $context ) {
 }
 }}
 
-sub _g_main_context_unref ( N-GMainContext $context  )
+sub _g_main_context_unref ( N-GObject $context  )
   is native(&glib-lib)
   is symbol('g_main_context_unref')
   { * }
@@ -661,7 +708,7 @@ sub _g_main_context_unref ( N-GMainContext $context  )
 =begin pod
 =head2 wakeup
 
-If the context is currently blocking in C<iteration()> waiting for a source to become ready, cause it to stop blocking and return.  Otherwise, cause the next invocation of C<iteration()> to return without blocking.  This API is useful for low-level control over B<N-GMainContext>; for example, integrating it with main loop implementations such as B<Gnome::Glib::MainLoop>.  Another related use for this function is when implementing a main loop with a termination condition, computed from multiple threads:  |[<!-- language="C" -->  B<define> NUM-TASKS 10 static volatile gint tasks-remaining = NUM-TASKS; ...   while (g-atomic-int-get (&tasks-remaining) != 0) iteration (NULL, TRUE); ]|   Then in a thread: |[<!-- language="C" -->  C<perform-work()>;  if (g-atomic-int-dec-and-test (&tasks-remaining)) wakeup (NULL); ]|
+If the context is currently blocking in C<iteration()> waiting for a source to become ready, cause it to stop blocking and return.  Otherwise, cause the next invocation of C<iteration()> to return without blocking.  This API is useful for low-level control over I<MainContext>; for example, integrating it with main loop implementations such as B<Gnome::Glib::MainLoop>.  Another related use for this function is when implementing a main loop with a termination condition, computed from multiple threads:  |[<!-- language="C" -->  B<define> NUM-TASKS 10 static volatile gint tasks-remaining = NUM-TASKS; ...   while (g-atomic-int-get (&tasks-remaining) != 0) iteration (NULL, TRUE); ]|   Then in a thread: |[<!-- language="C" -->  C<perform-work()>;  if (g-atomic-int-dec-and-test (&tasks-remaining)) wakeup (NULL); ]|
 
   method wakeup ( )
 
@@ -674,7 +721,7 @@ method wakeup ( ) {
   );
 }
 
-sub g_main_context_wakeup ( N-GMainContext $context  )
+sub g_main_context_wakeup ( N-GObject $context  )
   is native(&glib-lib)
   { * }
 
@@ -684,16 +731,16 @@ sub g_main_context_wakeup ( N-GMainContext $context  )
 =begin pod
 =head2 new
 
-Creates a new B<N-GMainContext> structure.
+Creates a new I<MainContext> structure.
 
-Returns: the new B<N-GMainContext>
+Returns: the new I<MainContext>
 
-  method new ( --> N-GMainContext )
+  method new ( --> N-GObject )
 
 
 =end pod
 
-method new ( --> N-GMainContext ) {
+method new ( --> N-GObject ) {
 
   g_main_context_new(
     self.get-native-object-no-reffing,
@@ -701,7 +748,7 @@ method new ( --> N-GMainContext ) {
 }
 }}
 
-sub _g_main_context_new ( --> N-GMainContext )
+sub _g_main_context_new ( --> N-GObject )
   is native(&glib-lib)
   is symbol('g_main_context_new')
   { * }
@@ -722,22 +769,22 @@ sub _g_main_context_new ( --> N-GMainContext )
 
 Adds a file descriptor to the set of file descriptors polled for this context. This will very seldom be used directly. Instead a typical event source will use C<g-source-add-unix-fd()> instead.
 
-  method add-poll ( N-GMainContext $context, GPollFD $fd, Int $priority )
+  method add-poll ( N-GObject $context, GPollFD $fd, Int $priority )
 
-=item N-GMainContext $context; (nullable): a B<N-GMainContext> (or C<undefined> for the default context)
+=item N-GObject $context; (nullable): a I<MainContext> (or C<undefined> for the default context)
 =item GPollFD $fd; a B<GPollFD> structure holding information about a file descriptor to watch.
 =item Int $priority; the priority for this file descriptor which should be the same as the priority used for C<g-source-attach()> to ensure that the file descriptor is polled whenever the results may be needed.
 
 =end pod
 
-method add-poll ( N-GMainContext $context, GPollFD $fd, Int $priority ) {
+method add-poll ( N-GObject $context, GPollFD $fd, Int $priority ) {
 
   g_main_context_add_poll(
     self.get-native-object-no-reffing, $context, $fd, $priority
   );
 }
 
-sub g_main_context_add_poll ( N-GMainContext $context, GPollFD $fd, gint $priority  )
+sub g_main_context_add_poll ( N-GObject $context, GPollFD $fd, gint $priority  )
   is native(&glib-lib)
   { * }
 
@@ -750,23 +797,23 @@ Passes the results of polling back to the main loop.  You must have successfully
 
 Returns: C<True> if some sources are ready to be dispatched.
 
-  method check ( N-GMainContext $context, Int $max_priority, GPollFD $fds, Int $n_fds --> Bool )
+  method check ( N-GObject $context, Int $max_priority, GPollFD $fds, Int $n_fds --> Bool )
 
-=item N-GMainContext $context; a B<N-GMainContext>
+=item N-GObject $context; a I<MainContext>
 =item Int $max_priority; the maximum numerical priority of sources to check
 =item GPollFD $fds; (array length=n-fds): array of B<GPollFD>'s that was passed to the last call to C<query()>
 =item Int $n_fds; return value of C<query()>
 
 =end pod
 
-method check ( N-GMainContext $context, Int $max_priority, GPollFD $fds, Int $n_fds --> Bool ) {
+method check ( N-GObject $context, Int $max_priority, GPollFD $fds, Int $n_fds --> Bool ) {
 
   g_main_context_check(
     self.get-native-object-no-reffing, $context, $max_priority, $fds, $n_fds
   ).Bool;
 }
 
-sub g_main_context_check ( N-GMainContext $context, gint $max_priority, GPollFD $fds, gint $n_fds --> gboolean )
+sub g_main_context_check ( N-GObject $context, gint $max_priority, GPollFD $fds, gint $n_fds --> gboolean )
   is native(&glib-lib)
   { * }
 
@@ -777,21 +824,21 @@ sub g_main_context_check ( N-GMainContext $context, gint $max_priority, GPollFD 
 
 Removes file descriptor from the set of file descriptors to be polled for a particular context.
 
-  method remove-poll ( N-GMainContext $context, GPollFD $fd )
+  method remove-poll ( N-GObject $context, GPollFD $fd )
 
-=item N-GMainContext $context; a B<N-GMainContext>
+=item N-GObject $context; a I<MainContext>
 =item GPollFD $fd; a B<GPollFD> descriptor previously added with C<add-poll()>
 
 =end pod
 
-method remove-poll ( N-GMainContext $context, GPollFD $fd ) {
+method remove-poll ( N-GObject $context, GPollFD $fd ) {
 
   g_main_context_remove_poll(
     self.get-native-object-no-reffing, $context, $fd
   );
 }
 
-sub g_main_context_remove_poll ( N-GMainContext $context, GPollFD $fd  )
+sub g_main_context_remove_poll ( N-GObject $context, GPollFD $fd  )
   is native(&glib-lib)
   { * }
 
@@ -802,21 +849,21 @@ sub g_main_context_remove_poll ( N-GMainContext $context, GPollFD $fd  )
 
 Sets the function to use to handle polling of file descriptors. It will be used instead of the C<poll()> system call  (or GLib's replacement function, which is used where  C<poll()> isn't available).  This function could possibly be used to integrate the GLib event loop with an external event loop.
 
-  method set-poll-func ( N-GMainContext $context, GPollFunc $func )
+  method set-poll-func ( N-GObject $context, GPollFunc $func )
 
-=item N-GMainContext $context; a B<N-GMainContext>
+=item N-GObject $context; a I<MainContext>
 =item GPollFunc $func; the function to call to poll all file descriptors
 
 =end pod
 
-method set-poll-func ( N-GMainContext $context, GPollFunc $func ) {
+method set-poll-func ( N-GObject $context, GPollFunc $func ) {
 
   g_main_context_set_poll_func(
     self.get-native-object-no-reffing, $context, $func
   );
 }
 
-sub g_main_context_set_poll_func ( N-GMainContext $context, GPollFunc $func  )
+sub g_main_context_set_poll_func ( N-GObject $context, GPollFunc $func  )
   is native(&glib-lib)
   { * }
 
@@ -829,9 +876,9 @@ Determines information necessary to poll this main loop.  You must have successf
 
 Returns: the number of records actually stored in I<fds>, or, if more than I<n-fds> records need to be stored, the number of records that need to be stored.
 
-  method query ( N-GMainContext $context, Int $max_priority, Int-ptr $timeout_, GPollFD $fds, Int $n_fds --> Int )
+  method query ( N-GObject $context, Int $max_priority, Int-ptr $timeout_, GPollFD $fds, Int $n_fds --> Int )
 
-=item N-GMainContext $context; a B<N-GMainContext>
+=item N-GObject $context; a I<MainContext>
 =item Int $max_priority; maximum priority source to check
 =item Int-ptr $timeout_; (out): location to store timeout to be used in polling
 =item GPollFD $fds; (out caller-allocates) (array length=n-fds): location to store B<GPollFD> records that need to be polled.
@@ -839,14 +886,14 @@ Returns: the number of records actually stored in I<fds>, or, if more than I<n-f
 
 =end pod
 
-method query ( N-GMainContext $context, Int $max_priority, Int-ptr $timeout_, GPollFD $fds, Int $n_fds --> Int ) {
+method query ( N-GObject $context, Int $max_priority, Int-ptr $timeout_, GPollFD $fds, Int $n_fds --> Int ) {
 
   g_main_context_query(
     self.get-native-object-no-reffing, $context, $max_priority, $timeout_, $fds, $n_fds
   );
 }
 
-sub g_main_context_query ( N-GMainContext $context, gint $max_priority, gint-ptr $timeout_, GPollFD $fds, gint $n_fds --> gint )
+sub g_main_context_query ( N-GObject $context, gint $max_priority, gint-ptr $timeout_, GPollFD $fds, gint $n_fds --> gint )
   is native(&glib-lib)
   { * }
 
@@ -859,14 +906,14 @@ Prepares to poll sources within a main loop. The resulting information for polli
 
 Returns: C<True> if some source is ready to be dispatched prior to polling.
 
-  method prepare ( N-GMainContext $context, Int-ptr $priority --> Int )
+  method prepare ( N-GObject $context, Int-ptr $priority --> Int )
 
-=item N-GMainContext $context; a B<N-GMainContext>
+=item N-GObject $context; a I<MainContext>
 =item Int-ptr $priority; location to store priority of highest priority source already ready.
 
 =end pod
 
-method prepare ( N-GMainContext $context, Int-ptr $priority --> Int ) {
+method prepare ( N-GObject $context, Int-ptr $priority --> Int ) {
 
   g_main_context_prepare(
     self.get-native-object-no-reffing, $context, $priority
@@ -874,7 +921,7 @@ method prepare ( N-GMainContext $context, Int-ptr $priority --> Int ) {
 }
 
 sub g_main_context_prepare (
-  N-GMainContext $context, gint $priority is rw --> gboolean
+  N-GObject $context, gint $priority is rw --> gboolean
 ) is native(&glib-lib)
   { * }
 
@@ -887,22 +934,22 @@ Finds a source with the given source functions and user data.  If multiple sourc
 
 Returns: (transfer none): the source, if one was found, otherwise C<undefined>
 
-  method find-source-by-funcs-user-data ( N-GMainContext $context, GSourceFuncs $funcs, Pointer $user_data --> GSource )
+  method find-source-by-funcs-user-data ( N-GObject $context, GSourceFuncs $funcs, Pointer $user_data --> GSource )
 
-=item N-GMainContext $context; (nullable): a B<N-GMainContext> (if C<undefined>, the default context will be used).
+=item N-GObject $context; (nullable): a I<MainContext> (if C<undefined>, the default context will be used).
 =item GSourceFuncs $funcs; the I<source-funcs> passed to C<g-source-new()>.
 =item Pointer $user_data; the user data from the callback.
 
 =end pod
 
-method find-source-by-funcs-user-data ( N-GMainContext $context, GSourceFuncs $funcs, Pointer $user_data --> GSource ) {
+method find-source-by-funcs-user-data ( N-GObject $context, GSourceFuncs $funcs, Pointer $user_data --> GSource ) {
 
   g_main_context_find_source_by_funcs_user_data(
     self.get-native-object-no-reffing, $context, $funcs, $user_data
   );
 }
 
-sub g_main_context_find_source_by_funcs_user_data ( N-GMainContext $context, GSourceFuncs $funcs, gpointer $user_data --> GSource )
+sub g_main_context_find_source_by_funcs_user_data ( N-GObject $context, GSourceFuncs $funcs, gpointer $user_data --> GSource )
   is native(&glib-lib)
   { * }
 
@@ -915,21 +962,21 @@ Finds a B<GSource> given a pair of context and ID.  It is a programmer error to 
 
 Returns: (transfer none): the B<GSource>
 
-  method find-source-by-id ( N-GMainContext $context, UInt $source_id --> GSource )
+  method find-source-by-id ( N-GObject $context, UInt $source_id --> GSource )
 
-=item N-GMainContext $context; (nullable): a B<N-GMainContext> (if C<undefined>, the default context will be used)
+=item N-GObject $context; (nullable): a I<MainContext> (if C<undefined>, the default context will be used)
 =item UInt $source_id; the source ID, as returned by C<g-source-get-id()>.
 
 =end pod
 
-method find-source-by-id ( N-GMainContext $context, UInt $source_id --> GSource ) {
+method find-source-by-id ( N-GObject $context, UInt $source_id --> GSource ) {
 
   g_main_context_find_source_by_id(
     self.get-native-object-no-reffing, $context, $source_id
   );
 }
 
-sub g_main_context_find_source_by_id ( N-GMainContext $context, guint $source_id --> GSource )
+sub g_main_context_find_source_by_id ( N-GObject $context, guint $source_id --> GSource )
   is native(&glib-lib)
   { * }
 
@@ -942,21 +989,21 @@ Finds a source with the given user data for the callback.  If multiple sources e
 
 Returns: (transfer none): the source, if one was found, otherwise C<undefined>
 
-  method find-source-by-user-data ( N-GMainContext $context, Pointer $user_data --> GSource )
+  method find-source-by-user-data ( N-GObject $context, Pointer $user_data --> GSource )
 
-=item N-GMainContext $context; a B<N-GMainContext>
+=item N-GObject $context; a I<MainContext>
 =item Pointer $user_data; the user-data for the callback.
 
 =end pod
 
-method find-source-by-user-data ( N-GMainContext $context, Pointer $user_data --> GSource ) {
+method find-source-by-user-data ( N-GObject $context, Pointer $user_data --> GSource ) {
 
   g_main_context_find_source_by_user_data(
     self.get-native-object-no-reffing, $context, $user_data
   );
 }
 
-sub g_main_context_find_source_by_user_data ( N-GMainContext $context, gpointer $user_data --> GSource )
+sub g_main_context_find_source_by_user_data ( N-GObject $context, gpointer $user_data --> GSource )
   is native(&glib-lib)
   { * }
 
@@ -969,19 +1016,19 @@ Gets the poll function set by C<set-poll-func()>.
 
 Returns: the poll function
 
-  method get-poll-func ( N-GMainContext $context --> GPollFunc )
+  method get-poll-func ( N-GObject $context --> GPollFunc )
 
-=item N-GMainContext $context; a B<N-GMainContext>
+=item N-GObject $context; a I<MainContext>
 
 =end pod
 
-method get-poll-func ( N-GMainContext $context --> GPollFunc ) {
+method get-poll-func ( N-GObject $context --> GPollFunc ) {
 
   g_main_context_get_poll_func(
     self.get-native-object-no-reffing, $context
   );
 }
 
-sub g_main_context_get_poll_func ( N-GMainContext $context --> GPollFunc )
+sub g_main_context_get_poll_func ( N-GObject $context --> GPollFunc )
   is native(&glib-lib)
   { * }
