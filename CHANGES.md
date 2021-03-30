@@ -1,13 +1,12 @@
 ## Release notes
 * 2021-03-03 0.20.0
-<!--
-  * Add **Gnome::Glib::OptionGroup** and **Gnome::Glib::OptionContext**. Raku does have its own commandline option parsing but some of the Gio/Gtk classes like Application does handle them differently with full bells and whistles.
--->
+  * Add **Gnome::Glib::Source**. In addition to the MailLoop and MainContext, this module provides method to run method regularly on set times or when the main loop is idle.
+  * All **Gnome::Glib::N-…** modules describing native objects are removed and replaced by **Gnome::N::N-GObject**.
 
 * 2021-02-22 0.19.0
   * Added **Gnome::Glib::N-GVariantDict** and **Gnome::Glib::VariantDict** modules.
-  * Added `.new(:tuple)` to **Gnome::Glib::N-GVariantType**.
-  * Added `.new(:dict)` to **Gnome::Glib::N-GVariant**.
+  * Added `.new(:tuple)` to **Gnome::Glib::VariantType**.
+  * Added `.new(:dict)` to **Gnome::Glib::Variant**.
 
 * 2021-02-15 0.18.4
   * Added raw versions of `invoke()` and `invoke-full()`.
