@@ -239,9 +239,8 @@ use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::TopLevelClassSupport;
 use Gnome::N::GlibToRakuTypes;
+use Gnome::N::N-GObject;
 
-use Gnome::Glib::N-GVariant;
-use Gnome::Glib::N-GVariantType;
 use Gnome::Glib::Error;
 use Gnome::Glib::VariantType;
 
@@ -259,7 +258,6 @@ also is Gnome::N::TopLevelClassSupport;
 =head2 GVariantClass
 
 The range of possible top-level types of GVariant instances.
-
 
 =item G_VARIANT_CLASS_BOOLEAN; The GVariant is a boolean.
 =item G_VARIANT_CLASS_BYTE; The GVariant is a byte.
@@ -460,7 +458,7 @@ Creates a new uint64 Variant. Its type becomes 't'.
 
 Creates a new variant Variant. Its type becomes 'v'.
 
-  multi method new ( N-GVariant :$variant! )
+  multi method new ( N-GObject :$variant! )
 
 =head4 Example
 
@@ -544,9 +542,9 @@ submethod BUILD ( *%options ) {
         );
 
         my Int $i = 0;
-        my $children = CArray[N-GVariant].new;
+        my $children = CArray[N-GObject].new;
         for @(%options<array>) -> $no is copy {
-          $no .= get-native-object unless $no ~~ N-GVariant;
+          $no .= get-native-object unless $no ~~ N-GObject;
           $children[$i++] = $no;
         }
 
@@ -576,9 +574,9 @@ submethod BUILD ( *%options ) {
 
       elsif %options<dict>:exists {
         my $no1 = %options<dict>[0];
-        $no1 .= get-native-object-no-reffing unless $no1 ~~ N-GVariant;
+        $no1 .= get-native-object-no-reffing unless $no1 ~~ N-GObject;
         my $no2 = %options<dict>[1];
-        $no2 .= get-native-object-no-reffing unless $no2 ~~ N-GVariant;
+        $no2 .= get-native-object-no-reffing unless $no2 ~~ N-GObject;
 
         $no = _g_variant_new_dict_entry( $no1, $no2);
       }
@@ -614,9 +612,9 @@ submethod BUILD ( *%options ) {
 
       elsif %options<tuple>:exists {
         my Int $i = 0;
-        my $children = CArray[N-GVariant].new;
+        my $children = CArray[N-GObject].new;
         for @(%options<tuple>) -> $no is copy {
-          $no .= get-native-object unless $no ~~ N-GVariant;
+          $no .= get-native-object unless $no ~~ N-GObject;
           $children[$i++] = $no;
         }
 
@@ -637,7 +635,7 @@ submethod BUILD ( *%options ) {
 
       elsif %options<variant>:exists {
         $no = %options<variant>;
-        $no .= get-native-object unless $no ~~ N-GVariant;
+        $no .= get-native-object unless $no ~~ N-GObject;
         $no = _g_variant_new_variant($no);
       }
 
@@ -685,7 +683,7 @@ method _fallback ( $native-sub --> Callable ) {
 }
 
 #-------------------------------------------------------------------------------
-method native-object-ref ( $n-native-object --> N-GVariant ) {
+method native-object-ref ( $n-native-object --> N-GObject ) {
   _g_variant_ref($n-native-object)
 }
 
@@ -705,19 +703,19 @@ Performs a byteswapping operation on the contents of I<value>.  The result is th
 
 Returns: (transfer full): the byteswapped form of I<value>
 
-  method byteswap ( --> N-GVariant )
+  method byteswap ( --> N-GObject )
 
 
 =end pod
 
-method byteswap ( --> N-GVariant ) {
+method byteswap ( --> N-GObject ) {
 
   g_variant_byteswap(
     self.get-native-object-no-reffing,
   );
 }
 
-sub g_variant_byteswap ( N-GVariant $value --> N-GVariant )
+sub g_variant_byteswap ( N-GObject $value --> N-GObject )
   is native(&glib-lib)
   { * }
 }}
@@ -727,13 +725,13 @@ sub g_variant_byteswap ( N-GVariant $value --> N-GVariant )
 =begin pod
 =head2 check-format-string
 
-Checks if calling C<g_variant_get()> with I<format_string> on I<value> would be valid from a type-compatibility standpoint.  I<format_string> is assumed to be a valid format string (from a syntactic standpoint).  If I<copy_only> is C<1> then this function additionally checks that it would be safe to call C<g_variant_unref()> on I<value> immediately after the call to C<g_variant_get()> without invalidating the result.  This is only possible if deep copies are made (ie: there are no pointers to the data inside of the soon-to-be-freed B<N-GVariant> instance).  If this check fails then a C<g_critical()> is printed and C<0> is returned.  This function is meant to be used by functions that wish to provide varargs accessors to B<N-GVariant> values of uncertain values (eg: C<g_variant_lookup()> or C<g_menu_model_get_item_attribute()>).
+Checks if calling C<g_variant_get()> with I<format_string> on I<value> would be valid from a type-compatibility standpoint.  I<format_string> is assumed to be a valid format string (from a syntactic standpoint).  If I<copy_only> is C<1> then this function additionally checks that it would be safe to call C<g_variant_unref()> on I<value> immediately after the call to C<g_variant_get()> without invalidating the result.  This is only possible if deep copies are made (ie: there are no pointers to the data inside of the soon-to-be-freed B<N-GObject> instance).  If this check fails then a C<g_critical()> is printed and C<0> is returned.  This function is meant to be used by functions that wish to provide varargs accessors to B<N-GObject> values of uncertain values (eg: C<g_variant_lookup()> or C<g_menu_model_get_item_attribute()>).
 
 Returns: C<1> if I<format_string> is safe to use
 
   method check-format-string (  Str  $format_string, Int $copy_only --> Int )
 
-=item  Str  $format_string; a valid B<N-GVariant> format string
+=item  Str  $format_string; a valid B<N-GObject> format string
 =item Int $copy_only; C<1> to ensure the format string makes deep copies
 
 =end pod
@@ -745,7 +743,7 @@ method check-format-string (  Str  $format_string, Int $copy_only --> Int ) {
   );
 }
 
-sub g_variant_check_format_string ( N-GVariant $value, gchar-ptr $format_string, gboolean $copy_only --> gboolean )
+sub g_variant_check_format_string ( N-GObject $value, gchar-ptr $format_string, gboolean $copy_only --> gboolean )
   is native(&glib-lib)
   { * }
 }}
@@ -771,7 +769,7 @@ method classify ( --> GVariantClass ) {
   );
 }
 
-sub g_variant_classify ( N-GVariant $value --> GEnum )
+sub g_variant_classify ( N-GObject $value --> GEnum )
   is native(&glib-lib)
   { * }
 }}
@@ -781,14 +779,14 @@ sub g_variant_classify ( N-GVariant $value --> GEnum )
 =begin pod
 =head2 compare
 
-Compares I<one> and I<two>.  The types of I<one> and I<two> are B<gconstpointer> only to allow use of this function with B<GTree>, B<GPtrArray>, etc.  They must each be a B<N-GVariant>.  Comparison is only defined for basic types (ie: booleans, numbers, strings).  For booleans, C<0> is less than C<1>.  Numbers are ordered in the usual way.  Strings are in ASCII lexographical order.  It is a programmer error to attempt to compare container values or two values that have types that are not exactly equal.  For example, you cannot compare a 32-bit signed integer with a 32-bit unsigned integer.  Also note that this function is not particularly well-behaved when it comes to comparison of doubles; in particular, the handling of incomparable values (ie: NaN) is undefined.  If you only require an equality comparison, C<g_variant_equal()> is more general.
+Compares I<one> and I<two>.  The types of I<one> and I<two> are B<gconstpointer> only to allow use of this function with B<GTree>, B<GPtrArray>, etc.  They must each be a B<N-GObject>.  Comparison is only defined for basic types (ie: booleans, numbers, strings).  For booleans, C<0> is less than C<1>.  Numbers are ordered in the usual way.  Strings are in ASCII lexographical order.  It is a programmer error to attempt to compare container values or two values that have types that are not exactly equal.  For example, you cannot compare a 32-bit signed integer with a 32-bit unsigned integer.  Also note that this function is not particularly well-behaved when it comes to comparison of doubles; in particular, the handling of incomparable values (ie: NaN) is undefined.  If you only require an equality comparison, C<g_variant_equal()> is more general.
 
 Returns: negative value if a < b; zero if a = b; positive value if a > b.
 
   method compare ( Pointer $one, Pointer $two --> Int )
 
-=item Pointer $one; (type GVariant): a basic-typed B<N-GVariant> instance
-=item Pointer $two; (type GVariant): a B<N-GVariant> instance of the same type
+=item Pointer $one; (type GVariant): a basic-typed B<N-GObject> instance
+=item Pointer $two; (type GVariant): a B<N-GObject> instance of the same type
 
 =end pod
 
@@ -827,7 +825,7 @@ method dup-bytestring ( UInt $length -->  Str  ) {
   );
 }
 
-sub g_variant_dup_bytestring ( N-GVariant $value, gsize $length --> gchar-ptr )
+sub g_variant_dup_bytestring ( N-GObject $value, gsize $length --> gchar-ptr )
   is native(&glib-lib)
   { * }
 
@@ -836,7 +834,7 @@ sub g_variant_dup_bytestring ( N-GVariant $value, gsize $length --> gchar-ptr )
 =begin pod
 =head2 dup-bytestring-array
 
-Gets the contents of an array of array of bytes B<N-GVariant>.  This call makes a deep copy; the return result should be released with C<g_strfreev()>.  If I<length> is non-C<Any> then the number of elements in the result is stored there.  In any case, the resulting array will be C<Any>-terminated.  For an empty array, I<length> will be set to 0 and a pointer to a C<Any> pointer will be returned.
+Gets the contents of an array of array of bytes B<N-GObject>.  This call makes a deep copy; the return result should be released with C<g_strfreev()>.  If I<length> is non-C<Any> then the number of elements in the result is stored there.  In any case, the resulting array will be C<Any>-terminated.  For an empty array, I<length> will be set to 0 and a pointer to a C<Any> pointer will be returned.
 
 Returns: (array length=length) (transfer full): an array of strings
 
@@ -853,7 +851,7 @@ method dup-bytestring-array ( UInt $length -->  CArray[Str]  ) {
   );
 }
 
-sub g_variant_dup_bytestring_array ( N-GVariant $value, gsize $length --> gchar-pptr )
+sub g_variant_dup_bytestring_array ( N-GObject $value, gsize $length --> gchar-pptr )
   is native(&glib-lib)
   { * }
 
@@ -862,7 +860,7 @@ sub g_variant_dup_bytestring_array ( N-GVariant $value, gsize $length --> gchar-
 =begin pod
 =head2 dup-objv
 
-Gets the contents of an array of object paths B<N-GVariant>.  This call makes a deep copy; the return result should be released with C<g_strfreev()>.  If I<length> is non-C<Any> then the number of elements in the result is stored there.  In any case, the resulting array will be C<Any>-terminated.  For an empty array, I<length> will be set to 0 and a pointer to a C<Any> pointer will be returned.
+Gets the contents of an array of object paths B<N-GObject>.  This call makes a deep copy; the return result should be released with C<g_strfreev()>.  If I<length> is non-C<Any> then the number of elements in the result is stored there.  In any case, the resulting array will be C<Any>-terminated.  For an empty array, I<length> will be set to 0 and a pointer to a C<Any> pointer will be returned.
 
 Returns: (array length=length zero-terminated=1) (transfer full): an array of strings
 
@@ -879,7 +877,7 @@ method dup-objv ( UInt $length -->  CArray[Str]  ) {
   );
 }
 
-sub g_variant_dup_objv ( N-GVariant $value, gsize $length --> gchar-pptr )
+sub g_variant_dup_objv ( N-GObject $value, gsize $length --> gchar-pptr )
   is native(&glib-lib)
   { * }
 
@@ -905,7 +903,7 @@ method dup-string ( UInt $length -->  Str  ) {
   );
 }
 
-sub g_variant_dup_string ( N-GVariant $value, gsize $length --> gchar-ptr )
+sub g_variant_dup_string ( N-GObject $value, gsize $length --> gchar-ptr )
   is native(&glib-lib)
   { * }
 
@@ -914,7 +912,7 @@ sub g_variant_dup_string ( N-GVariant $value, gsize $length --> gchar-ptr )
 =begin pod
 =head2 dup-strv
 
-Gets the contents of an array of strings B<N-GVariant>.  This call makes a deep copy; the return result should be released with C<g_strfreev()>.  If I<length> is non-C<Any> then the number of elements in the result is stored there.  In any case, the resulting array will be C<Any>-terminated.  For an empty array, I<length> will be set to 0 and a pointer to a C<Any> pointer will be returned.
+Gets the contents of an array of strings B<N-GObject>.  This call makes a deep copy; the return result should be released with C<g_strfreev()>.  If I<length> is non-C<Any> then the number of elements in the result is stored there.  In any case, the resulting array will be C<Any>-terminated.  For an empty array, I<length> will be set to 0 and a pointer to a C<Any> pointer will be returned.
 
 Returns: (array length=length zero-terminated=1) (transfer full): an array of strings
 
@@ -931,7 +929,7 @@ method dup-strv ( UInt $length -->  CArray[Str]  ) {
   );
 }
 
-sub g_variant_dup_strv ( N-GVariant $value, gsize $length --> gchar-pptr )
+sub g_variant_dup_strv ( N-GObject $value, gsize $length --> gchar-pptr )
   is native(&glib-lib)
   { * }
 }}
@@ -942,14 +940,14 @@ sub g_variant_dup_strv ( N-GVariant $value, gsize $length --> gchar-pptr )
 =begin pod
 =head2 equal
 
-Checks if I<one> and I<two> have the same type and value.  The types of I<one> and I<two> are B<gconstpointer> only to allow use of this function with B<GHashTable>.  They must each be a B<N-GVariant>.
+Checks if I<one> and I<two> have the same type and value.  The types of I<one> and I<two> are B<gconstpointer> only to allow use of this function with B<GHashTable>.  They must each be a B<N-GObject>.
 
 Returns: C<1> if I<one> and I<two> are equal
 
   method equal ( Pointer $one, Pointer $two --> Int )
 
-=item Pointer $one; (type GVariant): a B<N-GVariant> instance
-=item Pointer $two; (type GVariant): a B<N-GVariant> instance
+=item Pointer $one; (type GVariant): a B<N-GObject> instance
+=item Pointer $two; (type GVariant): a B<N-GObject> instance
 
 =end pod
 
@@ -970,11 +968,11 @@ sub g_variant_equal ( gpointer $one, gpointer $two --> gboolean )
 =begin pod
 =head2 get
 
-Deconstructs a B<N-GVariant> instance.  Think of this function as an analogue to C<scanf()>.  The arguments that are expected by this function are entirely determined by I<format_string>.  I<format_string> also restricts the permissible types of I<value>.  It is an error to give a value with an incompatible type.  See the section on GVariant format strings. Please note that the syntax of the format string is very likely to be extended in the future.  I<format_string> determines the C types that are used for unpacking the values and also determines if the values are copied or borrowed
+Deconstructs a B<N-GObject> instance.  Think of this function as an analogue to C<scanf()>.  The arguments that are expected by this function are entirely determined by I<format_string>.  I<format_string> also restricts the permissible types of I<value>.  It is an error to give a value with an incompatible type.  See the section on GVariant format strings. Please note that the syntax of the format string is very likely to be extended in the future.  I<format_string> determines the C types that are used for unpacking the values and also determines if the values are copied or borrowed
 
   method get (  Str  $format_string )
 
-=item  Str  $format_string; a B<N-GVariant> format string @...: arguments, as per I<format_string>
+=item  Str  $format_string; a B<N-GObject> format string @...: arguments, as per I<format_string>
 
 =end pod
 
@@ -985,7 +983,7 @@ method get (  Str  $format_string ) {
   );
 }
 
-sub g_variant_get ( N-GVariant $value, gchar-ptr $format_string, Any $any = Any  )
+sub g_variant_get ( N-GObject $value, gchar-ptr $format_string, Any $any = Any  )
   is native(&glib-lib)
   { * }
 }}
@@ -1011,7 +1009,7 @@ method get-boolean ( --> Bool ) {
   ).Bool;
 }
 
-sub g_variant_get_boolean ( N-GVariant $value --> gboolean )
+sub g_variant_get_boolean ( N-GObject $value --> gboolean )
   is native(&glib-lib)
   { * }
 
@@ -1036,7 +1034,7 @@ method get-byte ( --> UInt ) {
   );
 }
 
-sub g_variant_get_byte ( N-GVariant $value --> guint8 )
+sub g_variant_get_byte ( N-GObject $value --> guint8 )
   is native(&glib-lib)
   { * }
 
@@ -1045,7 +1043,7 @@ sub g_variant_get_byte ( N-GVariant $value --> guint8 )
 =begin pod
 =head2 get-bytestring
 
-Returns the string value of a B<N-GVariant> instance with an array-of-bytes type.  The string has no particular encoding.
+Returns the string value of a B<N-GObject> instance with an array-of-bytes type.  The string has no particular encoding.
 
   method get-bytestring ( -->  Str  )
 
@@ -1058,7 +1056,7 @@ method get-bytestring ( -->  Str  ) {
   );
 }
 
-sub g_variant_get_bytestring ( N-GVariant $value --> gchar-ptr )
+sub g_variant_get_bytestring ( N-GObject $value --> gchar-ptr )
   is native(&glib-lib)
   { * }
 
@@ -1067,7 +1065,7 @@ sub g_variant_get_bytestring ( N-GVariant $value --> gchar-ptr )
 =begin pod
 =head2 get-bytestring-array
 
-Gets the contents of an array of array of bytes B<N-GVariant>.
+Gets the contents of an array of array of bytes B<N-GObject>.
 
   method get-bytestring-array ( -->  Array[Str]  )
 
@@ -1088,7 +1086,7 @@ method get-bytestring-array ( -->  Array[Str]  ) {
 }
 
 sub g_variant_get_bytestring_array (
-  N-GVariant $value, gsize $length is rw --> gchar-pptr
+  N-GObject $value, gsize $length is rw --> gchar-pptr
 ) is native(&glib-lib)
   { * }
 
@@ -1098,12 +1096,12 @@ sub g_variant_get_bytestring_array (
 =begin pod
 =head2 get-child
 
-Reads a child item out of a container B<N-GVariant> instance and deconstructs it according to I<format_string>.  This call is essentially a combination of C<g_variant_get_child_value()> and C<g_variant_get()>.  I<format_string> determines the C types that are used for unpacking the values and also determines if the values are copied or borrowed, see the section on [GVariant format strings][gvariant-format-strings-pointers].
+Reads a child item out of a container B<N-GObject> instance and deconstructs it according to I<format_string>.  This call is essentially a combination of C<g_variant_get_child_value()> and C<g_variant_get()>.  I<format_string> determines the C types that are used for unpacking the values and also determines if the values are copied or borrowed, see the section on [GVariant format strings][gvariant-format-strings-pointers].
 
   method get-child ( UInt $index_,  Str  $format_string )
 
 =item UInt $index_; the index of the child to deconstruct
-=item  Str  $format_string; a B<N-GVariant> format string @...: arguments, as per I<format_string>
+=item  Str  $format_string; a B<N-GObject> format string @...: arguments, as per I<format_string>
 
 =end pod
 
@@ -1114,7 +1112,7 @@ method get-child ( UInt $index_,  Str  $format_string ) {
   );
 }
 
-sub g_variant_get_child ( N-GVariant $value, gsize $index_, gchar-ptr $format_string, Any $any = Any  )
+sub g_variant_get_child ( N-GObject $value, gsize $index_, gchar-ptr $format_string, Any $any = Any  )
   is native(&glib-lib)
   { * }
 }}
@@ -1127,20 +1125,20 @@ sub g_variant_get_child ( N-GVariant $value, gsize $index_, gchar-ptr $format_st
 
 
 
-  method get-child-value ( UInt $index_ --> N-GVariant )
+  method get-child-value ( UInt $index_ --> N-GObject )
 
 =item UInt $index_;
 
 =end pod
 
-method get-child-value ( UInt $index_ --> N-GVariant ) {
+method get-child-value ( UInt $index_ --> N-GObject ) {
 
   g_variant_get_child_value(
     self.get-native-object-no-reffing, $index_
   );
 }
 
-sub g_variant_get_child_value ( N-GVariant $value, gsize $index_ --> N-GVariant )
+sub g_variant_get_child_value ( N-GObject $value, gsize $index_ --> N-GObject )
   is native(&glib-lib)
   { * }
 }}
@@ -1164,7 +1162,7 @@ method get-data ( --> Pointer ) {
   );
 }
 
-sub g_variant_get_data ( N-GVariant $value --> gpointer )
+sub g_variant_get_data ( N-GObject $value --> gpointer )
   is native(&glib-lib)
   { * }
 }}
@@ -1188,7 +1186,7 @@ method get-data-as-bytes ( --> N-GBytes ) {
   );
 }
 
-sub g_variant_get_data_as_bytes ( N-GVariant $value --> N-GBytes )
+sub g_variant_get_data_as_bytes ( N-GObject $value --> N-GBytes )
   is native(&glib-lib)
   { * }
 }}
@@ -1214,7 +1212,7 @@ method get-double ( --> Num ) {
   );
 }
 
-sub g_variant_get_double ( N-GVariant $value --> gdouble )
+sub g_variant_get_double ( N-GObject $value --> gdouble )
   is native(&glib-lib)
   { * }
 
@@ -1242,7 +1240,7 @@ method get-fixed-array ( UInt $n_elements, UInt $element_size --> Pointer ) {
   );
 }
 
-sub g_variant_get_fixed_array ( N-GVariant $value, gsize $n_elements, gsize $element_size --> gpointer )
+sub g_variant_get_fixed_array ( N-GObject $value, gsize $n_elements, gsize $element_size --> gpointer )
   is native(&glib-lib)
   { * }
 }}
@@ -1268,7 +1266,7 @@ method get-handle ( --> Int ) {
   );
 }
 
-sub g_variant_get_handle ( N-GVariant $value --> gint32 )
+sub g_variant_get_handle ( N-GObject $value --> gint32 )
   is native(&glib-lib)
   { * }
 }}
@@ -1294,7 +1292,7 @@ method get-int16 ( --> Int ) {
   );
 }
 
-sub g_variant_get_int16 ( N-GVariant $value --> gint16 )
+sub g_variant_get_int16 ( N-GObject $value --> gint16 )
   is native(&glib-lib)
   { * }
 
@@ -1319,7 +1317,7 @@ method get-int32 ( --> Int ) {
   );
 }
 
-sub g_variant_get_int32 ( N-GVariant $value --> gint32 )
+sub g_variant_get_int32 ( N-GObject $value --> gint32 )
   is native(&glib-lib)
   { * }
 
@@ -1344,7 +1342,7 @@ method get-int64 ( --> Int ) {
   );
 }
 
-sub g_variant_get_int64 ( N-GVariant $value --> gint64 )
+sub g_variant_get_int64 ( N-GObject $value --> gint64 )
   is native(&glib-lib)
   { * }
 
@@ -1354,23 +1352,23 @@ sub g_variant_get_int64 ( N-GVariant $value --> gint64 )
 =begin pod
 =head2 get-maybe
 
-Given a maybe-typed B<N-GVariant> instance, extract its value.  If the value is Nothing, then this function returns C<Any>.
+Given a maybe-typed B<N-GObject> instance, extract its value.  If the value is Nothing, then this function returns C<Any>.
 
 Returns: (nullable) (transfer full): the contents of I<value>, or C<Any>
 
-  method get-maybe ( --> N-GVariant )
+  method get-maybe ( --> N-GObject )
 
 
 =end pod
 
-method get-maybe ( --> N-GVariant ) {
+method get-maybe ( --> N-GObject ) {
 
   g_variant_get_maybe(
     self.get-native-object-no-reffing,
   );
 }
 
-sub g_variant_get_maybe ( N-GVariant $value --> N-GVariant )
+sub g_variant_get_maybe ( N-GObject $value --> N-GObject )
   is native(&glib-lib)
   { * }
 }}
@@ -1380,23 +1378,23 @@ sub g_variant_get_maybe ( N-GVariant $value --> N-GVariant )
 =begin pod
 =head2 get-normal-form
 
-Gets a B<N-GVariant> instance that has the same value as I<value> and is trusted to be in normal form.  If I<value> is already trusted to be in normal form then a new reference to I<value> is returned.  If I<value> is not already trusted, then it is scanned to check if it is in normal form.  If it is found to be in normal form then it is marked as trusted and a new reference to it is returned.  If I<value> is found not to be in normal form then a new trusted B<N-GVariant> is created with the same value as I<value>.  It makes sense to call this function if you've received B<N-GVariant> data from untrusted sources and you want to ensure your serialised output is definitely in normal form.  If I<value> is already in normal form, a new reference will be returned (which will be floating if I<value> is floating). If it is not in normal form, the newly created B<N-GVariant> will be returned with a single non-floating reference. Typically, C<g_variant_take_ref()> should be called on the return value from this function to guarantee ownership of a single non-floating reference to it.
+Gets a B<N-GObject> instance that has the same value as I<value> and is trusted to be in normal form.  If I<value> is already trusted to be in normal form then a new reference to I<value> is returned.  If I<value> is not already trusted, then it is scanned to check if it is in normal form.  If it is found to be in normal form then it is marked as trusted and a new reference to it is returned.  If I<value> is found not to be in normal form then a new trusted B<N-GObject> is created with the same value as I<value>.  It makes sense to call this function if you've received B<N-GObject> data from untrusted sources and you want to ensure your serialised output is definitely in normal form.  If I<value> is already in normal form, a new reference will be returned (which will be floating if I<value> is floating). If it is not in normal form, the newly created B<N-GObject> will be returned with a single non-floating reference. Typically, C<g_variant_take_ref()> should be called on the return value from this function to guarantee ownership of a single non-floating reference to it.
 
-Returns: (transfer full): a trusted B<N-GVariant>
+Returns: (transfer full): a trusted B<N-GObject>
 
-  method get-normal-form ( --> N-GVariant )
+  method get-normal-form ( --> N-GObject )
 
 
 =end pod
 
-method get-normal-form ( --> N-GVariant ) {
+method get-normal-form ( --> N-GObject ) {
 
   g_variant_get_normal_form(
     self.get-native-object-no-reffing,
   );
 }
 
-sub g_variant_get_normal_form ( N-GVariant $value --> N-GVariant )
+sub g_variant_get_normal_form ( N-GObject $value --> N-GObject )
   is native(&glib-lib)
   { * }
 }}
@@ -1406,7 +1404,7 @@ sub g_variant_get_normal_form ( N-GVariant $value --> N-GVariant )
 =begin pod
 =head2 get-objv
 
-Gets the contents of an array of object paths B<N-GVariant>.  This call makes a shallow copy; the return result should be released with C<g_free()>, but the individual strings must not be modified.  If I<length> is non-C<Any> then the number of elements in the result is stored there.  In any case, the resulting array will be C<Any>-terminated.  For an empty array, I<length> will be set to 0 and a pointer to a C<Any> pointer will be returned.
+Gets the contents of an array of object paths B<N-GObject>.  This call makes a shallow copy; the return result should be released with C<g_free()>, but the individual strings must not be modified.  If I<length> is non-C<Any> then the number of elements in the result is stored there.  In any case, the resulting array will be C<Any>-terminated.  For an empty array, I<length> will be set to 0 and a pointer to a C<Any> pointer will be returned.
 
 Returns: (array length=length zero-terminated=1) (transfer container): an array of constant strings
 
@@ -1423,7 +1421,7 @@ method get-objv ( UInt $length -->  CArray[Str]  ) {
   );
 }
 
-sub g_variant_get_objv ( N-GVariant $value, gsize $length --> gchar-pptr )
+sub g_variant_get_objv ( N-GObject $value, gsize $length --> gchar-pptr )
   is native(&glib-lib)
   { * }
 }}
@@ -1447,7 +1445,7 @@ method get-size ( --> UInt ) {
   );
 }
 
-sub g_variant_get_size ( N-GVariant $value --> gsize )
+sub g_variant_get_size ( N-GObject $value --> gsize )
   is native(&glib-lib)
   { * }
 }}
@@ -1457,7 +1455,7 @@ sub g_variant_get_size ( N-GVariant $value --> gsize )
 =begin pod
 =head2 get-string
 
-Returns the string value of a B<N-GVariant> instance with a string type.
+Returns the string value of a B<N-GObject> instance with a string type.
 
   method get-string ( -->  Str  )
 
@@ -1473,7 +1471,7 @@ method get-string ( -->  Str  ) {
 }
 
 sub g_variant_get_string (
-  N-GVariant $value, gsize $length is rw --> gchar-ptr
+  N-GObject $value, gsize $length is rw --> gchar-ptr
 ) is native(&glib-lib)
   { * }
 
@@ -1482,7 +1480,7 @@ sub g_variant_get_string (
 =begin pod
 =head2 get-strv
 
-Gets the contents of an array of strings B<N-GVariant>. This call makes a shallow copy.
+Gets the contents of an array of strings B<N-GObject>. This call makes a shallow copy.
 
   method get-strv ( --> Array[Str]  )
 
@@ -1502,7 +1500,7 @@ method get-strv ( --> Array[Str]  ) {
   $a
 }
 
-sub g_variant_get_strv ( N-GVariant $value, gsize $length is rw --> gchar-pptr )
+sub g_variant_get_strv ( N-GObject $value, gsize $length is rw --> gchar-pptr )
   is native(&glib-lib)
   { * }
 
@@ -1527,7 +1525,7 @@ method get-type ( --> Gnome::Glib::VariantType ) {
   );
 }
 
-sub g_variant_get_type ( N-GVariant $value --> N-GVariantType )
+sub g_variant_get_type ( N-GObject $value --> N-GObject )
   is native(&glib-lib)
   { * }
 
@@ -1536,7 +1534,7 @@ sub g_variant_get_type ( N-GVariant $value --> N-GVariantType )
 =begin pod
 =head2 get-type-string
 
-Returns the type string of I<value>.  Unlike the result of calling C<g_variant_type_peek_string()>, this string is nul-terminated.  This string belongs to B<N-GVariant> and must not be freed.
+Returns the type string of I<value>.  Unlike the result of calling C<g_variant_type_peek_string()>, this string is nul-terminated.  This string belongs to B<N-GObject> and must not be freed.
 
 Returns: the type string for the type of I<value>
 
@@ -1552,7 +1550,7 @@ method get-type-string ( -->  Str  ) {
   );
 }
 
-sub g_variant_get_type_string ( N-GVariant $value --> gchar-ptr )
+sub g_variant_get_type_string ( N-GObject $value --> gchar-ptr )
   is native(&glib-lib)
   { * }
 
@@ -1577,7 +1575,7 @@ method get-uint16 ( --> UInt ) {
   );
 }
 
-sub g_variant_get_uint16 ( N-GVariant $value --> guint16 )
+sub g_variant_get_uint16 ( N-GObject $value --> guint16 )
   is native(&glib-lib)
   { * }
 
@@ -1602,7 +1600,7 @@ method get-uint32 ( --> UInt ) {
   );
 }
 
-sub g_variant_get_uint32 ( N-GVariant $value --> guint32 )
+sub g_variant_get_uint32 ( N-GObject $value --> guint32 )
   is native(&glib-lib)
   { * }
 
@@ -1627,7 +1625,7 @@ method get-uint64 ( --> UInt ) {
   );
 }
 
-sub g_variant_get_uint64 ( N-GVariant $value --> guint64 )
+sub g_variant_get_uint64 ( N-GObject $value --> guint64 )
   is native(&glib-lib)
   { * }
 
@@ -1637,7 +1635,7 @@ sub g_variant_get_uint64 ( N-GVariant $value --> guint64 )
 =begin pod
 =head2 get-va
 
-This function is intended to be used by libraries based on B<N-GVariant> that want to provide C<g_variant_get()>-like functionality to their users.  The API is more general than C<g_variant_get()> to allow a wider range of possible uses.  I<format_string> must still point to a valid format string, but it only need to be nul-terminated if I<endptr> is C<Any>.  If I<endptr> is non-C<Any> then it is updated to point to the first character past the end of the format string.  I<app> is a pointer to a B<va_list>.  The arguments, according to I<format_string>, are collected from this B<va_list> and the list is left pointing to the argument following the last.  These two generalisations allow mixing of multiple calls to C<g_variant_new_va()> and C<g_variant_get_va()> within a single actual varargs call by the user.  I<format_string> determines the C types that are used for unpacking the values and also determines if the values are copied or borrowed, see the section on [GVariant format strings][gvariant-format-strings-pointers].
+This function is intended to be used by libraries based on B<N-GObject> that want to provide C<g_variant_get()>-like functionality to their users.  The API is more general than C<g_variant_get()> to allow a wider range of possible uses.  I<format_string> must still point to a valid format string, but it only need to be nul-terminated if I<endptr> is C<Any>.  If I<endptr> is non-C<Any> then it is updated to point to the first character past the end of the format string.  I<app> is a pointer to a B<va_list>.  The arguments, according to I<format_string>, are collected from this B<va_list> and the list is left pointing to the argument following the last.  These two generalisations allow mixing of multiple calls to C<g_variant_new_va()> and C<g_variant_get_va()> within a single actual varargs call by the user.  I<format_string> determines the C types that are used for unpacking the values and also determines if the values are copied or borrowed, see the section on [GVariant format strings][gvariant-format-strings-pointers].
 
   method get-va (  Str  $format_string,  CArray[Str]  $endptr, va_list $app )
 
@@ -1654,7 +1652,7 @@ method get-va (  Str  $format_string,  CArray[Str]  $endptr, va_list $app ) {
   );
 }
 
-sub g_variant_get_va ( N-GVariant $value, gchar-ptr $format_string, gchar-pptr $endptr, va_list $app  )
+sub g_variant_get_va ( N-GObject $value, gchar-ptr $format_string, gchar-pptr $endptr, va_list $app  )
   is native(&glib-lib)
   { * }
 }}
@@ -1680,7 +1678,7 @@ method get-variant ( --> Gnome::Glib::Variant ) {
   );
 }
 
-sub g_variant_get_variant ( N-GVariant $value --> N-GVariant )
+sub g_variant_get_variant ( N-GObject $value --> N-GObject )
   is native(&glib-lib)
   { * }
 
@@ -1690,13 +1688,13 @@ sub g_variant_get_variant ( N-GVariant $value --> N-GVariant )
 =begin pod
 =head2 hash
 
-Generates a hash value for a B<N-GVariant> instance.  The output of this function is guaranteed to be the same for a given value only per-process.  It may change between different processor architectures or even different versions of GLib.  Do not use this function as a basis for building protocols or file formats.  The type of I<value> is B<gconstpointer> only to allow use of this function with B<GHashTable>.  I<value> must be a B<N-GVariant>.
+Generates a hash value for a B<N-GObject> instance.  The output of this function is guaranteed to be the same for a given value only per-process.  It may change between different processor architectures or even different versions of GLib.  Do not use this function as a basis for building protocols or file formats.  The type of I<value> is B<gconstpointer> only to allow use of this function with B<GHashTable>.  I<value> must be a B<N-GObject>.
 
 Returns: a hash value corresponding to I<value>
 
   method hash ( Pointer $value --> UInt )
 
-=item Pointer $value; (type GVariant): a basic B<N-GVariant> value as a B<gconstpointer>
+=item Pointer $value; (type GVariant): a basic B<N-GObject> value as a B<gconstpointer>
 
 =end pod
 
@@ -1733,7 +1731,7 @@ method is-container ( --> Int ) {
   );
 }
 
-sub g_variant_is_container ( N-GVariant $value --> gboolean )
+sub g_variant_is_container ( N-GObject $value --> gboolean )
   is native(&glib-lib)
   { * }
 
@@ -1757,7 +1755,7 @@ method is-floating ( --> Int ) {
   );
 }
 
-sub g_variant_is_floating ( N-GVariant $value --> gboolean )
+sub g_variant_is_floating ( N-GObject $value --> gboolean )
   is native(&glib-lib)
   { * }
 }}
@@ -1781,7 +1779,7 @@ method is-normal-form ( --> Int ) {
   );
 }
 
-sub g_variant_is_normal_form ( N-GVariant $value --> gboolean )
+sub g_variant_is_normal_form ( N-GObject $value --> gboolean )
   is native(&glib-lib)
   { * }
 }}
@@ -1822,22 +1820,22 @@ Checks if a value has a type matching the provided type.
 
 Returns: C<True> if the type of I<value> matches I<type>
 
-  method is-of-type ( N-GVariantType $type --> Bool )
+  method is-of-type ( N-GObject $type --> Bool )
 
-=item N-GVariantType $type; a B<GVariantType>
+=item N-GObject $type; a B<GVariantType>
 
 =end pod
 
 method is-of-type ( $type --> Bool ) {
   my $no = $type;
-  $no .= get-native-object-no-reffing unless $no ~~ N-GVariantType;
+  $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
 
   g_variant_is_of_type(
     self.get-native-object-no-reffing, $no
   ).Bool;
 }
 
-sub g_variant_is_of_type ( N-GVariant $value, N-GVariantType $type --> gboolean )
+sub g_variant_is_of_type ( N-GObject $value, N-GObject $type --> gboolean )
   is native(&glib-lib)
   { * }
 
@@ -1875,7 +1873,7 @@ sub g_variant_is_signature ( gchar-ptr $string --> gboolean )
 =begin pod
 =head2 lookup
 
-Looks up a value in a dictionary B<N-GVariant>.  This function is a wrapper around C<g_variant_lookup_value()> and C<g_variant_get()>.  In the case that C<Any> would have been returned, this function returns C<0>.  Otherwise, it unpacks the returned value and returns C<1>.  I<format_string> determines the C types that are used for unpacking the values and also determines if the values are copied or borrowed, see the section on [GVariant format strings][gvariant-format-strings-pointers].  This function is currently implemented with a linear scan.  If you plan to do many lookups then B<N-GVariantDict> may be more efficient.
+Looks up a value in a dictionary B<N-GObject>.  This function is a wrapper around C<g_variant_lookup_value()> and C<g_variant_get()>.  In the case that C<Any> would have been returned, this function returns C<0>.  Otherwise, it unpacks the returned value and returns C<1>.  I<format_string> determines the C types that are used for unpacking the values and also determines if the values are copied or borrowed, see the section on [GVariant format strings][gvariant-format-strings-pointers].  This function is currently implemented with a linear scan.  If you plan to do many lookups then B<N-GObjectDict> may be more efficient.
 
 Returns: C<1> if a value was unpacked
 
@@ -1893,7 +1891,7 @@ method lookup (  Str  $key,  Str  $format_string --> Int ) {
   );
 }
 
-sub g_variant_lookup ( N-GVariant $dictionary, gchar-ptr $key, gchar-ptr $format_string, Any $any = Any --> gboolean )
+sub g_variant_lookup ( N-GObject $dictionary, gchar-ptr $key, gchar-ptr $format_string, Any $any = Any --> gboolean )
   is native(&glib-lib)
   { * }
 }}
@@ -1905,22 +1903,22 @@ sub g_variant_lookup ( N-GVariant $dictionary, gchar-ptr $key, gchar-ptr $format
 =begin pod
 =head2 lookup-value
 
-Looks up a value in a dictionary B<N-GVariant>. This function works with dictionaries of the type a{s*} (and equally well with type a{o*}, but we only further discuss the string case for sake of clarity). In the event that I<dictionary> has the type a{sv}, the I<expected_type> string specifies what type of value is expected to be inside of the variant. If the value inside the variant has a different type then undefined is returned. In the event that I<dictionary> has a value type other than v then I<expected_type> must directly match the value type and it is used to unpack the value directly or an error occurs.  In either case, if I<key> is not found in I<dictionary>, C<Any> is returned.  If the key is found and the value has the correct type, it is returned.  If I<expected_type> was specified then any non-C<Any> return value will have this type.  This function is currently implemented with a linear scan.  If you plan to do many lookups then B<N-GVariantDict> may be more efficient.
+Looks up a value in a dictionary B<N-GObject>. This function works with dictionaries of the type a{s*} (and equally well with type a{o*}, but we only further discuss the string case for sake of clarity). In the event that I<dictionary> has the type a{sv}, the I<expected_type> string specifies what type of value is expected to be inside of the variant. If the value inside the variant has a different type then undefined is returned. In the event that I<dictionary> has a value type other than v then I<expected_type> must directly match the value type and it is used to unpack the value directly or an error occurs.  In either case, if I<key> is not found in I<dictionary>, C<Any> is returned.  If the key is found and the value has the correct type, it is returned.  If I<expected_type> was specified then any non-C<Any> return value will have this type.  This function is currently implemented with a linear scan.  If you plan to do many lookups then B<N-GObjectDict> may be more efficient.
 
 Returns: (transfer full): the value of the dictionary key, or C<Any>
 
-  method lookup-value (  Str  $key, N-GVariantType $expected_type --> N-GVariant )
+  method lookup-value (  Str  $key, N-GObject $expected_type --> N-GObject )
 
 =item  Str  $key; the key to lookup in the dictionary
-=item N-GVariantType $expected_type; (nullable): a B<GVariantType>, or C<Any>
+=item N-GObject $expected_type; (nullable): a B<GVariantType>, or C<Any>
 
 =end pod
 
 method lookup-value (
-  Str $key, N-GVariantType $expected_type --> N-GVariant
+  Str $key, N-GObject $expected_type --> N-GObject
 ) {
   my $no = $expected_type;
-  $no .= get-native-object-no-reffing unless $no ~~ N-GVariantType;
+  $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
 
   g_variant_lookup_value(
     self.get-native-object-no-reffing, $key, $no
@@ -1928,8 +1926,8 @@ method lookup-value (
 }
 
 sub g_variant_lookup_value (
-  N-GVariant $dictionary, gchar-ptr $key, N-GVariantType $expected_type
-  --> N-GVariant
+  N-GObject $dictionary, gchar-ptr $key, N-GObject $expected_type
+  --> N-GObject
 ) is native(&glib-lib)
   { * }
 }}
@@ -1954,7 +1952,7 @@ method n-children ( --> UInt ) {
   );
 }
 
-sub g_variant_n_children ( N-GVariant $value --> gsize )
+sub g_variant_n_children ( N-GObject $value --> gsize )
   is native(&glib-lib)
   { * }
 }}
@@ -1979,7 +1977,7 @@ There may be implementation specific restrictions on deeply nested values, which
 =item Str $text; Textual representation of data.
 
 The returned List has members
-=item N-GVariant object. A native variant object
+=item N-GObject object. A native variant object
 =item Gnome::Glib::Error. The error object. Test for C<.is-valid() ~~ False> to see if parsing went ok and that the variant object is defined.
 
 =end pod
@@ -1987,7 +1985,7 @@ The returned List has members
 
 sub _g_variant_parse ( Str :$type-string = '', Str:D :$parse --> List ) {
 
-  my N-GVariantType $nvt;
+  my N-GObject $nvt;
   if ?$type-string {
     $nvt = Gnome::Glib::VariantType.new(
       :$type-string
@@ -1995,12 +1993,12 @@ sub _g_variant_parse ( Str :$type-string = '', Str:D :$parse --> List ) {
   }
 
   else {
-    $nvt = N-GVariantType;
+    $nvt = N-GObject;
   }
 
   my Gnome::Glib::Error $parse-error;
   my CArray[N-GError] $ne .= new(N-GError);
-  my N-GVariant $v = g_variant_parse( $nvt, $parse, Str, gchar-pptr, $ne);
+  my N-GObject $v = g_variant_parse( $nvt, $parse, Str, gchar-pptr, $ne);
 
   if ?$v {
     $parse-error = Gnome::Glib::Error.new(:native-object(N-GError))
@@ -2014,8 +2012,8 @@ sub _g_variant_parse ( Str :$type-string = '', Str:D :$parse --> List ) {
 }
 
 sub g_variant_parse (
-  N-GVariantType $type, gchar-ptr $text, gchar-ptr $limit,
-  gchar-pptr $endptr, CArray[N-GError] $error --> N-GVariant
+  N-GObject $type, gchar-ptr $text, gchar-ptr $limit,
+  gchar-pptr $endptr, CArray[N-GError] $error --> N-GObject
 ) is native(&glib-lib)
   { * }
 
@@ -2092,7 +2090,7 @@ method print ( Bool $type_annotate = False --> Str ) {
   );
 }
 
-sub g_variant_print ( N-GVariant $value, gboolean $type_annotate --> gchar-ptr )
+sub g_variant_print ( N-GObject $value, gboolean $type_annotate --> gchar-ptr )
   is native(&glib-lib)
   { * }
 
@@ -2122,14 +2120,14 @@ method print-string ( $string, Int $type_annotate --> N-GObject ) {
   );
 }
 
-sub g_variant_print_string ( N-GVariant $value, N-GObject $string, gboolean $type_annotate --> N-GObject )
+sub g_variant_print_string ( N-GObject $value, N-GObject $string, gboolean $type_annotate --> N-GObject )
   is native(&glib-lib)
   { * }
 }}
 
 #-------------------------------------------------------------------------------
 #TM:1:_g_variant_ref:
-sub _g_variant_ref ( N-GVariant $value --> N-GVariant )
+sub _g_variant_ref ( N-GObject $value --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_ref')
   { * }
@@ -2140,19 +2138,19 @@ sub _g_variant_ref ( N-GVariant $value --> N-GVariant )
 =begin pod
 =head2 ref-sink
 
-  method ref-sink ( --> N-GVariant )
+  method ref-sink ( --> N-GObject )
 
 
 =end pod
 
-method ref-sink ( --> N-GVariant ) {
+method ref-sink ( --> N-GObject ) {
 
   g_variant_ref_sink(
     self.get-native-object-no-reffing,
   );
 }
 
-sub g_variant_ref_sink ( N-GVariant $value --> N-GVariant )
+sub g_variant_ref_sink ( N-GObject $value --> N-GObject )
   is native(&glib-lib)
   { * }
 }}
@@ -2175,7 +2173,7 @@ method store ( Pointer $data ) {
   );
 }
 
-sub g_variant_store ( N-GVariant $value, gpointer $data  )
+sub g_variant_store ( N-GObject $value, gpointer $data  )
   is native(&glib-lib)
   { * }
 }}
@@ -2185,25 +2183,25 @@ sub g_variant_store ( N-GVariant $value, gpointer $data  )
 =begin pod
 =head2 take-ref
 
-  method take-ref ( --> N-GVariant )
+  method take-ref ( --> N-GObject )
 
 =end pod
 
-method take-ref ( --> N-GVariant ) {
+method take-ref ( --> N-GObject ) {
 
   g_variant_take_ref(
     self.get-native-object-no-reffing,
   );
 }
 
-sub g_variant_take_ref ( N-GVariant $value --> N-GVariant )
+sub g_variant_take_ref ( N-GObject $value --> N-GObject )
   is native(&glib-lib)
   { * }
 }}
 
 #-------------------------------------------------------------------------------
 #TM:1:_g_variant_unref:
-sub _g_variant_unref ( N-GVariant $value  )
+sub _g_variant_unref ( N-GObject $value  )
   is native(&glib-lib)
   is symbol('g_variant_unref')
   { * }
@@ -2214,14 +2212,14 @@ sub _g_variant_unref ( N-GVariant $value  )
 =begin pod
 =head2 _g_variant_new
 
-  method _g_variant_new (  Str  $format_string --> N-GVariant )
+  method _g_variant_new (  Str  $format_string --> N-GObject )
 
 =item  Str  $format_string;
 
 =end pod
 }}
 
-sub _g_variant_new ( Str $type-string, *@values --> N-GVariant ) {
+sub _g_variant_new ( Str $type-string, *@values --> N-GObject ) {
 
   my @parameterList = ();
   @parameterList.push: Parameter.new(type => Str);         # $type_string
@@ -2383,7 +2381,7 @@ sub _g_variant_new ( Str $type-string, *@values --> N-GVariant ) {
   # create signature
   my Signature $signature .= new(
     :params(|@parameterList),
-    :returns(N-GVariant)
+    :returns(N-GObject)
   );
 
   # get a pointer to the sub, then cast it to a sub with the proper
@@ -2397,7 +2395,7 @@ sub _g_variant_new ( Str $type-string, *@values --> N-GVariant ) {
   $f( $type-string, |@n-values)
 }
 
-#sub _g_variant_new ( gchar-ptr $format_string, Any $any = Any --> N-GVariant )
+#sub _g_variant_new ( gchar-ptr $format_string, Any $any = Any --> N-GObject )
 #  is native(&glib-lib)
 #  is symbol('g_variant_new')
 #  { * }
@@ -2408,22 +2406,22 @@ sub _g_variant_new ( Str $type-string, *@values --> N-GVariant ) {
 =begin pod
 =head2 _g_variant_new_array
 
-Creates a new B<N-GVariant> array from I<children>.  I<child_type> must be non-C<Any> if I<n_children> is zero.  Otherwise, the child type is determined by inspecting the first element of the I<children> array.  If I<child_type> is non-C<Any> then it must be a definite type.  The items of the array are taken from the I<children> array.  No entry in the I<children> array may be C<Any>.  All items in the array must have the same type, which must be the same as I<child_type>, if given.  If the I<children> are floating references (see C<g_variant_ref_sink()>), the new instance takes ownership of them as if via C<g_variant_ref_sink()>.
+Creates a new B<N-GObject> array from I<children>.  I<child_type> must be non-C<Any> if I<n_children> is zero.  Otherwise, the child type is determined by inspecting the first element of the I<children> array.  If I<child_type> is non-C<Any> then it must be a definite type.  The items of the array are taken from the I<children> array.  No entry in the I<children> array may be C<Any>.  All items in the array must have the same type, which must be the same as I<child_type>, if given.  If the I<children> are floating references (see C<g_variant_ref_sink()>), the new instance takes ownership of them as if via C<g_variant_ref_sink()>.
 
-Returns: (transfer none): a floating reference to a new B<N-GVariant> array
+Returns: (transfer none): a floating reference to a new B<N-GObject> array
 
-  method _g_variant_new_array ( N-GVariantType $child_type,  $GVariant * const *children, UInt $n_children --> N-GVariant )
+  method _g_variant_new_array ( N-GObject $child_type,  $GVariant * const *children, UInt $n_children --> N-GObject )
 
-=item N-GVariantType $child_type; (nullable): the element type of the new array
-=item  $GVariant * const *children; (nullable) (array length=n_children): an array of B<N-GVariant> pointers, the children
+=item N-GObject $child_type; (nullable): the element type of the new array
+=item  $GVariant * const *children; (nullable) (array length=n_children): an array of B<N-GObject> pointers, the children
 =item UInt $n_children; the length of I<children>
 
 =end pod
 }}
 
 sub _g_variant_new_array (
-  N-GVariantType $child_type, CArray[N-GVariant] $children,
-  gsize $n_children --> N-GVariant
+  N-GObject $child_type, CArray[N-GObject] $children,
+  gsize $n_children --> N-GObject
 ) is native(&glib-lib)
   is symbol('g_variant_new_array')
   { * }
@@ -2434,18 +2432,18 @@ sub _g_variant_new_array (
 =begin pod
 =head2 _g_variant_new_boolean
 
-Creates a new boolean B<N-GVariant> instance -- either C<1> or C<0>.
+Creates a new boolean B<N-GObject> instance -- either C<1> or C<0>.
 
-Returns: (transfer none): a floating reference to a new boolean B<N-GVariant> instance
+Returns: (transfer none): a floating reference to a new boolean B<N-GObject> instance
 
-  method _g_variant_new_boolean ( Int $value --> N-GVariant )
+  method _g_variant_new_boolean ( Int $value --> N-GObject )
 
 =item Int $value; a B<gboolean> value
 
 =end pod
 }}
 
-sub _g_variant_new_boolean ( gboolean $value --> N-GVariant )
+sub _g_variant_new_boolean ( gboolean $value --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_boolean')
   { * }
@@ -2456,18 +2454,18 @@ sub _g_variant_new_boolean ( gboolean $value --> N-GVariant )
 =begin pod
 =head2 _g_variant_new_byte
 
-Creates a new byte B<N-GVariant> instance.
+Creates a new byte B<N-GObject> instance.
 
-Returns: (transfer none): a floating reference to a new byte B<N-GVariant> instance
+Returns: (transfer none): a floating reference to a new byte B<N-GObject> instance
 
-  method _g_variant_new_byte ( UInt $value --> N-GVariant )
+  method _g_variant_new_byte ( UInt $value --> N-GObject )
 
 =item UInt $value; a B<guint8> value
 
 =end pod
 }}
 
-sub _g_variant_new_byte ( guint8 $value --> N-GVariant )
+sub _g_variant_new_byte ( guint8 $value --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_byte')
   { * }
@@ -2478,18 +2476,18 @@ sub _g_variant_new_byte ( guint8 $value --> N-GVariant )
 =begin pod
 =head2 _g_variant_new_bytestring
 
-Creates an array-of-bytes B<N-GVariant> with the contents of I<string>. This function is just like C<g_variant_new_string()> except that the string need not be valid UTF-8.  The nul terminator character at the end of the string is stored in the array.
+Creates an array-of-bytes B<N-GObject> with the contents of I<string>. This function is just like C<g_variant_new_string()> except that the string need not be valid UTF-8.  The nul terminator character at the end of the string is stored in the array.
 
-Returns: (transfer none): a floating reference to a new bytestring B<N-GVariant> instance
+Returns: (transfer none): a floating reference to a new bytestring B<N-GObject> instance
 
-  method _g_variant_new_bytestring (  Str  $string --> N-GVariant )
+  method _g_variant_new_bytestring (  Str  $string --> N-GObject )
 
 =item  Str  $string; (array zero-terminated=1) (element-type guint8): a normal nul-terminated string in no particular encoding
 
 =end pod
 }}
 
-sub _g_variant_new_bytestring ( gchar-ptr $string --> N-GVariant )
+sub _g_variant_new_bytestring ( gchar-ptr $string --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_bytestring')
   { * }
@@ -2501,11 +2499,11 @@ sub _g_variant_new_bytestring ( gchar-ptr $string --> N-GVariant )
 =begin pod
 =head2 _g_variant_new_bytestring_array
 
-Constructs an array of bytestring B<N-GVariant> from the given array of strings.  If I<length> is -1 then I<strv> is C<Any>-terminated.
+Constructs an array of bytestring B<N-GObject> from the given array of strings.  If I<length> is -1 then I<strv> is C<Any>-terminated.
 
-Returns: (transfer none): a new floating B<N-GVariant> instance
+Returns: (transfer none): a new floating B<N-GObject> instance
 
-  method _g_variant_new_bytestring_array (  CArray[Str]  $strv, Int $length --> N-GVariant )
+  method _g_variant_new_bytestring_array (  CArray[Str]  $strv, Int $length --> N-GObject )
 
 =item  CArray[Str]  $strv; (array length=length): an array of strings
 =item Int $length; the length of I<strv>, or -1
@@ -2514,7 +2512,7 @@ Returns: (transfer none): a new floating B<N-GVariant> instance
 }}
 
 sub _g_variant_new_bytestring_array (
-  gchar-pptr $strv, gssize $length --> N-GVariant
+  gchar-pptr $strv, gssize $length --> N-GObject
 ) is native(&glib-lib)
   is symbol('g_variant_new_bytestring_array')
   { * }
@@ -2532,15 +2530,15 @@ Creates a new dictionary entry B<Gnome::Glib::VariantDict>. I<key> and I<value> 
 
 Returns: a floating reference to a new dictionary entry B<Gnome::Glib::VariantDict>
 
-  method _g_variant_new_dict_entry ( N-GVariant $key, N-GVariant $value --> N-GVariant )
+  method _g_variant_new_dict_entry ( N-GObject $key, N-GObject $value --> N-GObject )
 
-=item N-GVariant $value; a B<Gnome::Glib::VariantDict>, the value
+=item N-GObject $value; a B<Gnome::Glib::VariantDict>, the value
 
 =end pod
 }}
 
 sub _g_variant_new_dict_entry (
-  N-GVariant $key, N-GVariant $value --> N-GVariant
+  N-GObject $key, N-GObject $value --> N-GObject
 ) is native(&glib-lib)
   is symbol('g_variant_new_dict_entry')
   { * }
@@ -2551,18 +2549,18 @@ sub _g_variant_new_dict_entry (
 =begin pod
 =head2 _g_variant_new_double
 
-Creates a new double B<N-GVariant> instance.
+Creates a new double B<N-GObject> instance.
 
-Returns: (transfer none): a floating reference to a new double B<N-GVariant> instance
+Returns: (transfer none): a floating reference to a new double B<N-GObject> instance
 
-  method _g_variant_new_double ( Num $value --> N-GVariant )
+  method _g_variant_new_double ( Num $value --> N-GObject )
 
 =item Num $value; a B<gdouble> floating point value
 
 =end pod
 }}
 
-sub _g_variant_new_double ( gdouble $value --> N-GVariant )
+sub _g_variant_new_double ( gdouble $value --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_double')
   { * }
@@ -2574,13 +2572,13 @@ sub _g_variant_new_double ( gdouble $value --> N-GVariant )
 =begin pod
 =head2 _g_variant_new_fixed_array
 
-Constructs a new array B<N-GVariant> instance, where the elements are of I<element_type> type.  I<elements> must be an array with fixed-sized elements.  Numeric types are fixed-size as are tuples containing only other fixed-sized types.  I<element_size> must be the size of a single element in the array. For example, if calling this function for an array of 32-bit integers, you might say sizeof(gint32). This value isn't used except for the purpose of a double-check that the form of the serialised data matches the caller's expectation.  I<n_elements> must be the length of the I<elements> array.
+Constructs a new array B<N-GObject> instance, where the elements are of I<element_type> type.  I<elements> must be an array with fixed-sized elements.  Numeric types are fixed-size as are tuples containing only other fixed-sized types.  I<element_size> must be the size of a single element in the array. For example, if calling this function for an array of 32-bit integers, you might say sizeof(gint32). This value isn't used except for the purpose of a double-check that the form of the serialised data matches the caller's expectation.  I<n_elements> must be the length of the I<elements> array.
 
-Returns: (transfer none): a floating reference to a new array B<N-GVariant> instance
+Returns: (transfer none): a floating reference to a new array B<N-GObject> instance
 
-  method _g_variant_new_fixed_array ( N-GVariantType $element_type, Pointer $elements, UInt $n_elements, UInt $element_size --> N-GVariant )
+  method _g_variant_new_fixed_array ( N-GObject $element_type, Pointer $elements, UInt $n_elements, UInt $element_size --> N-GObject )
 
-=item N-GVariantType $element_type; the B<GVariantType> of each element
+=item N-GObject $element_type; the B<GVariantType> of each element
 =item Pointer $elements; a pointer to the fixed array of contiguous elements
 =item UInt $n_elements; the number of elements
 =item UInt $element_size; the size of each element
@@ -2588,7 +2586,7 @@ Returns: (transfer none): a floating reference to a new array B<N-GVariant> inst
 =end pod
 }}
 
-sub _g_variant_new_fixed_array ( N-GVariantType $element_type, gpointer $elements, gsize $n_elements, gsize $element_size --> N-GVariant )
+sub _g_variant_new_fixed_array ( N-GObject $element_type, gpointer $elements, gsize $n_elements, gsize $element_size --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_fixed_array')
   { * }
@@ -2603,16 +2601,16 @@ sub _g_variant_new_fixed_array ( N-GVariantType $element_type, gpointer $element
 
 
 
-  method _g_variant_new_from_bytes ( N-GVariantType $type, N-GBytes $bytes, Int $trusted --> N-GVariant )
+  method _g_variant_new_from_bytes ( N-GObject $type, N-GBytes $bytes, Int $trusted --> N-GObject )
 
-=item N-GVariantType $type;
+=item N-GObject $type;
 =item N-GObject $bytes;
 =item Int $trusted;
 
 =end pod
 }}
 
-sub _g_variant_new_from_bytes ( N-GVariantType $type, N-GBytes $bytes, gboolean $trusted --> N-GVariant )
+sub _g_variant_new_from_bytes ( N-GObject $type, N-GBytes $bytes, gboolean $trusted --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_from_bytes')
   { * }
@@ -2625,13 +2623,13 @@ sub _g_variant_new_from_bytes ( N-GVariantType $type, N-GBytes $bytes, gboolean 
 =begin pod
 =head2 _g_variant_new_from_data
 
-Creates a new B<N-GVariant> instance from serialised data.  I<type> is the type of B<N-GVariant> instance that will be constructed. The interpretation of I<data> depends on knowing the type.  I<data> is not modified by this function and must remain valid with an unchanging value until such a time as I<notify> is called with I<user_data>.  If the contents of I<data> change before that time then the result is undefined.  If I<data> is trusted to be serialised data in normal form then I<trusted> should be C<1>.  This applies to serialised data created within this process or read from a trusted location on the disk (such as a file installed in /usr/lib alongside your application).  You should set trusted to C<0> if I<data> is read from the network, a file in the user's home directory, etc.  If I<data> was not stored in this machine's native endianness, any multi-byte numeric values in the returned variant will also be in non-native endianness. C<g_variant_byteswap()> can be used to recover the original values.  I<notify> will be called with I<user_data> when I<data> is no longer needed.  The exact time of this call is unspecified and might even be before this function returns.  Note: I<data> must be backed by memory that is aligned appropriately for the I<type> being loaded. Otherwise this function will internally create a copy of the memory (since GLib 2.60) or (in older versions) fail and exit the process.
+Creates a new B<N-GObject> instance from serialised data.  I<type> is the type of B<N-GObject> instance that will be constructed. The interpretation of I<data> depends on knowing the type.  I<data> is not modified by this function and must remain valid with an unchanging value until such a time as I<notify> is called with I<user_data>.  If the contents of I<data> change before that time then the result is undefined.  If I<data> is trusted to be serialised data in normal form then I<trusted> should be C<1>.  This applies to serialised data created within this process or read from a trusted location on the disk (such as a file installed in /usr/lib alongside your application).  You should set trusted to C<0> if I<data> is read from the network, a file in the user's home directory, etc.  If I<data> was not stored in this machine's native endianness, any multi-byte numeric values in the returned variant will also be in non-native endianness. C<g_variant_byteswap()> can be used to recover the original values.  I<notify> will be called with I<user_data> when I<data> is no longer needed.  The exact time of this call is unspecified and might even be before this function returns.  Note: I<data> must be backed by memory that is aligned appropriately for the I<type> being loaded. Otherwise this function will internally create a copy of the memory (since GLib 2.60) or (in older versions) fail and exit the process.
 
-Returns: (transfer none): a new floating B<N-GVariant> of type I<type>
+Returns: (transfer none): a new floating B<N-GObject> of type I<type>
 
-  method _g_variant_new_from_data ( N-GVariantType $type, Pointer $data, UInt $size, Int $trusted, GDestroyNotify $notify, Pointer $user_data --> N-GVariant )
+  method _g_variant_new_from_data ( N-GObject $type, Pointer $data, UInt $size, Int $trusted, GDestroyNotify $notify, Pointer $user_data --> N-GObject )
 
-=item N-GVariantType $type; a definite B<GVariantType>
+=item N-GObject $type; a definite B<GVariantType>
 =item Pointer $data; (array length=size) (element-type guint8): the serialised data
 =item UInt $size; the size of I<data>
 =item Int $trusted; C<1> if I<data> is definitely in normal form
@@ -2641,7 +2639,7 @@ Returns: (transfer none): a new floating B<N-GVariant> of type I<type>
 =end pod
 }}
 
-sub _g_variant_new_from_data ( N-GVariantType $type, gpointer $data, gsize $size, gboolean $trusted, GDestroyNotify $notify, gpointer $user_data --> N-GVariant )
+sub _g_variant_new_from_data ( N-GObject $type, gpointer $data, gsize $size, gboolean $trusted, GDestroyNotify $notify, gpointer $user_data --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_from_data')
   { * }
@@ -2654,18 +2652,18 @@ sub _g_variant_new_from_data ( N-GVariantType $type, gpointer $data, gsize $size
 =begin pod
 =head2 _g_variant_new_handle
 
-Creates a new handle B<N-GVariant> instance.  By convention, handles are indexes into an array of file descriptors that are sent alongside a D-Bus message.  If you're not interacting with D-Bus, you probably don't need them.
+Creates a new handle B<N-GObject> instance.  By convention, handles are indexes into an array of file descriptors that are sent alongside a D-Bus message.  If you're not interacting with D-Bus, you probably don't need them.
 
-Returns: (transfer none): a floating reference to a new handle B<N-GVariant> instance
+Returns: (transfer none): a floating reference to a new handle B<N-GObject> instance
 
-  method _g_variant_new_handle ( Int $value --> N-GVariant )
+  method _g_variant_new_handle ( Int $value --> N-GObject )
 
 =item Int $value; a B<gint32> value
 
 =end pod
 }}
 
-sub _g_variant_new_handle ( gint32 $value --> N-GVariant )
+sub _g_variant_new_handle ( gint32 $value --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_handle')
   { * }
@@ -2677,18 +2675,18 @@ sub _g_variant_new_handle ( gint32 $value --> N-GVariant )
 =begin pod
 =head2 _g_variant_new_int16
 
-Creates a new int16 B<N-GVariant> instance.
+Creates a new int16 B<N-GObject> instance.
 
-Returns: (transfer none): a floating reference to a new int16 B<N-GVariant> instance
+Returns: (transfer none): a floating reference to a new int16 B<N-GObject> instance
 
-  method _g_variant_new_int16 ( Int $value --> N-GVariant )
+  method _g_variant_new_int16 ( Int $value --> N-GObject )
 
 =item Int $value; a B<gint16> value
 
 =end pod
 }}
 
-sub _g_variant_new_int16 ( gint16 $value --> N-GVariant )
+sub _g_variant_new_int16 ( gint16 $value --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_int16')
   { * }
@@ -2699,18 +2697,18 @@ sub _g_variant_new_int16 ( gint16 $value --> N-GVariant )
 =begin pod
 =head2 _g_variant_new_int32
 
-Creates a new int32 B<N-GVariant> instance.
+Creates a new int32 B<N-GObject> instance.
 
-Returns: (transfer none): a floating reference to a new int32 B<N-GVariant> instance
+Returns: (transfer none): a floating reference to a new int32 B<N-GObject> instance
 
-  method _g_variant_new_int32 ( Int $value --> N-GVariant )
+  method _g_variant_new_int32 ( Int $value --> N-GObject )
 
 =item Int $value; a B<gint32> value
 
 =end pod
 }}
 
-sub _g_variant_new_int32 ( gint32 $value --> N-GVariant )
+sub _g_variant_new_int32 ( gint32 $value --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_int32')
   { * }
@@ -2721,18 +2719,18 @@ sub _g_variant_new_int32 ( gint32 $value --> N-GVariant )
 =begin pod
 =head2 _g_variant_new_int64
 
-Creates a new int64 B<N-GVariant> instance.
+Creates a new int64 B<N-GObject> instance.
 
-Returns: (transfer none): a floating reference to a new int64 B<N-GVariant> instance
+Returns: (transfer none): a floating reference to a new int64 B<N-GObject> instance
 
-  method _g_variant_new_int64 ( Int $value --> N-GVariant )
+  method _g_variant_new_int64 ( Int $value --> N-GObject )
 
 =item Int $value; a B<gint64> value
 
 =end pod
 }}
 
-sub _g_variant_new_int64 ( gint64 $value --> N-GVariant )
+sub _g_variant_new_int64 ( gint64 $value --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_int64')
   { * }
@@ -2746,17 +2744,17 @@ sub _g_variant_new_int64 ( gint64 $value --> N-GVariant )
 
 Depending on if I<child> is C<Any>, either wraps I<child> inside of a maybe container or creates a Nothing instance for the given I<type>.  At least one of I<child_type> and I<child> must be non-C<Any>. If I<child_type> is non-C<Any> then it must be a definite type. If they are both non-C<Any> then I<child_type> must be the type of I<child>.  If I<child> is a floating reference (see C<g_variant_ref_sink()>), the new instance takes ownership of I<child>.
 
-Returns: (transfer none): a floating reference to a new B<N-GVariant> maybe instance
+Returns: (transfer none): a floating reference to a new B<N-GObject> maybe instance
 
-  method _g_variant_new_maybe ( N-GVariantType $child_type, N-GVariant $child --> N-GVariant )
+  method _g_variant_new_maybe ( N-GObject $child_type, N-GObject $child --> N-GObject )
 
-=item N-GVariantType $child_type; (nullable): the B<GVariantType> of the child, or C<Any>
-=item N-GVariant $child; (nullable): the child value, or C<Any>
+=item N-GObject $child_type; (nullable): the B<GVariantType> of the child, or C<Any>
+=item N-GObject $child; (nullable): the child value, or C<Any>
 
 =end pod
 }}
 
-sub _g_variant_new_maybe ( N-GVariantType $child_type, N-GVariant $child --> N-GVariant )
+sub _g_variant_new_maybe ( N-GObject $child_type, N-GObject $child --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_maybe')
   { * }
@@ -2769,18 +2767,18 @@ sub _g_variant_new_maybe ( N-GVariantType $child_type, N-GVariant $child --> N-G
 =begin pod
 =head2 _g_variant_new_object_path
 
-Creates a D-Bus object path B<N-GVariant> with the contents of I<string>. I<string> must be a valid D-Bus object path.  Use C<g_variant_is_object_path()> if you're not sure.
+Creates a D-Bus object path B<N-GObject> with the contents of I<string>. I<string> must be a valid D-Bus object path.  Use C<g_variant_is_object_path()> if you're not sure.
 
-Returns: (transfer none): a floating reference to a new object path B<N-GVariant> instance
+Returns: (transfer none): a floating reference to a new object path B<N-GObject> instance
 
-  method _g_variant_new_object_path (  Str  $object_path --> N-GVariant )
+  method _g_variant_new_object_path (  Str  $object_path --> N-GObject )
 
 =item  Str  $object_path; a normal C nul-terminated string
 
 =end pod
 }}
 
-sub _g_variant_new_object_path ( gchar-ptr $object_path --> N-GVariant )
+sub _g_variant_new_object_path ( gchar-ptr $object_path --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_object_path')
   { * }
@@ -2793,11 +2791,11 @@ sub _g_variant_new_object_path ( gchar-ptr $object_path --> N-GVariant )
 =begin pod
 =head2 _g_variant_new_objv
 
-Constructs an array of object paths B<N-GVariant> from the given array of strings.  Each string must be a valid B<N-GVariant> object path; see C<g_variant_is_object_path()>.  If I<length> is -1 then I<strv> is C<Any>-terminated.
+Constructs an array of object paths B<N-GObject> from the given array of strings.  Each string must be a valid B<N-GObject> object path; see C<g_variant_is_object_path()>.  If I<length> is -1 then I<strv> is C<Any>-terminated.
 
-Returns: (transfer none): a new floating B<N-GVariant> instance
+Returns: (transfer none): a new floating B<N-GObject> instance
 
-  method _g_variant_new_objv (  CArray[Str]  $strv, Int $length --> N-GVariant )
+  method _g_variant_new_objv (  CArray[Str]  $strv, Int $length --> N-GObject )
 
 =item  CArray[Str]  $strv; (array length=length) (element-type utf8): an array of strings
 =item Int $length; the length of I<strv>, or -1
@@ -2805,7 +2803,7 @@ Returns: (transfer none): a new floating B<N-GVariant> instance
 =end pod
 }}
 
-sub _g_variant_new_objv ( gchar-pptr $strv, gssize $length --> N-GVariant )
+sub _g_variant_new_objv ( gchar-pptr $strv, gssize $length --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_objv')
   { * }
@@ -2820,14 +2818,14 @@ sub _g_variant_new_objv ( gchar-pptr $strv, gssize $length --> N-GVariant )
 
 
 
-  method _g_variant_new_parsed (  Str  $format --> N-GVariant )
+  method _g_variant_new_parsed (  Str  $format --> N-GObject )
 
 =item  Str  $format;
 
 =end pod
 }}
 
-sub _g_variant_new_parsed ( gchar-ptr $format, Any $any = Any --> N-GVariant )
+sub _g_variant_new_parsed ( gchar-ptr $format, Any $any = Any --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_parsed')
   { * }
@@ -2842,7 +2840,7 @@ sub _g_variant_new_parsed ( gchar-ptr $format, Any $any = Any --> N-GVariant )
 
 
 
-  method _g_variant_new_parsed_va (  Str  $format, va_list $app --> N-GVariant )
+  method _g_variant_new_parsed_va (  Str  $format, va_list $app --> N-GObject )
 
 =item  Str  $format;
 =item va_list $app;
@@ -2850,7 +2848,7 @@ sub _g_variant_new_parsed ( gchar-ptr $format, Any $any = Any --> N-GVariant )
 =end pod
 }}
 
-sub _g_variant_new_parsed_va ( gchar-ptr $format, va_list $app --> N-GVariant )
+sub _g_variant_new_parsed_va ( gchar-ptr $format, va_list $app --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_parsed_va')
   { * }
@@ -2865,9 +2863,9 @@ sub _g_variant_new_parsed_va ( gchar-ptr $format, va_list $app --> N-GVariant )
 
 Creates a string-type GVariant using printf formatting.  This is similar to calling C<g_strdup_printf()> and then C<g_variant_new_string()> but it saves a temporary variable and an unnecessary copy.
 
-Returns: (transfer none): a floating reference to a new string B<N-GVariant> instance
+Returns: (transfer none): a floating reference to a new string B<N-GObject> instance
 
-  method _g_variant_new_printf (  Str  $format_string,  $2 --> N-GVariant )
+  method _g_variant_new_printf (  Str  $format_string,  $2 --> N-GObject )
 
 =item  Str  $format_string; a printf-style format string @...: arguments for I<format_string>
 =item  $2;
@@ -2875,7 +2873,7 @@ Returns: (transfer none): a floating reference to a new string B<N-GVariant> ins
 =end pod
 }}
 
-sub _g_variant_new_printf ( gchar-ptr $format_string, Any $any = Any,  $2 --> N-GVariant )
+sub _g_variant_new_printf ( gchar-ptr $format_string, Any $any = Any,  $2 --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_printf')
   { * }
@@ -2888,18 +2886,18 @@ sub _g_variant_new_printf ( gchar-ptr $format_string, Any $any = Any,  $2 --> N-
 =begin pod
 =head2 _g_variant_new_signature
 
-Creates a D-Bus type signature B<N-GVariant> with the contents of I<string>.  I<string> must be a valid D-Bus type signature.  Use C<g_variant_is_signature()> if you're not sure.
+Creates a D-Bus type signature B<N-GObject> with the contents of I<string>.  I<string> must be a valid D-Bus type signature.  Use C<g_variant_is_signature()> if you're not sure.
 
-Returns: (transfer none): a floating reference to a new signature B<N-GVariant> instance
+Returns: (transfer none): a floating reference to a new signature B<N-GObject> instance
 
-  method _g_variant_new_signature (  Str  $signature --> N-GVariant )
+  method _g_variant_new_signature (  Str  $signature --> N-GObject )
 
 =item  Str  $signature; a normal C nul-terminated string
 
 =end pod
 }}
 
-sub _g_variant_new_signature ( gchar-ptr $signature --> N-GVariant )
+sub _g_variant_new_signature ( gchar-ptr $signature --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_signature')
   { * }
@@ -2911,18 +2909,18 @@ sub _g_variant_new_signature ( gchar-ptr $signature --> N-GVariant )
 =begin pod
 =head2 _g_variant_new_string
 
-Creates a string B<N-GVariant> with the contents of I<string>.  I<string> must be valid UTF-8, and must not be C<Any>. To encode potentially-C<Any> strings, use C<g_variant_new()> with `ms` as the [format string][gvariant-format-strings-maybe-types].
+Creates a string B<N-GObject> with the contents of I<string>.  I<string> must be valid UTF-8, and must not be C<Any>. To encode potentially-C<Any> strings, use C<g_variant_new()> with `ms` as the [format string][gvariant-format-strings-maybe-types].
 
-Returns: (transfer none): a floating reference to a new string B<N-GVariant> instance
+Returns: (transfer none): a floating reference to a new string B<N-GObject> instance
 
-  method _g_variant_new_string (  Str  $string --> N-GVariant )
+  method _g_variant_new_string (  Str  $string --> N-GObject )
 
 =item  Str  $string; a normal UTF-8 nul-terminated string
 
 =end pod
 }}
 
-sub _g_variant_new_string ( gchar-ptr $string --> N-GVariant )
+sub _g_variant_new_string ( gchar-ptr $string --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_string')
   { * }
@@ -2933,11 +2931,11 @@ sub _g_variant_new_string ( gchar-ptr $string --> N-GVariant )
 =begin pod
 =head2 _g_variant_new_strv
 
-Constructs an array of strings B<N-GVariant> from the given array of strings.  If I<length> is -1 then I<strv> is C<Any>-terminated.
+Constructs an array of strings B<N-GObject> from the given array of strings.  If I<length> is -1 then I<strv> is C<Any>-terminated.
 
-Returns: (transfer none): a new floating B<N-GVariant> instance
+Returns: (transfer none): a new floating B<N-GObject> instance
 
-  method _g_variant_new_strv (  CArray[Str]  $strv, Int $length --> N-GVariant )
+  method _g_variant_new_strv (  CArray[Str]  $strv, Int $length --> N-GObject )
 
 =item  CArray[Str]  $strv; (array length=length) (element-type utf8): an array of strings
 =item Int $length; the length of I<strv>, or -1
@@ -2945,7 +2943,7 @@ Returns: (transfer none): a new floating B<N-GVariant> instance
 =end pod
 }}
 
-sub _g_variant_new_strv ( gchar-pptr $strv, gssize $length --> N-GVariant )
+sub _g_variant_new_strv ( gchar-pptr $strv, gssize $length --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_strv')
   { * }
@@ -2957,18 +2955,18 @@ sub _g_variant_new_strv ( gchar-pptr $strv, gssize $length --> N-GVariant )
 =begin pod
 =head2 _g_variant_new_take_string
 
-Creates a string B<N-GVariant> with the contents of I<string>.  I<string> must be valid UTF-8, and must not be C<Any>. To encode potentially-C<Any> strings, use this with C<g_variant_new_maybe()>.  This function consumes I<string>.  C<g_free()> will be called on I<string> when it is no longer required.  You must not modify or access I<string> in any other way after passing it to this function.  It is even possible that I<string> is immediately freed.
+Creates a string B<N-GObject> with the contents of I<string>.  I<string> must be valid UTF-8, and must not be C<Any>. To encode potentially-C<Any> strings, use this with C<g_variant_new_maybe()>.  This function consumes I<string>.  C<g_free()> will be called on I<string> when it is no longer required.  You must not modify or access I<string> in any other way after passing it to this function.  It is even possible that I<string> is immediately freed.
 
-Returns: (transfer none): a floating reference to a new string B<N-GVariant> instance
+Returns: (transfer none): a floating reference to a new string B<N-GObject> instance
 
-  method _g_variant_new_take_string (  Str  $string --> N-GVariant )
+  method _g_variant_new_take_string (  Str  $string --> N-GObject )
 
 =item  Str  $string; a normal UTF-8 nul-terminated string
 
 =end pod
 }}
 
-sub _g_variant_new_take_string ( gchar-ptr $string --> N-GVariant )
+sub _g_variant_new_take_string ( gchar-ptr $string --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_take_string')
   { * }
@@ -2980,11 +2978,11 @@ sub _g_variant_new_take_string ( gchar-ptr $string --> N-GVariant )
 =begin pod
 =head2 _g_variant_new_tuple
 
-Creates a new tuple B<N-GVariant> out of the items in I<children>.  The type is determined from the types of I<children>.  No entry in the I<children> array may be C<Any>.  If I<n_children> is 0 then the unit tuple is constructed.  If the I<children> are floating references (see C<g_variant_ref_sink()>), the new instance takes ownership of them as if via C<g_variant_ref_sink()>.
+Creates a new tuple B<N-GObject> out of the items in I<children>.  The type is determined from the types of I<children>.  No entry in the I<children> array may be C<Any>.  If I<n_children> is 0 then the unit tuple is constructed.  If the I<children> are floating references (see C<g_variant_ref_sink()>), the new instance takes ownership of them as if via C<g_variant_ref_sink()>.
 
-Returns: (transfer none): a floating reference to a new B<N-GVariant> tuple
+Returns: (transfer none): a floating reference to a new B<N-GObject> tuple
 
-  method _g_variant_new_tuple (  $GVariant * const *children, UInt $n_children --> N-GVariant )
+  method _g_variant_new_tuple (  $GVariant * const *children, UInt $n_children --> N-GObject )
 
 =item  $GVariant * const *children; (array length=n_children): the items to make the tuple out of
 =item UInt $n_children; the length of I<children>
@@ -2992,7 +2990,7 @@ Returns: (transfer none): a floating reference to a new B<N-GVariant> tuple
 =end pod
 }}
 
-sub _g_variant_new_tuple ( CArray[N-GVariant] $children, gsize $n_children --> N-GVariant )
+sub _g_variant_new_tuple ( CArray[N-GObject] $children, gsize $n_children --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_tuple')
   { * }
@@ -3003,18 +3001,18 @@ sub _g_variant_new_tuple ( CArray[N-GVariant] $children, gsize $n_children --> N
 =begin pod
 =head2 _g_variant_new_uint16
 
-Creates a new uint16 B<N-GVariant> instance.
+Creates a new uint16 B<N-GObject> instance.
 
-Returns: (transfer none): a floating reference to a new uint16 B<N-GVariant> instance
+Returns: (transfer none): a floating reference to a new uint16 B<N-GObject> instance
 
-  method _g_variant_new_uint16 ( UInt $value --> N-GVariant )
+  method _g_variant_new_uint16 ( UInt $value --> N-GObject )
 
 =item UInt $value; a B<guint16> value
 
 =end pod
 }}
 
-sub _g_variant_new_uint16 ( guint16 $value --> N-GVariant )
+sub _g_variant_new_uint16 ( guint16 $value --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_uint16')
   { * }
@@ -3025,18 +3023,18 @@ sub _g_variant_new_uint16 ( guint16 $value --> N-GVariant )
 =begin pod
 =head2 _g_variant_new_uint32
 
-Creates a new uint32 B<N-GVariant> instance.
+Creates a new uint32 B<N-GObject> instance.
 
-Returns: (transfer none): a floating reference to a new uint32 B<N-GVariant> instance
+Returns: (transfer none): a floating reference to a new uint32 B<N-GObject> instance
 
-  method _g_variant_new_uint32 ( UInt $value --> N-GVariant )
+  method _g_variant_new_uint32 ( UInt $value --> N-GObject )
 
 =item UInt $value; a B<guint32> value
 
 =end pod
 }}
 
-sub _g_variant_new_uint32 ( guint32 $value --> N-GVariant )
+sub _g_variant_new_uint32 ( guint32 $value --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_uint32')
   { * }
@@ -3047,18 +3045,18 @@ sub _g_variant_new_uint32 ( guint32 $value --> N-GVariant )
 =begin pod
 =head2 _g_variant_new_uint64
 
-Creates a new uint64 B<N-GVariant> instance.
+Creates a new uint64 B<N-GObject> instance.
 
-Returns: (transfer none): a floating reference to a new uint64 B<N-GVariant> instance
+Returns: (transfer none): a floating reference to a new uint64 B<N-GObject> instance
 
-  method _g_variant_new_uint64 ( UInt $value --> N-GVariant )
+  method _g_variant_new_uint64 ( UInt $value --> N-GObject )
 
 =item UInt $value; a B<guint64> value
 
 =end pod
 }}
 
-sub _g_variant_new_uint64 ( guint64 $value --> N-GVariant )
+sub _g_variant_new_uint64 ( guint64 $value --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_uint64')
   { * }
@@ -3070,11 +3068,11 @@ sub _g_variant_new_uint64 ( guint64 $value --> N-GVariant )
 =begin pod
 =head2 _g_variant_new_va
 
-This function is intended to be used by libraries based on B<N-GVariant> that want to provide C<g_variant_new()>-like functionality to their users.  The API is more general than C<g_variant_new()> to allow a wider range of possible uses.  I<format_string> must still point to a valid format string, but it only needs to be nul-terminated if I<endptr> is C<Any>.  If I<endptr> is non-C<Any> then it is updated to point to the first character past the end of the format string.  I<app> is a pointer to a B<va_list>.  The arguments, according to I<format_string>, are collected from this B<va_list> and the list is left pointing to the argument following the last.  Note that the arguments in I<app> must be of the correct width for their types specified in I<format_string> when collected into the B<va_list>. See the [GVariant varargs documentation][gvariant-varargs].  These two generalisations allow mixing of multiple calls to C<g_variant_new_va()> and C<g_variant_get_va()> within a single actual varargs call by the user.  The return value will be floating if it was a newly created GVariant instance (for example, if the format string was "(ii)").  In the case that the format_string was '*', '?', 'r', or a format starting with '@' then the collected B<N-GVariant> pointer will be returned unmodified, without adding any additional references.  In order to behave correctly in all cases it is necessary for the calling function to C<g_variant_ref_sink()> the return result before returning control to the user that originally provided the pointer. At this point, the caller will have their own full reference to the result.  This can also be done by adding the result to a container, or by passing it to another C<g_variant_new()> call.
+This function is intended to be used by libraries based on B<N-GObject> that want to provide C<g_variant_new()>-like functionality to their users.  The API is more general than C<g_variant_new()> to allow a wider range of possible uses.  I<format_string> must still point to a valid format string, but it only needs to be nul-terminated if I<endptr> is C<Any>.  If I<endptr> is non-C<Any> then it is updated to point to the first character past the end of the format string.  I<app> is a pointer to a B<va_list>.  The arguments, according to I<format_string>, are collected from this B<va_list> and the list is left pointing to the argument following the last.  Note that the arguments in I<app> must be of the correct width for their types specified in I<format_string> when collected into the B<va_list>. See the [GVariant varargs documentation][gvariant-varargs].  These two generalisations allow mixing of multiple calls to C<g_variant_new_va()> and C<g_variant_get_va()> within a single actual varargs call by the user.  The return value will be floating if it was a newly created GVariant instance (for example, if the format string was "(ii)").  In the case that the format_string was '*', '?', 'r', or a format starting with '@' then the collected B<N-GObject> pointer will be returned unmodified, without adding any additional references.  In order to behave correctly in all cases it is necessary for the calling function to C<g_variant_ref_sink()> the return result before returning control to the user that originally provided the pointer. At this point, the caller will have their own full reference to the result.  This can also be done by adding the result to a container, or by passing it to another C<g_variant_new()> call.
 
-Returns: a new, usually floating, B<N-GVariant>
+Returns: a new, usually floating, B<N-GObject>
 
-  method _g_variant_new_va (  Str  $format_string,  CArray[Str]  $endptr, va_list $app --> N-GVariant )
+  method _g_variant_new_va (  Str  $format_string,  CArray[Str]  $endptr, va_list $app --> N-GObject )
 
 =item  Str  $format_string; a string that is prefixed with a format string
 =item  CArray[Str]  $endptr; (nullable) (default NULL): location to store the end pointer, or C<Any>
@@ -3083,7 +3081,7 @@ Returns: a new, usually floating, B<N-GVariant>
 =end pod
 }}
 
-sub _g_variant_new_va ( gchar-ptr $format_string, gchar-pptr $endptr, va_list $app --> N-GVariant )
+sub _g_variant_new_va ( gchar-ptr $format_string, gchar-pptr $endptr, va_list $app --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_va')
   { * }
@@ -3095,17 +3093,17 @@ sub _g_variant_new_va ( gchar-ptr $format_string, gchar-pptr $endptr, va_list $a
 =begin pod
 =head2 _g_variant_new_variant
 
-Boxes I<value>.  The result is a B<N-GVariant> instance representing a variant containing the original value.  If I<child> is a floating reference (see C<g_variant_ref_sink()>), the new instance takes ownership of I<child>.
+Boxes I<value>.  The result is a B<N-GObject> instance representing a variant containing the original value.  If I<child> is a floating reference (see C<g_variant_ref_sink()>), the new instance takes ownership of I<child>.
 
-Returns: (transfer none): a floating reference to a new variant B<N-GVariant> instance
+Returns: (transfer none): a floating reference to a new variant B<N-GObject> instance
 
-  method _g_variant_new_variant ( --> N-GVariant )
+  method _g_variant_new_variant ( --> N-GObject )
 
 
 =end pod
 }}
 
-sub _g_variant_new_variant ( N-GVariant $value --> N-GVariant )
+sub _g_variant_new_variant ( N-GObject $value --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_new_variant')
   { * }

@@ -102,9 +102,7 @@ use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::TopLevelClassSupport;
 use Gnome::N::GlibToRakuTypes;
-
-use Gnome::Glib::N-GVariantType;
-use Gnome::Glib::N-GVariantType;
+use Gnome::N::N-GObject;
 
 #-------------------------------------------------------------------------------
 unit class Gnome::Glib::VariantType:auth<github:MARTIMM>:ver<0.1.0>;
@@ -213,20 +211,20 @@ constant G_VARIANT_TYPE_VARDICT is export = 'a{sv}';
 
 Constructs the type corresponding to an array of elements of the given type in C<$array>.
 
-  multi method new ( N-GVariantType :$array!! )
+  multi method new ( N-GObject :$array!! )
 
 =head3 :maybe
 
 Constructs the type corresponding to a maybe instance containing in given type
 
-  multi method new ( N-GVariantType :$maybe! )
+  multi method new ( N-GObject :$maybe! )
 
 =begin comment
 =head3 :tuple
 
 Constructs a new tuple type from I<items> given by the array $tuple.
 
-  multi method new ( Array[N-GVariantType] :$tuple! )
+  multi method new ( Array[N-GObject] :$tuple! )
 =end comment
 
 =head3 :type-string
@@ -243,7 +241,7 @@ It is a programmer error to call this function with an invalid type string. The 
 
 Create a VariantType object using a native object from elsewhere. See also B<Gnome::N::TopLevelClassSupport>.
 
-  multi method new ( N-GVariantType :$native-object! )
+  multi method new ( N-GObject :$native-object! )
 =end pod
 
 #TM:1:new(:type-string):
@@ -269,13 +267,13 @@ submethod BUILD ( *%options ) {
 
       elsif %options<array> {
         $no = %options<array>;
-        $no .= get-native-object-no-reffing unless $no ~~ N-GVariantType;
+        $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
         $no = _g_variant_type_new_array($no);
       }
 
       elsif %options<maybe> {
         $no = %options<maybe>;
-        $no .= get-native-object-no-reffing unless $no ~~ N-GVariantType;
+        $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
         $no = _g_variant_type_new_maybe($no);
       }
 
@@ -343,7 +341,7 @@ method copy ( --> Gnome::Glib::VariantType ) {
   );
 }
 
-sub g_variant_type_copy ( N-GVariantType $type --> N-GVariantType )
+sub g_variant_type_copy ( N-GObject $type --> N-GObject )
   is native(&glib-lib)
   { * }
 
@@ -367,7 +365,7 @@ method dup-string ( -->  Str  ) {
   );
 }
 
-sub g_variant_type_dup_string ( N-GVariantType $type --> gchar-ptr )
+sub g_variant_type_dup_string ( N-GObject $type --> gchar-ptr )
   is native(&glib-lib)
   { * }
 
@@ -390,7 +388,7 @@ method element ( --> Gnome::Glib::VariantType ) {
   );
 }
 
-sub g_variant_type_element ( N-GVariantType $type --> N-GVariantType )
+sub g_variant_type_element ( N-GObject $type --> N-GObject )
   is native(&glib-lib)
   { * }
 
@@ -403,15 +401,15 @@ Compares this type and I<$type2> for equality.  Only returns C<True> if the type
 
 =comment The argument types of I<type1> and I<type2> are only B<gconstpointer> to allow use with B<GHashTable> without function pointer casting.  For both arguments, a valid B<GVariantType> must be provided.
 
-  method equal ( N-GVariantType $type2 --> Bool )
+  method equal ( N-GObject $type2 --> Bool )
 
-=item N-GVariantType $type2; a B<GVariantType>
+=item N-GObject $type2; a B<GVariantType>
 
 =end pod
 
 method equal ( $type2 --> Bool ) {
   my $no = $type2;
-  $no .= get-native-object-no-reffing unless $no ~~ N-GVariantType;
+  $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
 
   g_variant_type_equal(
     self.get-native-object-no-reffing, $no
@@ -419,7 +417,7 @@ method equal ( $type2 --> Bool ) {
 }
 
 sub g_variant_type_equal (
-  N-GVariantType $type1, N-GVariantType $type2 --> gboolean
+  N-GObject $type1, N-GObject $type2 --> gboolean
 ) is native(&glib-lib)
   { * }
 
@@ -432,7 +430,7 @@ Determines the first item type of a tuple or dictionary entry type.  This functi
 
 Returns: the first item type of I<type>, or invalid
 
-  method first ( --> N-GVariantType )
+  method first ( --> N-GObject )
 
 =end pod
 
@@ -442,7 +440,7 @@ method first ( --> Gnome::Glib::VariantType ) {
   );
 }
 
-sub g_variant_type_first ( N-GVariantType $type --> N-GVariantType )
+sub g_variant_type_first ( N-GObject $type --> N-GObject )
   is native(&glib-lib)
   { * }
 
@@ -466,7 +464,7 @@ method get-string-length ( --> UInt ) {
   );
 }
 
-sub g_variant_type_get_string_length ( N-GVariantType $type --> gsize )
+sub g_variant_type_get_string_length ( N-GObject $type --> gsize )
   is native(&glib-lib)
   { * }
 
@@ -480,9 +478,9 @@ Hashes I<type>.
 
 Returns: the hash value
 
-  method hash ( N-GVariantType $type --> UInt )
+  method hash ( N-GObject $type --> UInt )
 
-=item N-GVariantType $type; a B<N-GVariantType>
+=item N-GObject $type; a B<N-GObject>
 
 =end pod
 
@@ -493,7 +491,7 @@ method hash ( --> UInt ) {
   );
 }
 
-sub g_variant_type_hash ( N-GVariantType $type --> guint )
+sub g_variant_type_hash ( N-GObject $type --> guint )
   is native(&glib-lib)
   { * }
 
@@ -518,7 +516,7 @@ method is-array ( --> Bool ) {
   ).Bool;
 }
 
-sub g_variant_type_is_array ( N-GVariantType $type --> gboolean )
+sub g_variant_type_is_array ( N-GObject $type --> gboolean )
   is native(&glib-lib)
   { * }
 
@@ -542,7 +540,7 @@ method is-basic ( --> Bool ) {
   ).Bool;
 }
 
-sub g_variant_type_is_basic ( N-GVariantType $type --> gboolean )
+sub g_variant_type_is_basic ( N-GObject $type --> gboolean )
   is native(&glib-lib)
   { * }
 
@@ -567,7 +565,7 @@ method is-container ( --> Bool ) {
   ).Bool;
 }
 
-sub g_variant_type_is_container ( N-GVariantType $type --> gboolean )
+sub g_variant_type_is_container ( N-GObject $type --> gboolean )
   is native(&glib-lib)
   { * }
 
@@ -592,7 +590,7 @@ method is-definite ( --> Bool ) {
   ).Bool;
 }
 
-sub g_variant_type_is_definite ( N-GVariantType $type --> gboolean )
+sub g_variant_type_is_definite ( N-GObject $type --> gboolean )
   is native(&glib-lib)
   { * }
 
@@ -617,7 +615,7 @@ method is-dict-entry ( --> Bool ) {
   ).Bool;
 }
 
-sub g_variant_type_is_dict_entry ( N-GVariantType $type --> gboolean )
+sub g_variant_type_is_dict_entry ( N-GObject $type --> gboolean )
   is native(&glib-lib)
   { * }
 
@@ -642,7 +640,7 @@ method is-maybe ( --> Bool ) {
   ).Bool;
 }
 
-sub g_variant_type_is_maybe ( N-GVariantType $type --> gboolean )
+sub g_variant_type_is_maybe ( N-GObject $type --> gboolean )
   is native(&glib-lib)
   { * }
 
@@ -655,22 +653,22 @@ Checks if this type is a subtype of I<$supertype>.  This function returns C<True
 
 Returns: C<True> if I<type> is a subtype of I<$supertype>
 
-  method is-subtype-of ( N-GVariantType $supertype --> Bool )
+  method is-subtype-of ( N-GObject $supertype --> Bool )
 
-=item N-GVariantType $supertype; a B<GVariantType>
+=item N-GObject $supertype; a B<GVariantType>
 
 =end pod
 
 method is-subtype-of ( $supertype --> Bool ) {
   my $no = $supertype;
-  $no .= get-native-object-no-reffing unless $no ~~ N-GVariantType;
+  $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
 
   g_variant_type_is_subtype_of(
     self.get-native-object-no-reffing, $no
   ).Bool;
 }
 
-sub g_variant_type_is_subtype_of ( N-GVariantType $type, N-GVariantType $supertype --> gboolean )
+sub g_variant_type_is_subtype_of ( N-GObject $type, N-GObject $supertype --> gboolean )
   is native(&glib-lib)
   { * }
 
@@ -695,7 +693,7 @@ method is-tuple ( --> Bool ) {
   ).Bool;
 }
 
-sub g_variant_type_is_tuple ( N-GVariantType $type --> gboolean )
+sub g_variant_type_is_tuple ( N-GObject $type --> gboolean )
   is native(&glib-lib)
   { * }
 
@@ -742,7 +740,7 @@ method is-variant ( --> Bool ) {
   ).Bool;
 }
 
-sub g_variant_type_is_variant ( N-GVariantType $type --> gboolean )
+sub g_variant_type_is_variant ( N-GObject $type --> gboolean )
   is native(&glib-lib)
   { * }
 
@@ -766,7 +764,7 @@ method key ( --> Gnome::Glib::VariantType ) {
   );
 }
 
-sub g_variant_type_key ( N-GVariantType $type --> N-GVariantType )
+sub g_variant_type_key ( N-GObject $type --> N-GObject )
   is native(&glib-lib)
   { * }
 
@@ -791,7 +789,7 @@ method n-items ( --> UInt ) {
   );
 }
 
-sub g_variant_type_n_items ( N-GVariantType $type --> gsize )
+sub g_variant_type_n_items ( N-GObject $type --> gsize )
   is native(&glib-lib)
   { * }
 
@@ -814,7 +812,7 @@ method next ( --> Gnome::Glib::VariantType ) {
   );
 }
 
-sub g_variant_type_next ( N-GVariantType $type --> N-GVariantType )
+sub g_variant_type_next ( N-GObject $type --> N-GObject )
   is native(&glib-lib)
   { * }
 
@@ -840,7 +838,7 @@ method peek-string ( -->  Str  ) {
   );
 }
 
-sub g_variant_type_peek_string ( N-GVariantType $type --> gchar-ptr )
+sub g_variant_type_peek_string ( N-GObject $type --> gchar-ptr )
   is native(&glib-lib)
   { * }
 }}
@@ -896,7 +894,7 @@ method value ( --> Gnome::Glib::VariantType ) {
   );
 }
 
-sub g_variant_type_value ( N-GVariantType $type --> N-GVariantType )
+sub g_variant_type_value ( N-GObject $type --> N-GObject )
   is native(&glib-lib)
   { * }
 
@@ -915,7 +913,7 @@ Frees a B<Gnome::Glib::VariantType> that was allocated with C<g_variant_type_cop
 }}
 
 #TM:1:_g_variant_type_free:
-sub _g_variant_type_free ( N-GVariantType $type )
+sub _g_variant_type_free ( N-GObject $type )
   is native(&glib-lib)
   is symbol('g_variant_type_free')
   { * }
@@ -935,14 +933,14 @@ string.  Use C<g_variant_type_string_is_valid()> if you are unsure.
 
 Returns: (transfer full): a new B<Gnome::Glib::VariantType>
 
-  method g_variant_type_new ( Str $type_string --> N-GVariantType )
+  method g_variant_type_new ( Str $type_string --> N-GObject )
 
 =item Str $type_string; a valid Gnome::Glib::Variant type string
 
 =end pod
 }}
 
-sub _g_variant_type_new ( Str $type_string --> N-GVariantType )
+sub _g_variant_type_new ( Str $type_string --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_type_new')
   { * }
@@ -958,13 +956,13 @@ Constructs the type corresponding to an array of elements of the type I<type>.  
 
 Returns: (transfer full): a new array B<GVariantType>
 
-  method _g_variant_type_new_array ( --> N-GVariantType )
+  method _g_variant_type_new_array ( --> N-GObject )
 
 
 =end pod
 }}
 
-sub _g_variant_type_new_array ( N-GVariantType $element --> N-GVariantType )
+sub _g_variant_type_new_array ( N-GObject $element --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_type_new_array')
   { * }
@@ -979,13 +977,13 @@ Constructs the type corresponding to a maybe instance containing type I<type> or
 
 Returns: (transfer full): a new maybe B<GVariantType>
 
-  method _g_variant_type_new_maybe ( --> N-GVariantType )
+  method _g_variant_type_new_maybe ( --> N-GObject )
 
 
 =end pod
 }}
 
-sub _g_variant_type_new_maybe ( N-GVariantType $element --> N-GVariantType )
+sub _g_variant_type_new_maybe ( N-GObject $element --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_type_new_maybe')
   { * }
@@ -1001,7 +999,7 @@ Constructs a new tuple type, from I<items>.  I<length> is the number of items in
 Returns: (transfer full): a new tuple B<GVariantType>
 
   method _g_variant_type_new_tuple (
-    *@items --> N-GVariantType
+    *@items --> N-GObject
   )
 
 =item  $const GVariantType * const *items; (array length=length): an array of B<GVariantTypes>, one for each item
@@ -1010,23 +1008,23 @@ Returns: (transfer full): a new tuple B<GVariantType>
 =end pod
 }}
 
-sub _g_variant_type_new_tuple ( @items --> N-GVariantType ) {
-  my $no = CArray[N-GVariantType].new;
+sub _g_variant_type_new_tuple ( @items --> N-GObject ) {
+  my $no = CArray[N-GObject].new;
   my $count = 0;
   for @items -> $item is copy {
-    $item .= get-native-object-no-reffing unless $item ~~ N-GVariantType;
+    $item .= get-native-object-no-reffing unless $item ~~ N-GObject;
     $no[$count++] = $item;
   }
 
   my @parameter-list = (
-    Parameter.new(:type(CArray[N-GVariantType])), # GVariantType * const *items
+    Parameter.new(:type(CArray[N-GObject])), # GVariantType * const *items
     Parameter.new(:type(gint))
   );
 
   # create signature
   my Signature $signature .= new(
     :params(|@parameter-list),
-    :returns(N-GVariantType)
+    :returns(N-GObject)
   );
 
   # get a pointer to the sub, then cast it to a sub with the proper
@@ -1053,14 +1051,14 @@ Constructs the type corresponding to a dictionary entry with a key of type I<key
 
 Returns: (transfer full): a new dictionary entry B<GVariantType>
 
-  method _g_variant_type_new_dict_entry ( N-GVariantType $value --> N-GVariantType )
+  method _g_variant_type_new_dict_entry ( N-GObject $value --> N-GObject )
 
-=item N-GVariantType $value; a B<GVariantType>
+=item N-GObject $value; a B<GVariantType>
 
 =end pod
 }}
 
-sub _g_variant_type_new_dict_entry ( N-GVariantType $key, N-GVariantType $value --> N-GVariantType )
+sub _g_variant_type_new_dict_entry ( N-GObject $key, N-GObject $value --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_type_new_dict_entry')
   { * }
@@ -1074,20 +1072,20 @@ sub _g_variant_type_new_dict_entry ( N-GVariantType $key, N-GVariantType $value 
 
 
 
-  method checked- (  $const gchar * --> N-GVariantType )
+  method checked- (  $const gchar * --> N-GObject )
 
 =item  $const gchar *;
 
 =end pod
 
-method checked- (  $const gchar * --> N-GVariantType ) {
+method checked- (  $const gchar * --> N-GObject ) {
 
   g_variant_type_checked_(
     self.get-native-object-no-reffing, $const gchar *
   );
 }
 
-sub g_variant_type_checked_ (  $const gchar * --> N-GVariantType )
+sub g_variant_type_checked_ (  $const gchar * --> N-GObject )
   is native(&glib-lib)
   { * }
 }}

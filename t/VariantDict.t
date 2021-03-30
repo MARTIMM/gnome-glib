@@ -9,7 +9,6 @@ use Gnome::Glib::Error;
 use Gnome::Glib::Variant;
 use Gnome::Glib::VariantDict;
 use Gnome::Glib::VariantType;
-use Gnome::Glib::N-GVariant;
 
 #use Gnome::N::X;
 #Gnome::N::debug(:on);

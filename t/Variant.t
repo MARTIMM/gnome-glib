@@ -3,7 +3,8 @@ use v6;
 use NativeCall;
 use Test;
 
-use Gnome::Glib::N-GVariant;
+use Gnome::N::N-GObject;
+
 use Gnome::Glib::Variant;
 use Gnome::Glib::VariantType;
 
@@ -17,7 +18,7 @@ my Gnome::Glib::Variant $v;
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
 
-  $v .= new(:native-object(N-GVariant));
+  $v .= new(:native-object(N-GObject));
   isa-ok $v, Gnome::Glib::Variant, '.new(:native-object)';
   nok $v.is-valid, 'undefined obj not valid';
 
@@ -276,7 +277,7 @@ unless %*ENV<raku_test_all>:exists {
 #-------------------------------------------------------------------------------
 #Gnome::N::debug(:on);
 subtest 'Manipulations', {
-  my ( N-GVariant $nv2, Gnome::Glib::Error $e) =
+  my ( N-GObject $nv2, Gnome::Glib::Error $e) =
     $v.g-variant-parse( 'u', '.100');
 
 #  note "V & E: ", $v.perl(), ', ', $e.perl();

@@ -56,10 +56,8 @@ use Gnome::N::X;
 use Gnome::N::NativeLib;
 use Gnome::N::TopLevelClassSupport;
 use Gnome::N::GlibToRakuTypes;
+use Gnome::N::N-GObject;
 
-use Gnome::Glib::N-GVariant;
-use Gnome::Glib::N-GVariantDict;
-use Gnome::Glib::N-GVariantType;
 use Gnome::Glib::Error;
 use Gnome::Glib::VariantType;
 use Gnome::Glib::Variant;
@@ -97,12 +95,12 @@ submethod BUILD ( *%options ) {
 
       if %options<variant> {
         $no = %options<variant>;
-        $no .= get-native-object-no-reffing unless $no ~~ N-GVariant;
+        $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
         $no = _g_variant_dict_new($no);
       }
 
       else {
-        $no = _g_variant_dict_new(N-GVariant);
+        $no = _g_variant_dict_new(N-GObject);
       }
 
       self.set-native-object($no);
@@ -114,7 +112,7 @@ submethod BUILD ( *%options ) {
 }
 
 #-------------------------------------------------------------------------------
-method native-object-ref ( $n-native-object --> N-GVariantDict ) {
+method native-object-ref ( $n-native-object --> N-GObject ) {
   _g_variant_dict_ref($n-native-object)
 }
 
@@ -142,7 +140,7 @@ method clear ( ) {
   );
 }
 
-sub g_variant_dict_clear ( N-GVariantDict $dict  )
+sub g_variant_dict_clear ( N-GObject $dict  )
   is native(&glib-lib)
   { * }
 
@@ -167,7 +165,7 @@ method contains ( Str $key --> Bool ) {
 }
 
 sub g_variant_dict_contains (
-  N-GVariantDict $dict, gchar-ptr $key --> gboolean
+  N-GObject $dict, gchar-ptr $key --> gboolean
 ) is native(&glib-lib)
   { * }
 
@@ -181,18 +179,18 @@ Returns the current value of I<dict> as a B<Gnome::Glib::VariantDict> of type C<
 =comment Returns: a new, floating, B<Gnome::Glib::VariantDict>
 Returns: a new B<Gnome::Glib::Variant> of type C<G_VARIANT_TYPE_VARDICT>.
 
-  method end ( --> N-GVariant )
+  method end ( --> N-GObject )
 
 =end pod
 
-method end ( --> N-GVariant ) {
+method end ( --> N-GObject ) {
 
   g_variant_dict_end(
     self.get-native-object-no-reffing
   );
 }
 
-sub g_variant_dict_end ( N-GVariantDict $dict --> N-GVariant )
+sub g_variant_dict_end ( N-GObject $dict --> N-GObject )
   is native(&glib-lib)
   { * }
 
@@ -204,22 +202,22 @@ sub g_variant_dict_end ( N-GVariantDict $dict --> N-GVariant )
 
 Initialises a B<Gnome::Glib::VariantDict> structure.  If I<from_asv> is given, it is used to initialise the dictionary.  This function completely ignores the previous contents of I<dict>.  On one hand this means that it is valid to pass in completely uninitialised memory.  On the other hand, this means that if you are initialising over top of an existing B<Gnome::Glib::VariantDict> you need to first call C<g_variant_dict_clear()> in order to avoid leaking memory.  You must not call C<g_variant_dict_ref()> or C<g_variant_dict_unref()> on a B<Gnome::Glib::VariantDict> that was initialised with this function.  If you ever pass a reference to a B<Gnome::Glib::VariantDict> outside of the control of your own code then you should assume that the person receiving that reference may try to use reference counting; you should use C<g_variant_dict_new()> instead of this function.
 
-  method init ( N-GVariant $from_asv )
+  method init ( N-GObject $from_asv )
 
-=item N-GVariant $from_asv; (nullable): the initial value for I<dict>
+=item N-GObject $from_asv; (nullable): the initial value for I<dict>
 
 =end pod
 
-method init ( N-GVariant $from_asv ) {
+method init ( N-GObject $from_asv ) {
   my $no = $from_asv;
-  $no .= get-native-object-no-reffing unless $no ~~ N-GVariant;
+  $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
 
   g_variant_dict_init(
     self.get-native-object-no-reffing, $no
   );
 }
 
-sub g_variant_dict_init ( N-GVariantDict $dict, N-GVariant $from_asv  )
+sub g_variant_dict_init ( N-GObject $dict, N-GObject $from_asv  )
   is native(&glib-lib)
   { * }
 }}
@@ -249,7 +247,7 @@ method insert ( Str $key, Str $string is copy ) {
 }
 
 sub g_variant_dict_insert (
-  N-GVariantDict $dict, gchar-ptr $key, gchar-ptr $format_string, Pointer
+  N-GObject $dict, gchar-ptr $key, gchar-ptr $format_string, Pointer
 ) is native(&glib-lib)
   { * }
 }}
@@ -261,23 +259,23 @@ sub g_variant_dict_insert (
 
 Inserts (or replaces) a key in a B<Gnome::Glib::VariantDict>.  I<value> is consumed if it is floating.
 
-  method insert-value ( Str $key, N-GVariant $value )
+  method insert-value ( Str $key, N-GObject $value )
 
 =item Str $key; the key to insert a value for
-=item N-GVariant $value; the value to insert
+=item N-GObject $value; the value to insert
 
 =end pod
 
 method insert-value ( Str $key, $value ) {
   my $no = $value;
-  $no .= get-native-object-no-reffing unless $no ~~ N-GVariant;
+  $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
 
   g_variant_dict_insert_value(
     self.get-native-object-no-reffing, $key, $no
   );
 }
 
-sub g_variant_dict_insert_value ( N-GVariantDict $dict, gchar-ptr $key, N-GVariant $value  )
+sub g_variant_dict_insert_value ( N-GObject $dict, gchar-ptr $key, N-GObject $value  )
   is native(&glib-lib)
   { * }
 
@@ -305,7 +303,7 @@ method lookup ( Str $key, Str $format_string --> Bool ) {
   ).Bool;
 }
 
-sub g_variant_dict_lookup ( N-GVariantDict $dict, gchar-ptr $key, gchar-ptr $format_string, Any $any = Any --> gboolean )
+sub g_variant_dict_lookup ( N-GObject $dict, gchar-ptr $key, gchar-ptr $format_string, Any $any = Any --> gboolean )
   is native(&glib-lib)
   { * }
 }}
@@ -320,11 +318,11 @@ Looks up a value in a B<Gnome::Glib::VariantDict>.  If I<$key> is not found in I
 Returns: the value of the dictionary key, or undefined
 
   method lookup-value (
-    Str $key, N-GVariantType $expected_type --> Gnome::Glib::Variant
+    Str $key, N-GObject $expected_type --> Gnome::Glib::Variant
   )
 
 =item Str $key; the key to lookup in the dictionary
-=item N-GVariantType $expected_type; a B<GVariantType>, or C<undefined>
+=item N-GObject $expected_type; a B<GVariantType>, or C<undefined>
 
 =end pod
 
@@ -346,7 +344,7 @@ multi method lookup-value (
   Str $key, $expected_type --> Gnome::Glib::Variant
 ) {
   my $no = $expected_type;
-  $no .= get-native-object-no-reffing unless $no ~~ N-GVariantType;
+  $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
 
   Gnome::Glib::Variant.new(
     :native-object(
@@ -355,7 +353,7 @@ multi method lookup-value (
   )
 }
 
-sub g_variant_dict_lookup_value ( N-GVariantDict $dict, gchar-ptr $key, N-GVariantType $expected_type --> N-GVariant )
+sub g_variant_dict_lookup_value ( N-GObject $dict, gchar-ptr $key, N-GObject $expected_type --> N-GObject )
   is native(&glib-lib)
   { * }
 
@@ -381,7 +379,7 @@ method remove ( Str $key --> Bool ) {
   ).Bool;
 }
 
-sub g_variant_dict_remove ( N-GVariantDict $dict, gchar-ptr $key --> gboolean )
+sub g_variant_dict_remove ( N-GObject $dict, gchar-ptr $key --> gboolean )
   is native(&glib-lib)
   { * }
 
@@ -395,11 +393,11 @@ Increases the reference count.  Don't call this on stack-allocated B<Gnome::Glib
 
 Returns: a new reference
 
-  method ref ( --> N-GVariantDict )
+  method ref ( --> N-GObject )
 
 =end pod
 
-method ref ( --> N-GVariantDict ) {
+method ref ( --> N-GObject ) {
 
   g_variant_dict_ref(
     self.get-native-object-no-reffing, $dict
@@ -407,7 +405,7 @@ method ref ( --> N-GVariantDict ) {
 }
 }}
 
-sub _g_variant_dict_ref ( N-GVariantDict $dict --> N-GVariantDict )
+sub _g_variant_dict_ref ( N-GObject $dict --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_dict_ref')
   { * }
@@ -432,7 +430,7 @@ method unref ( ) {
 }
 }}
 
-sub _g_variant_dict_unref ( N-GVariantDict $dict  )
+sub _g_variant_dict_unref ( N-GObject $dict  )
   is native(&glib-lib)
   is symbol('g_variant_dict_unref')
   { * }
@@ -447,13 +445,13 @@ Allocates and initialises a new B<Gnome::Glib::VariantDict>.  You should call C<
 
 Returns: a B<Gnome::Glib::VariantDict>
 
-  method new ( N-GVariant $from_asv --> N-GVariantDict )
+  method new ( N-GObject $from_asv --> N-GObject )
 
-=item N-GVariant from_asv; the GVariant with which to initialise the dictionary.
+=item N-GObject from_asv; the GVariant with which to initialise the dictionary.
 
 =end pod
 
-method new ( N-GVariant $from_asv --> N-GVariantDict ) {
+method new ( N-GObject $from_asv --> N-GObject ) {
 
   g_variant_dict_new(
     self.get-native-object-no-reffing,
@@ -461,7 +459,7 @@ method new ( N-GVariant $from_asv --> N-GVariantDict ) {
 }
 }}
 
-sub _g_variant_dict_new ( N-GVariant $from_asv --> N-GVariantDict )
+sub _g_variant_dict_new ( N-GObject $from_asv --> N-GObject )
   is native(&glib-lib)
   is symbol('g_variant_dict_new')
   { * }
