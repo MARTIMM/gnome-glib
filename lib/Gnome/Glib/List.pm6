@@ -102,7 +102,7 @@ Most of the time there is no need to manipulate the list because many of the GTK
 #-------------------------------------------------------------------------------
 use NativeCall;
 
-use Gnome::N::X;
+#use Gnome::N::X;
 use Gnome::N::N-GObject;
 use Gnome::N::NativeLib;
 use Gnome::N::TopLevelClassSupport;
