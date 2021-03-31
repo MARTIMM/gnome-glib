@@ -63,10 +63,6 @@ use Gnome::N::TopLevelClassSupport;
 unit class Gnome::Glib::Source:auth<github:MARTIMM>:ver<0.1.0>;
 also is Gnome::N::TopLevelClassSupport;
 
-#-------------------------------------------------------------------------------
-# Native callback function subset definitions
-subset GSourceFunc of Routine where .signature ~~ :( gpointer $d --> gboolean );
-subset GDestroyNotify of Routine where .signature ~~ :( gpointer $d );
 
 #`{{
 #-------------------------------------------------------------------------------
@@ -86,23 +82,14 @@ For file descriptor sources, the prepare function typically returns FALSE, since
 The structure of N-GSourceFuncs is
 
   class N-GSourceFuncs is repr('CStruct') {
-    has GSourceFuncPrepare $.prepare is rw;
-    has GSourceFuncCheck $.check is rw;
-    has GSourceFuncDispatch $.dispatch is rw;
-    has GSourceFuncFinalize $.finalize is rw;
-  };
-
-The members of the structure are all subroutines with the following signatures
-
-=item GSourceFuncPrepare with signature :( N-GObject $source, gint $timeout --> gboolean )
-=item GSourceFuncCheck with signature :( N-GObject $source --> gboolean )
-=begin item
-  GSourceFuncDispatch with signature :(
+    has Callable $.prepare ( N-GObject $source, gint $timeout --> gboolean ) is rw;
+    has Callable $.check ( N-GObject $source --> gboolean ) is rw;
+    has Callable $.dispatch (
     N-GObject source, GSourceFunc $callback, gpointer $user_data
     --> gboolean
-  )
-=end item
-=item GSourceFuncFinalize with signature :( N-GObject $source)
+  ) is rw;
+    has Callable $.finalize ( N-GObject $source) is rw;
+  };
 
 
 =item function prepare
@@ -619,484 +606,6 @@ sub g_get_real_time ( --> gint64 )
   is native(&glib-lib)
   { * }
 
-
-
-#-------------------------------------------------------------------------------
-#TM:0:idle-add:
-=begin pod
-=head2 idle-add
-
-Adds a function to be called whenever there are no higher priority events pending to the default main loop. The function is given the default idle priority, C<G-PRIORITY-DEFAULT-IDLE>. If the function returns C<False> it is automatically removed from the list of event sources and will not be called again.
-
-=comment See [memory management of sources][mainloop-memory-management] for details on how to handle the return value and memory management of I<data>.
-
-This internally creates a main loop source using C<g-idle-source-new()> and attaches it to the global B<Gnome::Glib::MainContext> using C<attach()>, so the callback will be invoked in whichever thread is running that main context. You can do these steps manually if you need greater control or to use a custom main context.
-
-Returns: the ID (greater than 0) of the event source.
-
-  method idle-add (
-    Any:D $handler-object, Str:D $method, *%user-options
-    --> UInt
-  )
-
-=item $handler-object; User object where $method is defined
-=item Str $method; name of callback handler
-=item %user-options; optional named arguments to be provided to the callback
-
-=end pod
-
-method idle-add (
-  Any:D $handler-object, Str:D $method, *%user-options
-  --> UInt
-) {
-  die X::Gnome.new(:message("Method $method or handler object not found"))
-    unless $handler-object.^can($method);
-
-  g_idle_add(
-    sub ( gpointer $d --> gboolean ) {
-      $handler-object."$method"(|%user-options);
-    },
-    gpointer
-  )
-}
-
-sub g_idle_add (
-  GSourceFunc $function, gpointer $data --> guint
-) is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:idle-add-full:
-=begin pod
-=head2 idle-add-full
-
-Adds a function to be called whenever there are no higher priority events pending. If the function returns C<False> it is automatically removed from the list of event sources and will not be called again.
-
-=comment See [memory management of sources][mainloop-memory-management] for details on how to handle the return value and memory management of I<data>.
-
-This internally creates a main loop source using C<g-idle-source-new()> and attaches it to the global B<Gnome::Glib::MainContext> using C<attach()>, so the callback will be invoked in whichever thread is running that main context. You can do these steps manually if you need greater control or to use a custom main context.
-
-Returns: the ID (greater than 0) of the event source.
-
-  method idle-add-full (
-    Int $priority,
-    Any:D $handler-object, Str:D $method, Str $method-notify = Str,
-    *%user-options
-    --> UInt
-  )
-
-=item Int $priority; the priority of the idle source. Typically this will be in the range between C<G-PRIORITY-DEFAULT-IDLE> and C<G-PRIORITY-HIGH-IDLE>.
-=item $handler-object; User object where both methods are defined
-=item Str $method; name of callback handler
-=item Str $method-notify; name of callback handler. Ignored when $method-notify is undefined. This function is called when the source is removed.
-=item %user-options; optional named arguments to be provided to both callbacks
-=end pod
-
-method idle-add-full (
-  Int $priority,
-  Any:D $handler-object, Str:D $method, Str $method-notify = Str,
-  *%user-options
-  --> UInt
-) {
-  die X::Gnome.new(:message("Method $method or handler object not found"))
-    unless $handler-object.^can($method);
-
-  if ?$method-notify and $handler-object.can($method-notify) {
-    g_idle_add_full(
-      $priority,
-      sub ( gpointer $d --> gboolean ) {
-        $handler-object."$method"(|%user-options);
-      }, gpointer,
-      sub ( gpointer $d ) {
-        $handler-object."$method-notify"(|%user-options);
-      },
-    )
-  }
-
-  else {
-    g_idle_add_full(
-      $priority,
-      sub ( gpointer $d --> gboolean ) {
-        $handler-object."$method"(|%user-options);
-      }, gpointer,
-      Nil
-    )
-  }
-}
-
-sub g_idle_add_full (
-  gint $priority, GSourceFunc $function, gpointer $data,
-  GDestroyNotify $notify --> guint
-) is native(&glib-lib)
-  { * }
-
-#`{{
-#-------------------------------------------------------------------------------
-#TM:0:idle-remove-by-data:
-=begin pod
-=head2 idle-remove-by-data
-
-Removes the idle function with the given data.
-
-Returns: C<True> if an idle source was found and removed.
-
-  method idle-remove-by-data ( Pointer $data --> Bool )
-
-=item Pointer $data; the data for the idle source's callback.
-=end pod
-
-method idle-remove-by-data ( Pointer $data --> Bool ) {
-
-  g_idle_remove_by_data(
-    self.get-native-object-no-reffing, $data
-  ).Bool
-}
-
-sub g_idle_remove_by_data (
-  gpointer $data --> gboolean
-) is native(&glib-lib)
-  { * }
-}}
-
-
-#-------------------------------------------------------------------------------
-#TM:1:_g_idle_source_new:
-#`{{
-=begin pod
-=head2 g-idle-source-new
-
-Creates a new idle source.
-
-The source will not initially be associated with any B<Gnome::Glib::MainContext> and must be added to one with C<attach()> before it will be executed. Note that the default priority for idle sources is C<G-PRIORITY-DEFAULT-IDLE>, as compared to other sources which have a default priority of C<G-PRIORITY-DEFAULT>.
-
-Returns: the newly-created idle source
-
-  method g-idle-source-new ( --> N-GObject )
-
-=end pod
-
-method g-idle-source-new ( --> N-GObject ) {
-
-  g_idle_source_new
-}
-}}
-
-sub _g_idle_source_new ( --> N-GObject )
-  is native(&glib-lib)
-  is symbol('g_idle_source_new')
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:timeout-add:
-=begin pod
-=head2 timeout-add
-
-Sets a function to be called at regular intervals, with the default priority, C<G-PRIORITY-DEFAULT>. The function is called repeatedly until it returns C<False>, at which point the timeout is automatically destroyed and the function will not be called again. The first call to the function will be at the end of the first I<$interval>.
-
-Note that timeout functions may be delayed, due to the processing of other event sources. Thus they should not be relied on for precise timing. After each call to the timeout function, the time of the next timeout is recalculated based on the current time and the given interval (it does not try to 'catch up' time lost in delays).
-
-=comment See [memory management of sources][mainloop-memory-management] for details on how to handle the return value and memory management of I<data>.
-
-If you want to have a timer in the "seconds" range and do not care about the exact time of the first call of the timer, use the C<timeout-add-seconds()> function; this function allows for more optimizations and more efficient system power usage.
-
-=comment This internally creates a main loop source using C<g-timeout-source-new()> and attaches it to the global B<Gnome::Glib::MainContext> using C<attach()>, so the callback will be invoked in whichever thread is running that main context. You can do these steps manually if you need greater control or to use a custom main context.
-
-The interval given is in terms of monotonic time, not wall clock time. See C<get-monotonic-time()>.
-
-Returns: the ID (greater than 0) of the event source.
-
-  method timeout-add (
-    UInt $interval,
-    Any:D $handler-object, Str:D $method, *%user-options
-    --> UInt
-  )
-
-=item UInt $interval; the time between calls to the function, in milliseconds (1/1000ths of a second)
-=item $handler-object; User object where $method is defined
-=item Str $method; name of callback handler
-=item %user-options; optional named arguments to be provided to the callback
-=end pod
-
-
-method timeout-add (
-  UInt $interval, Any:D $handler-object, Str:D $method, *%user-options
-  --> UInt
-) {
-  die X::Gnome.new(:message("Method $method or handler object not found"))
-    unless $handler-object.^can($method);
-
-  g_timeout_add(
-    $interval,
-    sub ( gpointer $d --> gboolean ) {
-      $handler-object."$method"(|%user-options);
-    },
-    gpointer
-  )
-}
-
-sub g_timeout_add (
-  guint $interval, GSourceFunc $function, gpointer $data --> guint
-) is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:timeout-add-full:
-=begin pod
-=head2 timeout-add-full
-
-Sets a function to be called at regular intervals, with the given priority. The function is called repeatedly until it returns C<False>, at which point the timeout is automatically destroyed and the function will not be called again. The I<notify> function is called when the timeout is destroyed. The first call to the function will be at the end of the first I<interval>.
-
-Note that timeout functions may be delayed, due to the processing of other event sources. Thus they should not be relied on for precise timing. After each call to the timeout function, the time of the next timeout is recalculated based on the current time and the given interval (it does not try to 'catch up' time lost in delays).
-
-=comment See [memory management of sources][mainloop-memory-management] for details on how to handle the return value and memory management of I<data>.
-
-This internally creates a main loop source using C<g-timeout-source-new()> and attaches it to the global B<Gnome::Glib::MainContext> using C<attach()>, so the callback will be invoked in whichever thread is running that main context. You can do these steps manually if you need greater control or to use a custom main context.
-
-The interval given is in terms of monotonic time, not wall clock time. See C<g-get-monotonic-time()>.
-
-Returns: the ID (greater than 0) of the event source.
-
-  method timeout-add-full (
-    Int $priority, UInt $interval,
-    Any:D $handler-object, Str:D $method, Str $method-notify = Str,
-    *%user-options
-    --> UInt
-  )
-
-=item Int $priority; the priority of the timeout source. Typically this will be in the range between C<G-PRIORITY-DEFAULT> and C<G-PRIORITY-HIGH>.
-=item UInt $interval; the time between calls to the function, in milliseconds (1/1000ths of a second)
-=item $handler-object; User object where both methods are defined
-=item Str $method; name of callback handler
-=item Str $method-notify; name of callback handler. Ignored when $method-notify is undefined. This function is called when the source is removed.
-=item %user-options; optional named arguments to be provided to both callbacks
-=end pod
-
-method timeout-add-full (
-  Int $priority, UInt $interval,
-  Any:D $handler-object, Str:D $method, Str $method-notify = Str,
-  *%user-options
-  --> UInt
-) {
-  die X::Gnome.new(:message("Method $method or handler object not found"))
-    unless $handler-object.^can($method);
-
-  if ?$method-notify and $handler-object.can($method-notify) {
-    g_timeout_add_full(
-      $priority, $interval,
-      sub ( gpointer $d --> gboolean ) {
-        $handler-object."$method"(|%user-options);
-      }, gpointer,
-      sub ( gpointer $d ) {
-        $handler-object."$method-notify"(|%user-options);
-      },
-    )
-  }
-
-  else {
-    g_timeout_add_full(
-      $priority, $interval,
-      sub ( gpointer $d --> gboolean ) {
-        $handler-object."$method"(|%user-options);
-      }, gpointer,
-      Nil
-    )
-  }
-}
-
-sub g_timeout_add_full (
-  gint $priority, guint $interval, GSourceFunc $function, gpointer $data,
-  GDestroyNotify $notify --> guint
-) is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:timeout-add-seconds:
-=begin pod
-=head2 timeout-add-seconds
-
-Sets a function to be called at regular intervals with the default priority, C<G-PRIORITY-DEFAULT>. The function is called repeatedly until it returns C<False>, at which point the timeout is automatically destroyed and the function will not be called again.
-
-This internally creates a main loop source using C<g-timeout-source-new-seconds()> and attaches it to the main loop context using C<attach()>. You can do these steps manually if you need greater control. Also see C<timeout-add-seconds-full()>.
-
-Note that the first call of the timer may not be precise for timeouts of one second. If you need finer precision and have such a timeout, you may want to use C<timeout-add()> instead.
-
-=comment See [memory management of sources][mainloop-memory-management] for details on how to handle the return value and memory management of I<data>.
-
-The interval given is in terms of monotonic time, not wall clock time. See C<g-get-monotonic-time()>.
-
-Returns: the ID (greater than 0) of the event source.
-
-  method timeout-add-seconds (
-    UInt $interval, Any:D $handler-object, Str:D $method, *%user-options
-    --> UInt
-  )
-
-=item UInt $interval; the time between calls to the function, in seconds
-=item $handler-object; User object where $method is defined
-=item Str $method; name of callback handler
-=item %user-options; optional named arguments to be provided to the callback
-=end pod
-
-method timeout-add-seconds (
-  UInt $interval, Any:D $handler-object, Str:D $method, *%user-options
-  --> UInt
-) {
-  g_timeout_add_seconds(
-    $interval,
-    sub ( gpointer $d --> gboolean ) {
-      $handler-object."$method"(|%user-options);
-    },
-    gpointer
-  )
-}
-
-sub g_timeout_add_seconds (
-  guint $interval, GSourceFunc $function, gpointer $data --> guint
-) is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:0:timeout-add-seconds-full:
-=begin pod
-=head2 timeout-add-seconds-full
-
-Sets a function to be called at regular intervals, with I<priority>. The function is called repeatedly until it returns C<False>, at which point the timeout is automatically destroyed and the function will not be called again.
-
-Unlike C<timeout-add()>, this function operates at whole second granularity. The initial starting point of the timer is determined by the implementation and the implementation is expected to group multiple timers together so that they fire all at the same time. To allow this grouping, the I<$interval> to the first timer is rounded and can deviate up to one second from the specified interval. Subsequent timer iterations will generally run at the specified interval.
-
-Note that timeout functions may be delayed, due to the processing of other event sources. Thus they should not be relied on for precise timing. After each call to the timeout function, the time of the next timeout is recalculated based on the current time and the given I<$interval>
-
-=comment See [memory management of sources][mainloop-memory-management] for details on how to handle the return value and memory management of I<data>.
-
-If you want timing more precise than whole seconds, use C<timeout-add()> instead.
-
-The grouping of timers to fire at the same time results in a more power and CPU efficient behavior so if your timer is in multiples of seconds and you don't require the first timer exactly one second from now, the use of C<timeout-add-seconds()> is preferred over C<timeout-add()>.
-
-This internally creates a main loop source using C<timeout-source-new-seconds()> and attaches it to the main loop context using C<attach()>. You can do these steps manually if you need greater control.
-
-The interval given is in terms of monotonic time, not wall clock time. See C<get-monotonic-time()>.
-
-Returns: the ID (greater than 0) of the event source.
-
-  method timeout-add-seconds-full (
-    Int $priority, UInt $interval,
-    Any:D $handler-object, Str:D $method, Str $method-notify = Str,
-    *%user-options
-    --> UInt
-  )
-
-=item Int $priority; the priority of the timeout source. Typically this will be in the range between C<G-PRIORITY-DEFAULT> and C<G-PRIORITY-HIGH>.
-=item UInt $interval; the time between calls to the function, in seconds
-=item $handler-object; User object where both methods are defined
-=item Str $method; name of callback handler
-=item Str $method-notify; name of callback handler. Ignored when $method-notify is undefined. This function is called when the source is removed.
-=item %user-options; optional named arguments to be provided to both callbacks
-=end pod
-
-method timeout-add-seconds-full (
-  Int $priority, UInt $interval,
-  Any:D $handler-object, Str:D $method, Str $method-notify = Str,
-  *%user-options
-  --> UInt
-) {
-  die X::Gnome.new(:message("Method $method or handler object not found"))
-    unless $handler-object.^can($method);
-
-  if ?$method-notify and $handler-object.can($method-notify) {
-    g_timeout_add_seconds_full(
-      $priority, $interval,
-      sub ( gpointer $d --> gboolean ) {
-        $handler-object."$method"(|%user-options);
-      }, gpointer,
-      sub ( gpointer $d ) {
-        $handler-object."$method-notify"(|%user-options);
-      },
-    )
-  }
-
-  else {
-    g_timeout_add_seconds_full(
-      $priority, $interval,
-      sub ( gpointer $d --> gboolean ) {
-        $handler-object."$method"(|%user-options);
-      }, gpointer,
-      Nil
-    )
-  }
-}
-
-sub g_timeout_add_seconds_full (
-  gint $priority, guint $interval, GSourceFunc $function, gpointer $data, GDestroyNotify $notify --> guint
-) is native(&glib-lib)
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:_g_timeout_source_new:
-#`{{
-=begin pod
-=head2 g-timeout-source-new
-
-Creates a new timeout source.
-
-The source will not initially be associated with any B<Gnome::Glib::MainContext> and must be added to one with C<attach()> before it will be executed.
-
-The interval given is in terms of monotonic time, not wall clock time. See C<g-get-monotonic-time()>.
-
-Returns: the newly-created timeout source
-
-  method g-timeout-source-new ( UInt $interval --> N-GObject )
-
-=item UInt $interval; the timeout interval in milliseconds.
-=end pod
-
-method g-timeout-source-new ( UInt $interval --> N-GObject ) {
-
-  g_timeout_source_new(
-    self.get-native-object-no-reffing, $interval
-  )
-}
-}}
-
-sub _g_timeout_source_new ( guint $interval --> N-GObject )
-  is native(&glib-lib)
-  is symbol('g_timeout_source_new')
-  { * }
-
-#-------------------------------------------------------------------------------
-#TM:1:_g_timeout_source_new_seconds:
-#`{{
-=begin pod
-=head2 g-timeout-source-new-seconds
-
-Creates a new timeout source.
-
-The source will not initially be associated with any B<Gnome::Glib::MainContext> and must be added to one with C<attach()> before it will be executed.
-
-The scheduling granularity/accuracy of this timeout source will be in seconds.
-
-The interval given is in terms of monotonic time, not wall clock time. See C<g-get-monotonic-time()>.
-
-Returns: the newly-created timeout source
-
-  method g-timeout-source-new-seconds ( UInt $interval --> N-GObject )
-
-=item UInt $interval; the timeout interval in seconds
-=end pod
-
-method g-timeout-source-new-seconds ( UInt $interval --> N-GObject ) {
-
-  g_timeout_source_new_seconds(
-    self.get-native-object-no-reffing, $interval
-  )
-}
-}}
-
-sub _g_timeout_source_new_seconds (
-  guint $interval --> N-GObject
-) is native(&glib-lib)
-  is symbol('g_timeout_source_new_seconds')
-  { * }
-
 #-------------------------------------------------------------------------------
 #TM:0:get-can-recurse:
 =begin pod
@@ -1263,6 +772,173 @@ method get-time ( --> Int ) {
 sub g_source_get_time (
   N-GObject $source --> gint64
 ) is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:idle-add:
+=begin pod
+=head2 idle-add
+
+Adds a function to be called whenever there are no higher priority events pending to the default main loop. The function is given the default idle priority, C<G-PRIORITY-DEFAULT-IDLE>. If the function returns C<False> it is automatically removed from the list of event sources and will not be called again.
+
+=comment See [memory management of sources][mainloop-memory-management] for details on how to handle the return value and memory management of I<data>.
+
+This internally creates a main loop source using C<g-idle-source-new()> and attaches it to the global B<Gnome::Glib::MainContext> using C<attach()>, so the callback will be invoked in whichever thread is running that main context. You can do these steps manually if you need greater control or to use a custom main context.
+
+Returns: the ID (greater than 0) of the event source.
+
+  method idle-add (
+    Any:D $handler-object, Str:D $method, *%user-options
+    --> UInt
+  )
+
+=item $handler-object; User object where $method is defined
+=item Str $method; name of callback handler
+=item %user-options; optional named arguments to be provided to the callback
+
+=end pod
+
+method idle-add (
+  Any:D $handler-object, Str:D $method, *%user-options
+  --> UInt
+) {
+  die X::Gnome.new(:message("Method $method or handler object not found"))
+    unless $handler-object.^can($method);
+
+  g_idle_add(
+    sub ( gpointer $d --> gboolean ) {
+      $handler-object."$method"(|%user-options);
+    },
+    gpointer
+  )
+}
+
+sub g_idle_add (
+  Callable $func ( gpointer --> gboolean ),
+  gpointer $data --> guint
+) is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:idle-add-full:
+=begin pod
+=head2 idle-add-full
+
+Adds a function to be called whenever there are no higher priority events pending. If the function returns C<False> it is automatically removed from the list of event sources and will not be called again.
+
+=comment See [memory management of sources][mainloop-memory-management] for details on how to handle the return value and memory management of I<data>.
+
+This internally creates a main loop source using C<g-idle-source-new()> and attaches it to the global B<Gnome::Glib::MainContext> using C<attach()>, so the callback will be invoked in whichever thread is running that main context. You can do these steps manually if you need greater control or to use a custom main context.
+
+Returns: the ID (greater than 0) of the event source.
+
+  method idle-add-full (
+    Int $priority,
+    Any:D $handler-object, Str:D $method, Str $method-notify = Str,
+    *%user-options
+    --> UInt
+  )
+
+=item Int $priority; the priority of the idle source. Typically this will be in the range between C<G-PRIORITY-DEFAULT-IDLE> and C<G-PRIORITY-HIGH-IDLE>.
+=item $handler-object; User object where both methods are defined
+=item Str $method; name of callback handler
+=item Str $method-notify; name of callback handler. Ignored when $method-notify is undefined. This function is called when the source is removed.
+=item %user-options; optional named arguments to be provided to both callbacks
+=end pod
+
+method idle-add-full (
+  Int $priority,
+  Any:D $handler-object, Str:D $method, Str $method-notify = Str,
+  *%user-options
+  --> UInt
+) {
+  die X::Gnome.new(:message("Method $method or handler object not found"))
+    unless $handler-object.^can($method);
+
+  if ?$method-notify and $handler-object.can($method-notify) {
+    g_idle_add_full(
+      $priority,
+      sub ( gpointer $d --> gboolean ) {
+        $handler-object."$method"(|%user-options);
+      }, gpointer,
+      sub ( gpointer $d ) {
+        $handler-object."$method-notify"(|%user-options);
+      },
+    )
+  }
+
+  else {
+    g_idle_add_full(
+      $priority,
+      sub ( gpointer $d --> gboolean ) {
+        $handler-object."$method"(|%user-options);
+      }, gpointer,
+      Nil
+    )
+  }
+}
+
+sub g_idle_add_full (
+  gint $priority,
+  Callable $func ( gpointer --> gboolean ), gpointer $data,
+  Callable $notify ( gpointer )
+  --> guint
+) is native(&glib-lib)
+  { * }
+
+#`{{
+#-------------------------------------------------------------------------------
+#TM:0:idle-remove-by-data:
+=begin pod
+=head2 idle-remove-by-data
+
+Removes the idle function with the given data.
+
+Returns: C<True> if an idle source was found and removed.
+
+  method idle-remove-by-data ( Pointer $data --> Bool )
+
+=item Pointer $data; the data for the idle source's callback.
+=end pod
+
+method idle-remove-by-data ( Pointer $data --> Bool ) {
+
+  g_idle_remove_by_data(
+    self.get-native-object-no-reffing, $data
+  ).Bool
+}
+
+sub g_idle_remove_by_data (
+  gpointer $data --> gboolean
+) is native(&glib-lib)
+  { * }
+}}
+
+#-------------------------------------------------------------------------------
+#TM:1:_g_idle_source_new:
+#`{{
+=begin pod
+=head2 g-idle-source-new
+
+Creates a new idle source.
+
+The source will not initially be associated with any B<Gnome::Glib::MainContext> and must be added to one with C<attach()> before it will be executed. Note that the default priority for idle sources is C<G-PRIORITY-DEFAULT-IDLE>, as compared to other sources which have a default priority of C<G-PRIORITY-DEFAULT>.
+
+Returns: the newly-created idle source
+
+  method g-idle-source-new ( --> N-GObject )
+
+=end pod
+
+method g-idle-source-new ( --> N-GObject ) {
+
+  g_idle_source_new
+}
+}}
+
+sub _g_idle_source_new ( --> N-GObject )
+  is native(&glib-lib)
+  is symbol('g_idle_source_new')
   { * }
 
 #`{{
@@ -1659,18 +1335,22 @@ method set-callback (
   }
 
   else {
+
     g_source_set_callback(
       self.get-native-object-no-reffing,
       sub ( gpointer $d --> gboolean ) {
         $handler-object."$method"(|%user-options);
       }, gpointer,
-      Nil
+      Callable
     )
   }
 }
 
 sub g_source_set_callback (
-  N-GObject $source, GSourceFunc $func, gpointer $data, GDestroyNotify $notify
+  N-GObject $source,
+  Callable $func ( gpointer --> gboolean ),
+  gpointer $data,
+  Callable $notify ( gpointer )
 ) is native(&glib-lib)
   { * }
 
@@ -1867,6 +1547,327 @@ method set-ready-time ( Int $ready_time ) {
 sub g_source_set_ready_time (
   N-GObject $source, gint64 $ready_time
 ) is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:timeout-add:
+=begin pod
+=head2 timeout-add
+
+Sets a function to be called at regular intervals, with the default priority, C<G-PRIORITY-DEFAULT>. The function is called repeatedly until it returns C<False>, at which point the timeout is automatically destroyed and the function will not be called again. The first call to the function will be at the end of the first I<$interval>.
+
+Note that timeout functions may be delayed, due to the processing of other event sources. Thus they should not be relied on for precise timing. After each call to the timeout function, the time of the next timeout is recalculated based on the current time and the given interval (it does not try to 'catch up' time lost in delays).
+
+=comment See [memory management of sources][mainloop-memory-management] for details on how to handle the return value and memory management of I<data>.
+
+If you want to have a timer in the "seconds" range and do not care about the exact time of the first call of the timer, use the C<timeout-add-seconds()> function; this function allows for more optimizations and more efficient system power usage.
+
+=comment This internally creates a main loop source using C<g-timeout-source-new()> and attaches it to the global B<Gnome::Glib::MainContext> using C<attach()>, so the callback will be invoked in whichever thread is running that main context. You can do these steps manually if you need greater control or to use a custom main context.
+
+The interval given is in terms of monotonic time, not wall clock time. See C<get-monotonic-time()>.
+
+Returns: the ID (greater than 0) of the event source.
+
+  method timeout-add (
+    UInt $interval,
+    Any:D $handler-object, Str:D $method, *%user-options
+    --> UInt
+  )
+
+=item UInt $interval; the time between calls to the function, in milliseconds (1/1000ths of a second)
+=item $handler-object; User object where $method is defined
+=item Str $method; name of callback handler
+=item %user-options; optional named arguments to be provided to the callback
+=end pod
+
+
+method timeout-add (
+  UInt $interval, Any:D $handler-object, Str:D $method, *%user-options
+  --> UInt
+) {
+  die X::Gnome.new(:message("Method $method or handler object not found"))
+    unless $handler-object.^can($method);
+
+  g_timeout_add(
+    $interval,
+    sub ( gpointer $d --> gboolean ) {
+      $handler-object."$method"(|%user-options);
+    },
+    gpointer
+  )
+}
+
+sub g_timeout_add (
+  guint $interval,
+  Callable $func ( gpointer --> gboolean ),
+  gpointer $data --> guint
+) is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:timeout-add-full:
+=begin pod
+=head2 timeout-add-full
+
+Sets a function to be called at regular intervals, with the given priority. The function is called repeatedly until it returns C<False>, at which point the timeout is automatically destroyed and the function will not be called again. The I<notify> function is called when the timeout is destroyed. The first call to the function will be at the end of the first I<interval>.
+
+Note that timeout functions may be delayed, due to the processing of other event sources. Thus they should not be relied on for precise timing. After each call to the timeout function, the time of the next timeout is recalculated based on the current time and the given interval (it does not try to 'catch up' time lost in delays).
+
+=comment See [memory management of sources][mainloop-memory-management] for details on how to handle the return value and memory management of I<data>.
+
+This internally creates a main loop source using C<g-timeout-source-new()> and attaches it to the global B<Gnome::Glib::MainContext> using C<attach()>, so the callback will be invoked in whichever thread is running that main context. You can do these steps manually if you need greater control or to use a custom main context.
+
+The interval given is in terms of monotonic time, not wall clock time. See C<g-get-monotonic-time()>.
+
+Returns: the ID (greater than 0) of the event source.
+
+  method timeout-add-full (
+    Int $priority, UInt $interval,
+    Any:D $handler-object, Str:D $method, Str $method-notify = Str,
+    *%user-options
+    --> UInt
+  )
+
+=item Int $priority; the priority of the timeout source. Typically this will be in the range between C<G-PRIORITY-DEFAULT> and C<G-PRIORITY-HIGH>.
+=item UInt $interval; the time between calls to the function, in milliseconds (1/1000ths of a second)
+=item $handler-object; User object where both methods are defined
+=item Str $method; name of callback handler
+=item Str $method-notify; name of callback handler. Ignored when $method-notify is undefined. This function is called when the source is removed.
+=item %user-options; optional named arguments to be provided to both callbacks
+=end pod
+
+method timeout-add-full (
+  Int $priority, UInt $interval,
+  Any:D $handler-object, Str:D $method, Str $method-notify = Str,
+  *%user-options
+  --> UInt
+) {
+  die X::Gnome.new(:message("Method $method or handler object not found"))
+    unless $handler-object.^can($method);
+
+  if ?$method-notify and $handler-object.can($method-notify) {
+    g_timeout_add_full(
+      $priority, $interval,
+      sub ( gpointer $d --> gboolean ) {
+        $handler-object."$method"(|%user-options);
+      }, gpointer,
+      sub ( gpointer $d ) {
+        $handler-object."$method-notify"(|%user-options);
+      },
+    )
+  }
+
+  else {
+    g_timeout_add_full(
+      $priority, $interval,
+      sub ( gpointer $d --> gboolean ) {
+        $handler-object."$method"(|%user-options);
+      }, gpointer,
+      Nil
+    )
+  }
+}
+
+sub g_timeout_add_full (
+  gint $priority, guint $interval,
+  Callable $func ( gpointer --> gboolean ), gpointer $data,
+  Callable $notify ( gpointer )
+  --> guint
+) is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:timeout-add-seconds:
+=begin pod
+=head2 timeout-add-seconds
+
+Sets a function to be called at regular intervals with the default priority, C<G-PRIORITY-DEFAULT>. The function is called repeatedly until it returns C<False>, at which point the timeout is automatically destroyed and the function will not be called again.
+
+This internally creates a main loop source using C<g-timeout-source-new-seconds()> and attaches it to the main loop context using C<attach()>. You can do these steps manually if you need greater control. Also see C<timeout-add-seconds-full()>.
+
+Note that the first call of the timer may not be precise for timeouts of one second. If you need finer precision and have such a timeout, you may want to use C<timeout-add()> instead.
+
+=comment See [memory management of sources][mainloop-memory-management] for details on how to handle the return value and memory management of I<data>.
+
+The interval given is in terms of monotonic time, not wall clock time. See C<g-get-monotonic-time()>.
+
+Returns: the ID (greater than 0) of the event source.
+
+  method timeout-add-seconds (
+    UInt $interval, Any:D $handler-object, Str:D $method, *%user-options
+    --> UInt
+  )
+
+=item UInt $interval; the time between calls to the function, in seconds
+=item $handler-object; User object where $method is defined
+=item Str $method; name of callback handler
+=item %user-options; optional named arguments to be provided to the callback
+=end pod
+
+method timeout-add-seconds (
+  UInt $interval, Any:D $handler-object, Str:D $method, *%user-options
+  --> UInt
+) {
+  g_timeout_add_seconds(
+    $interval,
+    sub ( gpointer $d --> gboolean ) {
+      $handler-object."$method"(|%user-options);
+    },
+    gpointer
+  )
+}
+
+sub g_timeout_add_seconds (
+  guint $interval,
+  Callable $func ( gpointer --> gboolean ),
+  gpointer $data --> guint
+) is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:0:timeout-add-seconds-full:
+=begin pod
+=head2 timeout-add-seconds-full
+
+Sets a function to be called at regular intervals, with I<priority>. The function is called repeatedly until it returns C<False>, at which point the timeout is automatically destroyed and the function will not be called again.
+
+Unlike C<timeout-add()>, this function operates at whole second granularity. The initial starting point of the timer is determined by the implementation and the implementation is expected to group multiple timers together so that they fire all at the same time. To allow this grouping, the I<$interval> to the first timer is rounded and can deviate up to one second from the specified interval. Subsequent timer iterations will generally run at the specified interval.
+
+Note that timeout functions may be delayed, due to the processing of other event sources. Thus they should not be relied on for precise timing. After each call to the timeout function, the time of the next timeout is recalculated based on the current time and the given I<$interval>
+
+=comment See [memory management of sources][mainloop-memory-management] for details on how to handle the return value and memory management of I<data>.
+
+If you want timing more precise than whole seconds, use C<timeout-add()> instead.
+
+The grouping of timers to fire at the same time results in a more power and CPU efficient behavior so if your timer is in multiples of seconds and you don't require the first timer exactly one second from now, the use of C<timeout-add-seconds()> is preferred over C<timeout-add()>.
+
+This internally creates a main loop source using C<timeout-source-new-seconds()> and attaches it to the main loop context using C<attach()>. You can do these steps manually if you need greater control.
+
+The interval given is in terms of monotonic time, not wall clock time. See C<get-monotonic-time()>.
+
+Returns: the ID (greater than 0) of the event source.
+
+  method timeout-add-seconds-full (
+    Int $priority, UInt $interval,
+    Any:D $handler-object, Str:D $method, Str $method-notify = Str,
+    *%user-options
+    --> UInt
+  )
+
+=item Int $priority; the priority of the timeout source. Typically this will be in the range between C<G-PRIORITY-DEFAULT> and C<G-PRIORITY-HIGH>.
+=item UInt $interval; the time between calls to the function, in seconds
+=item $handler-object; User object where both methods are defined
+=item Str $method; name of callback handler
+=item Str $method-notify; name of callback handler. Ignored when $method-notify is undefined. This function is called when the source is removed.
+=item %user-options; optional named arguments to be provided to both callbacks
+=end pod
+
+method timeout-add-seconds-full (
+  Int $priority, UInt $interval,
+  Any:D $handler-object, Str:D $method, Str $method-notify = Str,
+  *%user-options
+  --> UInt
+) {
+  die X::Gnome.new(:message("Method $method or handler object not found"))
+    unless $handler-object.^can($method);
+
+  if ?$method-notify and $handler-object.can($method-notify) {
+    g_timeout_add_seconds_full(
+      $priority, $interval,
+      sub ( gpointer $d --> gboolean ) {
+        $handler-object."$method"(|%user-options);
+      }, gpointer,
+      sub ( gpointer $d ) {
+        $handler-object."$method-notify"(|%user-options);
+      },
+    )
+  }
+
+  else {
+    g_timeout_add_seconds_full(
+      $priority, $interval,
+      sub ( gpointer $d --> gboolean ) {
+        $handler-object."$method"(|%user-options);
+      }, gpointer,
+      Nil
+    )
+  }
+}
+
+sub g_timeout_add_seconds_full (
+  gint $priority, guint $interval,
+  Callable $func ( gpointer --> gboolean ),
+  gpointer $data,
+  Callable $notify ( gpointer )
+  --> guint
+) is native(&glib-lib)
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:_g_timeout_source_new:
+#`{{
+=begin pod
+=head2 g-timeout-source-new
+
+Creates a new timeout source.
+
+The source will not initially be associated with any B<Gnome::Glib::MainContext> and must be added to one with C<attach()> before it will be executed.
+
+The interval given is in terms of monotonic time, not wall clock time. See C<g-get-monotonic-time()>.
+
+Returns: the newly-created timeout source
+
+  method g-timeout-source-new ( UInt $interval --> N-GObject )
+
+=item UInt $interval; the timeout interval in milliseconds.
+=end pod
+
+method g-timeout-source-new ( UInt $interval --> N-GObject ) {
+
+  g_timeout_source_new(
+    self.get-native-object-no-reffing, $interval
+  )
+}
+}}
+
+sub _g_timeout_source_new ( guint $interval --> N-GObject )
+  is native(&glib-lib)
+  is symbol('g_timeout_source_new')
+  { * }
+
+#-------------------------------------------------------------------------------
+#TM:1:_g_timeout_source_new_seconds:
+#`{{
+=begin pod
+=head2 g-timeout-source-new-seconds
+
+Creates a new timeout source.
+
+The source will not initially be associated with any B<Gnome::Glib::MainContext> and must be added to one with C<attach()> before it will be executed.
+
+The scheduling granularity/accuracy of this timeout source will be in seconds.
+
+The interval given is in terms of monotonic time, not wall clock time. See C<g-get-monotonic-time()>.
+
+Returns: the newly-created timeout source
+
+  method g-timeout-source-new-seconds ( UInt $interval --> N-GObject )
+
+=item UInt $interval; the timeout interval in seconds
+=end pod
+
+method g-timeout-source-new-seconds ( UInt $interval --> N-GObject ) {
+
+  g_timeout_source_new_seconds(
+    self.get-native-object-no-reffing, $interval
+  )
+}
+}}
+
+sub _g_timeout_source_new_seconds (
+  guint $interval --> N-GObject
+) is native(&glib-lib)
+  is symbol('g_timeout_source_new_seconds')
   { * }
 
 #-------------------------------------------------------------------------------
