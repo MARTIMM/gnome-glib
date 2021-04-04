@@ -2,6 +2,7 @@
 * 2021-03-03 0.20.0
   * Add **Gnome::Glib::Source**. In addition to the MailLoop and MainContext, this module provides method to run method regularly on set times or when the main loop is idle.
   * All **Gnome::Glib::N-…** modules describing native objects are removed and replaced by **Gnome::N::N-GObject**.
+  * Revisited **Gnome::Glib::List** and **Gnome::Glib::SList** modules; removed deprecated methods and attributes, cleanup code, added methods for each native sub and changes in return values.
 
 * 2021-02-22 0.19.0
   * Added **Gnome::Glib::N-GVariantDict** and **Gnome::Glib::VariantDict** modules.
