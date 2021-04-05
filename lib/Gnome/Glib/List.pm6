@@ -664,7 +664,7 @@ sub g_list_free_1 (
 
 #`{{
 #-------------------------------------------------------------------------------
-#TM:0:_g_list_free-full:
+# TM:0:_g_list_free-full:
 =begin pod
 =head2 free-full
 
