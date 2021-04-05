@@ -18,21 +18,9 @@ use Gnome::Gtk3::Entry;
 
 
 #-------------------------------------------------------------------------------
-# preparations
-my Gnome::Gtk3::Grid $g .= new;
-my Gnome::Gtk3::Label $l .= new(:text('Username'));
-my Gnome::Gtk3::Entry $e .= new;
-$e.set-text('new text in entry');
-$e.widget-set-name('db-username');
-
-$g.grid-attach( $l, 0, 0, 1, 1);
-$g.grid-attach( $e, 1, 0, 1, 1);
-
 class H {
   # g_list_foreach test method
-  method h (
-    Gnome::Glib::List $hlist, Int $hi, gpointer $hd
-  ) {
+  method h ( gpointer $hd ) {
 
     my Gnome::Gtk3::Widget $w .= new(:native-object($hd));
     my Str $widget-name = $w.widget-get-name;
@@ -78,10 +66,21 @@ class H {
 }
 
 #-------------------------------------------------------------------------------
+# preparations
+my Gnome::Gtk3::Grid $g .= new;
+my Gnome::Gtk3::Label $l .= new(:text('Username'));
+my Gnome::Gtk3::Entry $e .= new;
+$e.set-text('new text in entry');
+$e.widget-set-name('db-username');
+
+$g.grid-attach( $l, 0, 0, 1, 1);
+$g.grid-attach( $e, 1, 0, 1, 1);
+
+#-------------------------------------------------------------------------------
 # get list
 my Gnome::Glib::List $list .= new(:native-object($g.get-children));
 is $list.length, 2, 'two elements in grid';
-$list.list-foreach( H.new, 'h');
+$list.foreach( H.new, 'h');
 
 # direct, now we know that 0 is a GtkEntry
 my $o = $list.nth-data(0);
@@ -91,7 +90,7 @@ is $t, 'new text in entry', '.nth-data()';
 
 #-------------------------------------------------------------------------------
 # search for an item
-my N-GList $sloc = $list.find-custom(
+my Gnome::Glib::List $sloc = $list.find-custom(
   H.new, 's', :widget-name('db-username'), :widget-text('new text in entry')
 );
 ok ?$sloc, '.find-custom()';
@@ -100,38 +99,40 @@ ok ?$sloc, '.find-custom()';
 $sloc = $list.find-custom(
   H.new, 's', :widget-name('db-username'), :widget-text('Othername')
 );
-ok !$sloc, '.find-custom(), search failed';
+is $sloc.length, 0, '.find-custom(), search failed';
 
 #-------------------------------------------------------------------------------
 #Gnome::N::debug(:on);
 my @x = ();
-my Gnome::Glib::List $ll = $list.list-first;
+my Gnome::Glib::List $ll = $list.first;
 is $ll.length, 2, 'two elements in grid';
 my Int $pos = 0;
-while ?$ll {
-  is $list.list-position($ll), $pos, ".list-position\() $pos";
-  is $list.list-index($ll.data), $pos, ".list-index\() $pos";
-  my Gnome::Glib::List $xl = $list.list-find($ll.data);
-  is $list.list-position($xl), $pos, '.list-find()';
+while $ll.is-valid {
+  is $list.position($ll), $pos, ".position\() $pos";
+  is $list.index($ll.data), $pos, ".index\() $pos";
+  my Gnome::Glib::List $xl = $list.find($ll.data);
+  is $list.position($xl), $pos, '.find()';
 
   $pos++;
 
   my Gnome::Gtk3::Widget $w .= new(:native-object($ll.data));
-  @x.push: $w.widget-get-name;
+  @x.push: $w.get-name;
   $ll .= next;
 }
 #Gnome::N::debug(:off);
 
-$ll = $list.g-list-last;
+$ll = $list.last;
 is $list.list-position($list.nth(1)), 1, '.nth()';
 is $list.list-position($ll.nth-prev(1)), 0, '.nth-prev()';
-while ?$ll {
+while $ll.is-valid {
   my Gnome::Gtk3::Widget $w .= new(:native-object($ll.data));
 #  note $w.widget-get-name;
-  is @x.pop, $w.widget-get-name,
-     '.g-list-first() / .next() / .g-list-last() / .previous()';
+  is @x.pop, $w.get-name,
+     '.first() / .next() / .last() / .previous()';
   $ll .= previous;
 }
+
+$ll.clear-object;
 
 #-------------------------------------------------------------------------------
 done-testing;
