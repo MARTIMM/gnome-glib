@@ -28,7 +28,7 @@ $w.set-title('Top');
 
 my Gnome::Gtk3::Grid $g .= new;
 $g.gtk-widget-set-name('top-grid');
-$w.gtk-container-add($g);
+$w.add($g);
 
 my Gnome::Gtk3::Button $b1 .= new(:label<Start>);
 $b1.gtk-widget-set-name('start-button');

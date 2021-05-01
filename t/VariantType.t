@@ -219,7 +219,7 @@ subtest 'Signals ...', {
   my Gnome::Glib::VariantType $vt .= new;
 
   #my Gnome::Gtk3::Window $w .= new;
-  #$w.container-add($m);
+  #$w.add($m);
 
   my SignalHandlers $sh .= new;
   $vt.register-signal( $sh, 'method', 'signal');
