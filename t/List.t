@@ -185,13 +185,16 @@ subtest 'Manipulations', {
     $hc.check-data( $l3, '2143', '.nth()');
     $l3 .= nth(3);
     $hc.check-data( $l3, '100', '.nth() 3 places from 2nd');
+    nok $l3.nth(2000).is-valid, '.nth() 2000th --> is not valid';
 
     # $l3 not modified!
     is $hc.unpack($l3.nth-data(4)), '101',
       '.nth-data() data 4 places further: 101';
+    nok $l3.nth-data(2000).defined, '.nth-data() 2000th --> is not defined';
 
     $l3 .= nth-prev(4);
     $hc.check-data( $l3, '201', '.nth-prev() 4 places before last nth');
+    nok $l3.nth-prev(2000).is-valid, '.nth-prev() 2000th --> is not valid';
     is $l3.position($l3.nth(2)), 2, '.position()';
 
     $l2.sort( $hc, 'compare');

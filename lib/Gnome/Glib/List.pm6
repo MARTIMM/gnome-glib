@@ -472,7 +472,7 @@ sub g_list_delete_link (
 
 Finds the element in a B<Gnome::Glib::List> which contains the given data.
 
-Returns: the found B<Gnome::Glib::List> element, or C<undefined> if it is not found
+Returns: the found B<Gnome::Glib::List> element, or C<invalid> if it is not found
 
   method find ( Pointer $data --> Gnome::Glib::List )
 
@@ -481,7 +481,9 @@ Returns: the found B<Gnome::Glib::List> element, or C<undefined> if it is not fo
 
 method find ( Pointer $data --> Gnome::Glib::List ) {
   Gnome::Glib::List.new(
-    :native-object(g_list_find( self.get-native-object-no-reffing, $data))
+    :native-object(
+      g_list_find( self.get-native-object-no-reffing, $data) // N-GList
+    )
   )
 }
 
@@ -497,7 +499,7 @@ sub g_list_find (
 
 Finds an element in a B<Gnome::Glib::List>, using a supplied function to find the desired element. It iterates over the list, calling the given function which should return 0 when the desired element is found.
 
-Returns: the found B<Gnome::Glib::List> element, or C<empty> if it is not found. You can check for its validity.
+Returns: the found B<Gnome::Glib::List> element, or C<invalid> if it is not found.
 
   method find-custom (
     $handler-object, $method, *%user-data
@@ -559,7 +561,7 @@ method find-custom (
         sub ( gpointer $item, gpointer $ud --> gint ) {
           $handler-object."$method"( $item, |%user-data)
         }
-      )
+      ) // N-GList
     )
   )
 }
@@ -578,7 +580,7 @@ sub g_list_find_custom (
 
 Gets the first element in a B<Gnome::Glib::List>.
 
-Returns: the first element in the B<Gnome::Glib::List>, or C<empty> if the B<Gnome::Glib::List> has no elements. You can check for its validity.
+Returns: the first element in the B<Gnome::Glib::List>, or C<invalid> if the B<Gnome::Glib::List> has no elements.
 
   method first ( --> Gnome::Glib::List )
 
@@ -729,7 +731,7 @@ Returns: the (possibly changed) start of the B<Gnome::Glib::List>
   method insert ( Pointer $data, Int $position --> Gnome::Glib::List )
 
 =item Pointer $data; the data for the new element
-=item Int $position; the position to insert the element. If this is  negative, or is larger than the number of elements in the  list, the new element is added on to the end of the list.
+=item Int $position; the position to insert the element. If this is negative, or is larger than the number of elements in the list, the new element is added on to the end of the list.
 =end pod
 
 method insert ( Pointer $data, Int $position --> Gnome::Glib::List ) {
@@ -846,7 +848,7 @@ sub g_list_insert_sorted_with_data (
 
 Gets the last element in a B<Gnome::Glib::List>.
 
-Returns: the last element in the B<Gnome::Glib::List>, or C<undefined> if the B<Gnome::Glib::List> has no elements
+Returns: the last element in the B<Gnome::Glib::List>, or C<invalid> if the B<Gnome::Glib::List> has no elements
 
   method last ( --> Gnome::Glib::List )
 
@@ -872,7 +874,7 @@ Gets the number of elements in a B<Gnome::Glib::List>.
 
 This function iterates over the whole list to count its elements.
 =comment Use a B<Gnome::Glib::Queue> instead of a GList if you regularly need the number of items.
-=comment To check whether the list is non-empty, it is faster to check I<list> against C<undefined>.
+=comment To check whether the list is non-empty, it is faster to check I<list> against C<N-GList === undefined>.
 
 Returns: the number of elements in the B<Gnome::Glib::List>
 
@@ -901,8 +903,9 @@ Gets the next element in a B<Gnome::Glib::List>, or undefined if the B<Gnome::Gl
 =end pod
 
 method next ( --> Gnome::Glib::List ) {
-  my N-GList $no = self.get-native-object-no-reffing.next;
-  Gnome::Glib::List.new(:native-object($no))
+  Gnome::Glib::List.new(
+    :native-object(self.get-native-object-no-reffing.next // N-GList)
+  );
 }
 
 #-------------------------------------------------------------------------------
@@ -914,7 +917,7 @@ Gets the element at the given position in a B<Gnome::Glib::List>.
 
 This iterates over the list until it reaches the I<n>-th position. If you intend to iterate over every element, it is better to use a for-loop as described in the B<Gnome::Glib::List> introduction.
 
-Returns: the element, or C<undefined> if the position is off the end of the B<Gnome::Glib::List>
+Returns: the element, or C<invalid> if the position is off the end of the B<Gnome::Glib::List>
 
   method nth ( UInt $n --> Gnome::Glib::List )
 
@@ -923,7 +926,7 @@ Returns: the element, or C<undefined> if the position is off the end of the B<Gn
 
 method nth ( UInt $n --> Gnome::Glib::List ) {
   Gnome::Glib::List.new(
-    :native-object(g_list_nth(self.get-native-object-no-reffing, $n))
+    :native-object(g_list_nth(self.get-native-object-no-reffing // N-GList, $n))
   )
 }
 
@@ -964,7 +967,7 @@ sub g_list_nth_data (
 
 Gets the element I<n> places before I<list>.
 
-Returns: the element, or C<undefined> if the position is off the end of the B<Gnome::Glib::List>
+Returns: the element, or C<invalid> if the position is off the end of the B<Gnome::Glib::List>
 
   method nth-prev ( UInt $n --> Gnome::Glib::List )
 
@@ -973,7 +976,9 @@ Returns: the element, or C<undefined> if the position is off the end of the B<Gn
 
 method nth-prev ( UInt $n --> Gnome::Glib::List ) {
   Gnome::Glib::List.new(
-    :native-object(g_list_nth_prev( self.get-native-object-no-reffing, $n))
+    :native-object(
+      g_list_nth_prev( self.get-native-object-no-reffing, $n) // N-GList
+    )
   )
 }
 
@@ -1013,19 +1018,21 @@ sub g_list_position (
 
 Prepends a new element on to the start of the list.
 
-Note that the return value is the new start of the list, which will have changed, so make sure you store the new value.
-
-|[<!-- language="C" --> // Notice that it is initialized to the empty list. GList *list = NULL;
-
-list = prepend (list, "last"); list = g-list-prepend (list, "first"); ]|
-
-Do not use this function to prepend a new element to a different element than the start of the list. Use C<g-list-insert-before()> instead.
+Note that the return value is the new start of the list, which will have changed, so make sure you store the new value. Do not use this function to prepend a new element to a different element than the start of the list. (Note; probably the list before insertion point gets cut off and then there is a memory leak). Use C<g-list-insert-before()> instead.
 
 Returns: a pointer to the newly prepended element, which is the new start of the B<Gnome::Glib::List>
 
   method prepend ( Pointer $data --> Gnome::Glib::List )
 
 =item Pointer $data; the data for the new element
+
+=head3 Example
+
+my Gnome::Glib::List $list .= new;
+
+$list .= prepend(CArray[Str].new("last"));
+$list .= prepend(CArray[Str].new("first"));
+
 =end pod
 
 method prepend ( Pointer $data --> Gnome::Glib::List ) {
@@ -1044,15 +1051,16 @@ sub g_list_prepend (
 =begin pod
 =head2 previous
 
-Gets the previous element in a B<Gnome::Glib::List>, or undefined if the B<Gnome::Glib::List> is at the beginning of the list.
+Gets the previous element in a B<Gnome::Glib::List>, or C<invalif> if the B<Gnome::Glib::List> is at the beginning of the list.
 
   method previous ( --> Gnome::Glib::List )
 
 =end pod
 
 method previous ( --> Gnome::Glib::List ) {
-  my N-GList $no = self.get-native-object-no-reffing.prev;
-  Gnome::Glib::List.new(:native-object($no))
+  Gnome::Glib::List.new(
+    :native-object(self.get-native-object-no-reffing.prev // N-GList)
+  );
 }
 
 #-------------------------------------------------------------------------------
@@ -1071,7 +1079,9 @@ Returns: the (possibly changed) start of the B<Gnome::Glib::List>
 
 method remove ( Pointer $data --> Gnome::Glib::List ) {
   Gnome::Glib::List.new(
-    :native-object(g_list_remove( self.get-native-object-no-reffing, $data))
+    :native-object(
+      g_list_remove( self.get-native-object-no-reffing, $data) // N-GList
+    )
   )
 }
 
@@ -1096,7 +1106,9 @@ Returns: the (possibly changed) start of the B<Gnome::Glib::List>
 
 method remove-all ( Pointer $data --> Gnome::Glib::List ) {
   Gnome::Glib::List.new(
-    :native-object(g_list_remove_all( self.get-native-object-no-reffing, $data))
+    :native-object(
+      g_list_remove_all( self.get-native-object-no-reffing, $data) // N-GList
+    )
   )
 }
 
@@ -1110,7 +1122,7 @@ sub g_list_remove_all (
 =begin pod
 =head2 remove-link
 
-Removes an element from a B<Gnome::Glib::List>, without freeing the element. The removed element's prev and next links are set to C<undefined>, so that it becomes a self-contained list with one element.
+Removes an element from a B<Gnome::Glib::List>, without freeing the element. The removed element's prev and next links are set to C<invalid>, so that it becomes a self-contained list with one element.
 
 This function is for example used to move an element in the list (see the example for C<concat()>) or to remove an element in the list before freeing its data.
 =begin comment
@@ -1131,7 +1143,7 @@ method remove-link ( $llink is copy --> Gnome::Glib::List ) {
 
   Gnome::Glib::List.new(
     :native-object(
-      g_list_remove_link( self.get-native-object-no-reffing, $llink)
+      g_list_remove_link( self.get-native-object-no-reffing, $llink) // N-GList
     )
   )
 }
@@ -1156,7 +1168,9 @@ Returns: the start of the reversed B<Gnome::Glib::List>
 
 method reverse ( --> Gnome::Glib::List ) {
   Gnome::Glib::List.new(
-    :native-object(g_list_reverse(self.get-native-object-no-reffing))
+    :native-object(
+      g_list_reverse(self.get-native-object-no-reffing) // N-GList
+    )
   )
 }
 
