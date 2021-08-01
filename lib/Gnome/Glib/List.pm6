@@ -1028,10 +1028,10 @@ Returns: a pointer to the newly prepended element, which is the new start of the
 
 =head3 Example
 
-my Gnome::Glib::List $list .= new;
+  my Gnome::Glib::List $list .= new;
 
-$list .= prepend(CArray[Str].new("last"));
-$list .= prepend(CArray[Str].new("first"));
+  $list .= prepend(CArray[Str].new("last"));
+  $list .= prepend(CArray[Str].new("first"));
 
 =end pod
 
