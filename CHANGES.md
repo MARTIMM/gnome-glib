@@ -1,4 +1,7 @@
 ## Release notes
+* 2021-12-12 0.20.2
+  * Changes for renamed methods in **Gnome::N::TopLevelClassSupport**.
+
 * 2021-05-03 0.20.1
   * Bugfixes; When initializing a new List object with the result from e.g. `.next()`, the undefined result must be explicitly set to N-GList to get a proper List object which can be tested with `.is-valid()`.
 
