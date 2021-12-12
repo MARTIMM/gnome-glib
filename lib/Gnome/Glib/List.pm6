@@ -203,7 +203,7 @@ submethod BUILD ( *%options ) {
     }
 
     # only after creating the native-object, the gtype is known
-    self.set-class-info('GList');
+    self._set-class-info('GList');
   }
 }
 
@@ -216,7 +216,7 @@ method _fallback ( $native-sub --> Callable ) {
   try { $s = &::("g_$native-sub"); } unless ?$s;
   try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
 
-  self.set-class-name-of-sub('GList');
+  self._set-class-name-of-sub('GList');
 
   $s
 }

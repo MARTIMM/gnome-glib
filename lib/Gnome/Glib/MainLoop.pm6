@@ -189,7 +189,7 @@ submethod BUILD ( *%options ) {
     }
 
     # only after creating the native-object, the gtype is known
-    self.set-class-info('GMain');
+    self._set-class-info('GMain');
   }
 }
 
