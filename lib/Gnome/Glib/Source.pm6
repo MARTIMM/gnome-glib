@@ -222,7 +222,7 @@ submethod BUILD ( *%options ) {
       }
       }}
 
-      self.set-native-object($no);
+      self._set-native-object($no);
     }
 
     # only after creating the native-object, the gtype is known
@@ -262,7 +262,7 @@ This API is only intended to be used by implementations of B<Gnome::Glib::Source
 method add-child-source ( N-GObject $child_source ) {
 
   g_source_add_child_source(
-    self.get-native-object-no-reffing, $child_source
+    self._get-native-object-no-reffing, $child_source
   );
 }
 
@@ -291,7 +291,7 @@ Using this API forces the linear scanning of event sources on each main loop ite
 method add-poll ( GPollFD $fd ) {
 
   g_source_add_poll(
-    self.get-native-object-no-reffing, $fd
+    self._get-native-object-no-reffing, $fd
   );
 }
 
@@ -326,7 +326,7 @@ Returns: an opaque tag
 method add-unix-fd ( Int $fd, GIOCondition $events --> Pointer ) {
 
   g_source_add_unix_fd(
-    self.get-native-object-no-reffing, $fd, $events
+    self._get-native-object-no-reffing, $fd, $events
   )
 }
 
@@ -352,8 +352,8 @@ Returns: the ID (greater than 0) for the source within the B<Gnome::Glib::MainCo
 =end pod
 
 method attach ( $context is copy --> UInt ) {
-  $context .= get-native-object-no-reffing unless $context ~~ N-GObject;
-  g_source_attach( self.get-native-object-no-reffing, $context)
+  $context .= _get-native-object-no-reffing unless $context ~~ N-GObject;
+  g_source_attach( self._get-native-object-no-reffing, $context)
 }
 
 sub g_source_attach (
@@ -373,7 +373,7 @@ Removes a source from its B<Gnome::Glib::MainContext>, if any, and mark it as de
 =end pod
 
 method destroy ( ) {
-  g_source_destroy(self.get-native-object-no-reffing);
+  g_source_destroy(self._get-native-object-no-reffing);
 }
 
 sub g_source_destroy ( N-GObject $source )
@@ -408,7 +408,7 @@ Returns: the ID (greater than 0) of the event source.
 method g-child-watch-add ( GPid $pid, GChildWatchFunc $function, Pointer $data --> UInt ) {
 
   g_child_watch_add(
-    self.get-native-object-no-reffing, $pid, $function, $data
+    self._get-native-object-no-reffing, $pid, $function, $data
   )
 }
 
@@ -448,7 +448,7 @@ Returns: the ID (greater than 0) of the event source.
 method g-child-watch-add-full ( Int $priority, GPid $pid, GChildWatchFunc $function, Pointer $data, GDestroyNotify $notify --> UInt ) {
 
   g_child_watch_add_full(
-    self.get-native-object-no-reffing, $priority, $pid, $function, $data, $notify
+    self._get-native-object-no-reffing, $priority, $pid, $function, $data, $notify
   )
 }
 
@@ -488,7 +488,7 @@ Returns: the newly-created child watch source
 method g-child-watch-source-new ( GPid $pid --> N-GObject ) {
 
   g_child_watch_source_new(
-    self.get-native-object-no-reffing, $pid
+    self._get-native-object-no-reffing, $pid
   )
 }
 
@@ -519,7 +519,7 @@ A macro is also included that allows this function to be used without pointer ca
 method g-clear-handle-id ( guInt-ptr $tag_ptr, GClearHandleFunc $clear_func ) {
 
   g_clear_handle_id(
-    self.get-native-object-no-reffing, $tag_ptr, $clear_func
+    self._get-native-object-no-reffing, $tag_ptr, $clear_func
   );
 }
 
@@ -545,7 +545,7 @@ You may find C<g-get-real-time()> to be more convenient.
 method g-get-current-time ( GTimeVal $result ) {
 
   g_get_current_time(
-    self.get-native-object-no-reffing, $result
+    self._get-native-object-no-reffing, $result
   );
 }
 
@@ -622,7 +622,7 @@ Returns: whether recursion is allowed.
 method get-can-recurse ( --> Bool ) {
 
   g_source_get_can_recurse(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   ).Bool
 }
 
@@ -649,7 +649,7 @@ Returns: the B<Gnome::Glib::MainContext> with which the source is associated, or
 method get-context ( --> N-GObject ) {
 
   g_source_get_context(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -674,7 +674,7 @@ Returns: the ID (greater than 0) for the source
 =end pod
 
 method get-id ( --> UInt ) {
-  g_source_get_id(self.get-native-object-no-reffing)
+  g_source_get_id(self._get-native-object-no-reffing)
 }
 
 sub g_source_get_id (
@@ -696,7 +696,7 @@ Returns: the name of the source
 =end pod
 
 method get-name ( --> Str ) {
-  g_source_get_name(self.get-native-object-no-reffing)
+  g_source_get_name(self._get-native-object-no-reffing)
 }
 
 sub g_source_get_name (
@@ -718,7 +718,7 @@ Returns: the priority of the source
 =end pod
 
 method get-priority ( --> Int ) {
-  g_source_get_priority(self.get-native-object-no-reffing)
+  g_source_get_priority(self._get-native-object-no-reffing)
 }
 
 sub g_source_get_priority (
@@ -742,7 +742,7 @@ Returns: the monotonic ready time, -1 for "never"
 =end pod
 
 method get-ready-time ( --> Int ) {
-  g_source_get_ready_time(self.get-native-object-no-reffing)
+  g_source_get_ready_time(self._get-native-object-no-reffing)
 }
 
 sub g_source_get_ready_time (
@@ -766,7 +766,7 @@ Returns: the monotonic time in microseconds
 =end pod
 
 method get-time ( --> Int ) {
-  g_source_get_time(self.get-native-object-no-reffing)
+  g_source_get_time(self._get-native-object-no-reffing)
 }
 
 sub g_source_get_time (
@@ -904,7 +904,7 @@ Returns: C<True> if an idle source was found and removed.
 method idle-remove-by-data ( Pointer $data --> Bool ) {
 
   g_idle_remove_by_data(
-    self.get-native-object-no-reffing, $data
+    self._get-native-object-no-reffing, $data
   ).Bool
 }
 
@@ -1011,7 +1011,7 @@ Returns: C<True> if the source has been destroyed
 =end pod
 
 method is-destroyed ( --> Bool ) {
-  g_source_is_destroyed(self.get-native-object-no-reffing).Bool
+  g_source_is_destroyed(self._get-native-object-no-reffing).Bool
 }
 
 sub g_source_is_destroyed (
@@ -1045,7 +1045,7 @@ As the name suggests, this function is not available on Windows.
 method modify-unix-fd ( Pointer $tag, GIOCondition $new_events ) {
 
   g_source_modify_unix_fd(
-    self.get-native-object-no-reffing, $tag, $new_events
+    self._get-native-object-no-reffing, $tag, $new_events
   );
 }
 
@@ -1077,7 +1077,7 @@ Returns: the conditions reported on the fd
 method query-unix-fd ( Pointer $tag --> GIOCondition ) {
 
   g_source_query_unix_fd(
-    self.get-native-object-no-reffing, $tag
+    self._get-native-object-no-reffing, $tag
   )
 }
 
@@ -1104,7 +1104,7 @@ Returns: I<source>
 method ref ( --> N-GObject ) {
 
   g_source_ref(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 }}
@@ -1138,7 +1138,7 @@ Returns: For historical reasons, this function always returns C<True>
 method remove ( UInt $tag --> Bool ) {
 
   g_source_remove(
-    self.get-native-object-no-reffing, $tag
+    self._get-native-object-no-reffing, $tag
   ).Bool
 }
 
@@ -1166,7 +1166,7 @@ Returns: C<True> if a source was found and removed.
 method remove-by-funcs-user-data ( N-GSourceFuncs $funcs, Pointer $user_data --> Bool ) {
 
   g_source_remove_by_funcs_user_data(
-    self.get-native-object-no-reffing, $funcs, $user_data
+    self._get-native-object-no-reffing, $funcs, $user_data
   ).Bool
 }
 
@@ -1193,7 +1193,7 @@ Returns: C<True> if a source was found and removed.
 method remove-by-user-data ( Pointer $user_data --> Bool ) {
 
   g_source_remove_by_user_data(
-    self.get-native-object-no-reffing, $user_data
+    self._get-native-object-no-reffing, $user_data
   ).Bool
 }
 
@@ -1220,7 +1220,7 @@ This API is only intended to be used by implementations of B<Gnome::Glib::Source
 method remove-child-source ( N-GObject $child_source ) {
 
   g_source_remove_child_source(
-    self.get-native-object-no-reffing, $child_source
+    self._get-native-object-no-reffing, $child_source
   );
 }
 
@@ -1247,7 +1247,7 @@ This API is only intended to be used by implementations of B<Gnome::Glib::Source
 method remove-poll ( GPollFD $fd ) {
 
   g_source_remove_poll(
-    self.get-native-object-no-reffing, $fd
+    self._get-native-object-no-reffing, $fd
   );
 }
 
@@ -1277,7 +1277,7 @@ As the name suggests, this function is not available on Windows.
 method remove-unix-fd ( Pointer $tag ) {
 
   g_source_remove_unix_fd(
-    self.get-native-object-no-reffing, $tag
+    self._get-native-object-no-reffing, $tag
   );
 }
 
@@ -1324,7 +1324,7 @@ method set-callback (
 
   if ?$method-notify and $handler-object.can($method-notify) {
     g_source_set_callback(
-      self.get-native-object-no-reffing,
+      self._get-native-object-no-reffing,
       sub ( gpointer $d --> gboolean ) {
         $handler-object."$method"(|%user-options);
       }, gpointer,
@@ -1337,7 +1337,7 @@ method set-callback (
   else {
 
     g_source_set_callback(
-      self.get-native-object-no-reffing,
+      self._get-native-object-no-reffing,
       sub ( gpointer $d --> gboolean ) {
         $handler-object."$method"(|%user-options);
       }, gpointer,
@@ -1373,7 +1373,7 @@ It is safe to call this function multiple times on a source which has already be
 method set-callback-indirect ( Pointer $callback_data, N-GObjectCallbackFuncs $callback_funcs ) {
 
   g_source_set_callback_indirect(
-    self.get-native-object-no-reffing, $callback_data, $callback_funcs
+    self._get-native-object-no-reffing, $callback_data, $callback_funcs
   );
 }
 
@@ -1397,7 +1397,7 @@ Sets whether a source can be called recursively. If I<can-recurse> is C<True>, t
 method set-can-recurse ( Bool $can_recurse ) {
 
   g_source_set_can_recurse(
-    self.get-native-object-no-reffing, $can_recurse
+    self._get-native-object-no-reffing, $can_recurse
   );
 }
 
@@ -1421,7 +1421,7 @@ Sets the source functions (can be used to override default implementations) of a
 method set-funcs ( N-GSourceFuncs $funcs ) {
 
   g_source_set_funcs(
-    self.get-native-object-no-reffing, $funcs
+    self._get-native-object-no-reffing, $funcs
   );
 }
 
@@ -1450,7 +1450,7 @@ Use caution if changing the name while another thread may be accessing it with C
 =end pod
 
 method set-name ( Str $name ) {
-  g_source_set_name(self.get-native-object-no-reffing, $name);
+  g_source_set_name(self._get-native-object-no-reffing, $name);
 }
 
 sub g_source_set_name (
@@ -1480,7 +1480,7 @@ More specifically: source IDs can be reissued after a source has been destroyed 
 method set-name-by-id ( UInt $tag, Str $name ) {
 
   g_source_set_name_by_id(
-    self.get-native-object-no-reffing, $tag, $name
+    self._get-native-object-no-reffing, $tag, $name
   );
 }
 
@@ -1506,7 +1506,7 @@ A child source always has the same priority as its parent. It is not permitted t
 method set-priority ( Int $priority ) {
 
   g_source_set_priority(
-    self.get-native-object-no-reffing, $priority
+    self._get-native-object-no-reffing, $priority
   );
 }
 
@@ -1540,7 +1540,7 @@ This API is only intended to be used by implementations of B<Gnome::Glib::Source
 method set-ready-time ( Int $ready_time ) {
 
   g_source_set_ready_time(
-    self.get-native-object-no-reffing, $ready_time
+    self._get-native-object-no-reffing, $ready_time
   );
 }
 
@@ -1825,7 +1825,7 @@ Returns: the newly-created timeout source
 method g-timeout-source-new ( UInt $interval --> N-GObject ) {
 
   g_timeout_source_new(
-    self.get-native-object-no-reffing, $interval
+    self._get-native-object-no-reffing, $interval
   )
 }
 }}
@@ -1859,7 +1859,7 @@ Returns: the newly-created timeout source
 method g-timeout-source-new-seconds ( UInt $interval --> N-GObject ) {
 
   g_timeout_source_new_seconds(
-    self.get-native-object-no-reffing, $interval
+    self._get-native-object-no-reffing, $interval
   )
 }
 }}
@@ -1885,7 +1885,7 @@ Decreases the reference count of a source by one. If the resulting reference cou
 method unref ( ) {
 
   g_source_unref(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 }}

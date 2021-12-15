@@ -95,7 +95,7 @@ submethod BUILD ( *%options ) {
 
       if %options<variant> {
         $no = %options<variant>;
-        $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
+        $no .= _get-native-object-no-reffing unless $no ~~ N-GObject;
         $no = _g_variant_dict_new($no);
       }
 
@@ -103,7 +103,7 @@ submethod BUILD ( *%options ) {
         $no = _g_variant_dict_new(N-GObject);
       }
 
-      self.set-native-object($no);
+      self._set-native-object($no);
     }
 
     # only after creating the native-object, the gtype is known
@@ -136,7 +136,7 @@ Releases all memory associated with a B<Gnome::Glib::VariantDict> without freein
 method clear ( ) {
 
   g_variant_dict_clear(
-    self.get-native-object-no-reffing
+    self._get-native-object-no-reffing
   );
 }
 
@@ -161,7 +161,7 @@ Returns: C<True> if I<$key> is in I<dict>
 
 method contains ( Str $key --> Bool ) {
 
-  g_variant_dict_contains( self.get-native-object-no-reffing, $key).Bool;
+  g_variant_dict_contains( self._get-native-object-no-reffing, $key).Bool;
 }
 
 sub g_variant_dict_contains (
@@ -186,7 +186,7 @@ Returns: a new B<Gnome::Glib::Variant> of type C<G_VARIANT_TYPE_VARDICT>.
 method end ( --> N-GObject ) {
 
   g_variant_dict_end(
-    self.get-native-object-no-reffing
+    self._get-native-object-no-reffing
   );
 }
 
@@ -210,10 +210,10 @@ Initialises a B<Gnome::Glib::VariantDict> structure.  If I<from_asv> is given, i
 
 method init ( N-GObject $from_asv ) {
   my $no = $from_asv;
-  $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
+  $no .= _get-native-object-no-reffing unless $no ~~ N-GObject;
 
   g_variant_dict_init(
-    self.get-native-object-no-reffing, $no
+    self._get-native-object-no-reffing, $no
   );
 }
 
@@ -242,7 +242,7 @@ method insert ( Str $key, Str $string is copy ) {
 
   $string ~~ s:g/ '%' /%%/;
   g_variant_dict_insert(
-    self.get-native-object-no-reffing, $key, $string, Nil
+    self._get-native-object-no-reffing, $key, $string, Nil
   );
 }
 
@@ -268,10 +268,10 @@ Inserts (or replaces) a key in a B<Gnome::Glib::VariantDict>.  I<value> is consu
 
 method insert-value ( Str $key, $value ) {
   my $no = $value;
-  $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
+  $no .= _get-native-object-no-reffing unless $no ~~ N-GObject;
 
   g_variant_dict_insert_value(
-    self.get-native-object-no-reffing, $key, $no
+    self._get-native-object-no-reffing, $key, $no
   );
 }
 
@@ -299,7 +299,7 @@ Returns: C<True> if a value was unpacked
 method lookup ( Str $key, Str $format_string --> Bool ) {
 
   g_variant_dict_lookup(
-    self.get-native-object-no-reffing, $key, $format_string
+    self._get-native-object-no-reffing, $key, $format_string
   ).Bool;
 }
 
@@ -331,10 +331,10 @@ multi method lookup-value (
 ) {
   my $no = Gnome::Glib::VariantType.new(
     :type-string($expected-type-string)
-  ).get-native-object-no-reffing;
+  )._get-native-object-no-reffing;
 
   my $lv = g_variant_dict_lookup_value(
-    self.get-native-object-no-reffing, $key, $no
+    self._get-native-object-no-reffing, $key, $no
   );
 
   Gnome::Glib::Variant.new(:native-object($lv))
@@ -344,11 +344,11 @@ multi method lookup-value (
   Str $key, $expected_type --> Gnome::Glib::Variant
 ) {
   my $no = $expected_type;
-  $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
+  $no .= _get-native-object-no-reffing unless $no ~~ N-GObject;
 
   Gnome::Glib::Variant.new(
     :native-object(
-      g_variant_dict_lookup_value(self.get-native-object-no-reffing, $key, $no)
+      g_variant_dict_lookup_value(self._get-native-object-no-reffing, $key, $no)
     )
   )
 }
@@ -375,7 +375,7 @@ Returns: C<True> if the key was found and removed
 method remove ( Str $key --> Bool ) {
 
   g_variant_dict_remove(
-    self.get-native-object-no-reffing, $key
+    self._get-native-object-no-reffing, $key
   ).Bool;
 }
 
@@ -400,7 +400,7 @@ Returns: a new reference
 method ref ( --> N-GObject ) {
 
   g_variant_dict_ref(
-    self.get-native-object-no-reffing, $dict
+    self._get-native-object-no-reffing, $dict
   );
 }
 }}
@@ -425,7 +425,7 @@ Decreases the reference count.  In the event that there are no more references, 
 method unref ( ) {
 
   g_variant_dict_unref(
-    self.get-native-object-no-reffing, $dict
+    self._get-native-object-no-reffing, $dict
   );
 }
 }}
@@ -454,7 +454,7 @@ Returns: a B<Gnome::Glib::VariantDict>
 method new ( N-GObject $from_asv --> N-GObject ) {
 
   g_variant_dict_new(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 }}

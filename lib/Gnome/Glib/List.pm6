@@ -169,7 +169,7 @@ submethod BUILD ( *%options ) {
       my $no;
       if ? %options<___x___> {
         #$no = %options<___x___>;
-        #$no .= get-native-object-no-reffing unless $no ~~ N-GObject;
+        #$no .= _get-native-object-no-reffing unless $no ~~ N-GObject;
         #$no = _g_list_new___x___($no);
       }
 
@@ -199,7 +199,7 @@ submethod BUILD ( *%options ) {
       }
       #}}
 
-      self.set-native-object($no);
+      self._set-native-object($no);
     }
 
     # only after creating the native-object, the gtype is known
@@ -277,7 +277,7 @@ Returns: a pointer to the newly-allocated B<Gnome::Glib::List> element
 method alloc ( --> N-GList ) {
 
   g_list_alloc(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   )
 }
 
@@ -315,7 +315,7 @@ Returns: either I<list> or the new start of the B<Gnome::Glib::List> if I<list> 
 
 method append ( Pointer $data --> Gnome::Glib::List ) {
   Gnome::Glib::List.new(
-    :native-object(g_list_append( self.get-native-object-no-reffing, $data))
+    :native-object(g_list_append( self._get-native-object-no-reffing, $data))
   )
 }
 
@@ -347,10 +347,10 @@ Returns: the start of the new B<Gnome::Glib::List>, which equals I<list1> if not
 =end pod
 
 method concat ( $list is copy --> Gnome::Glib::List ) {
-  $list .= get-native-object-no-reffing unless $list ~~ N-GList;
+  $list .= _get-native-object-no-reffing unless $list ~~ N-GList;
 
   Gnome::Glib::List.new(
-    :native-object(g_list_concat( self.get-native-object-no-reffing, $list))
+    :native-object(g_list_concat( self._get-native-object-no-reffing, $list))
   )
 }
 
@@ -377,7 +377,7 @@ Returns: the start of the new list that holds the same data as I<list>
 
 method copy ( --> Gnome::Glib::List ) {
   Gnome::Glib::List.new(
-    :native-object(g_list_copy(self.get-native-object-no-reffing))
+    :native-object(g_list_copy(self._get-native-object-no-reffing))
   )
 }
 
@@ -413,7 +413,7 @@ Returns: the start of the new list that holds a full copy of I<list>, use C<g-li
 method copy-deep ( GCopyFunc $func, Pointer $user_data --> N-GList ) {
 
   g_list_copy_deep(
-    self.get-native-object-no-reffing, $func, $user_data
+    self._get-native-object-no-reffing, $func, $user_data
   )
 }
 
@@ -435,7 +435,7 @@ Gets the data from the current B<Gnome::Glib::List> position.
 =end pod
 
 method data ( --> Pointer ) {
-  self.get-native-object-no-reffing.data
+  self._get-native-object-no-reffing.data
 }
 
 #-------------------------------------------------------------------------------
@@ -453,10 +453,10 @@ Returns: the (possibly changed) start of the B<Gnome::Glib::List>
 =end pod
 
 method delete-link ( $link is copy --> Gnome::Glib::List ) {
-  $link .= get-native-object-no-reffing unless $link ~~ N-GList;
+  $link .= _get-native-object-no-reffing unless $link ~~ N-GList;
 
   Gnome::Glib::List.new(
-    :native-object(g_list_delete_link(self.get-native-object-no-reffing, $link))
+    :native-object(g_list_delete_link(self._get-native-object-no-reffing, $link))
   )
 }
 
@@ -482,7 +482,7 @@ Returns: the found B<Gnome::Glib::List> element, or C<invalid> if it is not foun
 method find ( Pointer $data --> Gnome::Glib::List ) {
   Gnome::Glib::List.new(
     :native-object(
-      g_list_find( self.get-native-object-no-reffing, $data) // N-GList
+      g_list_find( self._get-native-object-no-reffing, $data) // N-GList
     )
   )
 }
@@ -556,7 +556,7 @@ method find-custom (
   Gnome::Glib::List.new(
     :native-object(
       g_list_find_custom(
-        self.get-native-object-no-reffing,
+        self._get-native-object-no-reffing,
         gpointer,
         sub ( gpointer $item, gpointer $ud --> gint ) {
           $handler-object."$method"( $item, |%user-data)
@@ -588,7 +588,7 @@ Returns: the first element in the B<Gnome::Glib::List>, or C<invalid> if the B<G
 
 method first ( --> Gnome::Glib::List ) {
   Gnome::Glib::List.new(
-    :native-object(g_list_first(self.get-native-object-no-reffing))
+    :native-object(g_list_first(self._get-native-object-no-reffing))
   )
 }
 
@@ -624,7 +624,7 @@ method foreach ( Any:D $handler-object, Str:D $method, *%user-data ) {
     unless $handler-object.^can($method);
 
   g_list_foreach(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
     -> gpointer $item, gpointer $d {
       $handler-object."$method"( $item, |%user-data)
     },
@@ -654,7 +654,7 @@ It is usually used after C<remove-link()>.
 method free1 ( ) {
 
   g_list_free_1(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -682,7 +682,7 @@ I<free-func> must not modify the list (eg, by removing the freed element from it
 method free-full ( GDestroyNotify $free_func ) {
 
   g_list_free_full(
-    self.get-native-object-no-reffing, $free_func
+    self._get-native-object-no-reffing, $free_func
   );
 }
 
@@ -710,7 +710,7 @@ Returns: the index of the element containing the data, or -1 if the data is not 
 method index ( Pointer $data --> Int ) {
 
   g_list_index(
-    self.get-native-object-no-reffing, $data
+    self._get-native-object-no-reffing, $data
   )
 }
 
@@ -738,7 +738,7 @@ method insert ( Pointer $data, Int $position --> Gnome::Glib::List ) {
 
   Gnome::Glib::List.new(
     :native-object(
-      g_list_insert( self.get-native-object-no-reffing, $data, $position)
+      g_list_insert( self._get-native-object-no-reffing, $data, $position)
     )
   )
 }
@@ -764,11 +764,11 @@ Returns: the (possibly changed) start of the B<Gnome::Glib::List>
 =end pod
 
 method insert-before ( $sibling is copy, Pointer $data --> Gnome::Glib::List ) {
-  $sibling .= get-native-object-no-reffing unless $sibling ~~ N-GList;
+  $sibling .= _get-native-object-no-reffing unless $sibling ~~ N-GList;
 
   Gnome::Glib::List.new(
     :native-object(
-      g_list_insert_before( self.get-native-object-no-reffing, $sibling, $data)
+      g_list_insert_before( self._get-native-object-no-reffing, $sibling, $data)
     )
   )
 }
@@ -799,7 +799,7 @@ Returns: the (possibly changed) start of the B<Gnome::Glib::List>
 method insert-sorted ( Pointer $data, GCompareFunc $func --> N-GList ) {
 
   g_list_insert_sorted(
-    self.get-native-object-no-reffing, $data, $func
+    self._get-native-object-no-reffing, $data, $func
   )
 }
 
@@ -831,7 +831,7 @@ Returns: the (possibly changed) start of the B<Gnome::Glib::List>
 method insert-sorted-with-data ( Pointer $data, GCompareDataFunc $func, Pointer $user_data --> N-GList ) {
 
   g_list_insert_sorted_with_data(
-    self.get-native-object-no-reffing, $data, $func, $user_data
+    self._get-native-object-no-reffing, $data, $func, $user_data
   )
 }
 
@@ -856,7 +856,7 @@ Returns: the last element in the B<Gnome::Glib::List>, or C<invalid> if the B<Gn
 
 method last ( --> Gnome::Glib::List ) {
   Gnome::Glib::List.new(
-    :native-object(g_list_last(self.get-native-object-no-reffing))
+    :native-object(g_list_last(self._get-native-object-no-reffing))
   )
 }
 
@@ -883,7 +883,7 @@ Returns: the number of elements in the B<Gnome::Glib::List>
 =end pod
 
 method length ( --> UInt ) {
-  g_list_length(self.get-native-object-no-reffing)
+  g_list_length(self._get-native-object-no-reffing)
 }
 
 sub g_list_length (
@@ -904,7 +904,7 @@ Gets the next element in a B<Gnome::Glib::List>, or undefined if the B<Gnome::Gl
 
 method next ( --> Gnome::Glib::List ) {
   Gnome::Glib::List.new(
-    :native-object(self.get-native-object-no-reffing.next // N-GList)
+    :native-object(self._get-native-object-no-reffing.next // N-GList)
   );
 }
 
@@ -926,7 +926,7 @@ Returns: the element, or C<invalid> if the position is off the end of the B<Gnom
 
 method nth ( UInt $n --> Gnome::Glib::List ) {
   Gnome::Glib::List.new(
-    :native-object(g_list_nth(self.get-native-object-no-reffing // N-GList, $n))
+    :native-object(g_list_nth(self._get-native-object-no-reffing // N-GList, $n))
   )
 }
 
@@ -952,7 +952,7 @@ Returns: the element's data, or C<undefined> if the position is off the end of t
 =end pod
 
 method nth-data ( UInt $n --> Pointer ) {
-  g_list_nth_data( self.get-native-object-no-reffing, $n)
+  g_list_nth_data( self._get-native-object-no-reffing, $n)
 }
 
 sub g_list_nth_data (
@@ -977,7 +977,7 @@ Returns: the element, or C<invalid> if the position is off the end of the B<Gnom
 method nth-prev ( UInt $n --> Gnome::Glib::List ) {
   Gnome::Glib::List.new(
     :native-object(
-      g_list_nth_prev( self.get-native-object-no-reffing, $n) // N-GList
+      g_list_nth_prev( self._get-native-object-no-reffing, $n) // N-GList
     )
   )
 }
@@ -1002,8 +1002,8 @@ Returns: the position of the element in the B<Gnome::Glib::List>, or -1 if the e
 =end pod
 
 method position ( $llink is copy --> Int ) {
-  $llink .= get-native-object-no-reffing unless $llink ~~ N-GList;
-  g_list_position( self.get-native-object-no-reffing, $llink)
+  $llink .= _get-native-object-no-reffing unless $llink ~~ N-GList;
+  g_list_position( self._get-native-object-no-reffing, $llink)
 }
 
 sub g_list_position (
@@ -1037,7 +1037,7 @@ Returns: a pointer to the newly prepended element, which is the new start of the
 
 method prepend ( Pointer $data --> Gnome::Glib::List ) {
   Gnome::Glib::List.new(
-    :native-object(g_list_prepend( self.get-native-object-no-reffing, $data))
+    :native-object(g_list_prepend( self._get-native-object-no-reffing, $data))
   )
 }
 
@@ -1059,7 +1059,7 @@ Gets the previous element in a B<Gnome::Glib::List>, or C<invalif> if the B<Gnom
 
 method previous ( --> Gnome::Glib::List ) {
   Gnome::Glib::List.new(
-    :native-object(self.get-native-object-no-reffing.prev // N-GList)
+    :native-object(self._get-native-object-no-reffing.prev // N-GList)
   );
 }
 
@@ -1080,7 +1080,7 @@ Returns: the (possibly changed) start of the B<Gnome::Glib::List>
 method remove ( Pointer $data --> Gnome::Glib::List ) {
   Gnome::Glib::List.new(
     :native-object(
-      g_list_remove( self.get-native-object-no-reffing, $data) // N-GList
+      g_list_remove( self._get-native-object-no-reffing, $data) // N-GList
     )
   )
 }
@@ -1107,7 +1107,7 @@ Returns: the (possibly changed) start of the B<Gnome::Glib::List>
 method remove-all ( Pointer $data --> Gnome::Glib::List ) {
   Gnome::Glib::List.new(
     :native-object(
-      g_list_remove_all( self.get-native-object-no-reffing, $data) // N-GList
+      g_list_remove_all( self._get-native-object-no-reffing, $data) // N-GList
     )
   )
 }
@@ -1139,11 +1139,11 @@ Returns: the (possibly changed) start of the B<Gnome::Glib::List>
 =end pod
 
 method remove-link ( $llink is copy --> Gnome::Glib::List ) {
-  $llink .= get-native-object-no-reffing unless $llink ~~ N-GList;
+  $llink .= _get-native-object-no-reffing unless $llink ~~ N-GList;
 
   Gnome::Glib::List.new(
     :native-object(
-      g_list_remove_link( self.get-native-object-no-reffing, $llink) // N-GList
+      g_list_remove_link( self._get-native-object-no-reffing, $llink) // N-GList
     )
   )
 }
@@ -1169,7 +1169,7 @@ Returns: the start of the reversed B<Gnome::Glib::List>
 method reverse ( --> Gnome::Glib::List ) {
   Gnome::Glib::List.new(
     :native-object(
-      g_list_reverse(self.get-native-object-no-reffing) // N-GList
+      g_list_reverse(self._get-native-object-no-reffing) // N-GList
     )
   )
 }
@@ -1214,7 +1214,7 @@ method sort (
   Gnome::Glib::List.new(
     :native-object(
       g_list_sort(
-        self.get-native-object-no-reffing,
+        self._get-native-object-no-reffing,
         sub ( gpointer $a, gpointer $b --> gint ) {
           $user-object."$method"( $a, $b)
         }
@@ -1249,7 +1249,7 @@ Returns: the (possibly changed) start of the B<Gnome::Glib::List>
 method sort-with-data ( GCompareDataFunc $compare_func, Pointer $user_data --> N-GList ) {
 
   g_list_sort_with_data(
-    self.get-native-object-no-reffing, $compare_func, $user_data
+    self._get-native-object-no-reffing, $compare_func, $user_data
   )
 }
 

@@ -199,7 +199,7 @@ loop ( my Int $i = 0; $i < $list.length; $i++ ) {
 method foreach ( $func-object, Str $func-name ) {
   if $func-object.^can($func-name) {
     _g_list_foreach(
-      self.get-native-object,
+      self._get-native-object,
       sub ( $d, $ud ) {
         $func-object."$func-name"( self, $d);
       },

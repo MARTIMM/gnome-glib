@@ -134,13 +134,13 @@ submethod BUILD ( *%options ) {
     # process all named arguments
     elsif ? %options<empty> {
       Gnome::N::deprecate( '.new(:empty)', '.new()', '0.15.5', '0.18.0');
-      self.set-native-object(N-GSList);
+      self._set-native-object(N-GSList);
     }
 
     elsif ? %options<gslist> {
       my $no = %options<gslist>;
-      $no .= get-native-object if $no ~~ Gnome::Glib::SList;
-      self.set-native-object($no);
+      $no .= _get-native-object if $no ~~ Gnome::Glib::SList;
+      self._set-native-object($no);
 
       Gnome::N::deprecate(
         '.new(:gslist)', '.new(:native-object)', '0.16.0', '0.18.0'
@@ -148,7 +148,7 @@ submethod BUILD ( *%options ) {
     }
 
     else {
-      self.set-native-object(N-GSList);
+      self._set-native-object(N-GSList);
     }
 
     # only after creating the native-object, the gtype is known

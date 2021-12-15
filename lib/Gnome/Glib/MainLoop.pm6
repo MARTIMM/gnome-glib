@@ -155,7 +155,7 @@ submethod BUILD ( *%options ) {
       my $no;
       if ? %options<context> {
         $no = %options<context>;
-        $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
+        $no .= _get-native-object-no-reffing unless $no ~~ N-GObject;
         $no = _g_main_loop_new( $no, False);
       }
 
@@ -185,7 +185,7 @@ submethod BUILD ( *%options ) {
       }
       #}}
 
-      self.set-native-object($no);
+      self._set-native-object($no);
     }
 
     # only after creating the native-object, the gtype is known
@@ -218,7 +218,7 @@ method get-context ( --> Gnome::Glib::MainContext ) {
 
   Gnome::Glib::MainContext.new(:native-object(
       g_main_loop_get_context(
-        self.get-native-object-no-reffing
+        self._get-native-object-no-reffing
       )
     )
   );
@@ -245,7 +245,7 @@ Returns: C<True> if the mainloop is currently being run.
 method is-running (--> Bool ) {
 
   g_main_loop_is_running(
-    self.get-native-object-no-reffing
+    self._get-native-object-no-reffing
   ).Bool;
 }
 
@@ -274,7 +274,7 @@ Returns: a new B<Gnome::Glib::MainLoop>.
 method new ( N-GObject $context, Int $is_running --> N-GObject ) {
 
   g_main_loop_new(
-    self.get-native-object-no-reffing, $context, $is_running
+    self._get-native-object-no-reffing, $context, $is_running
   );
 }
 }}
@@ -301,7 +301,7 @@ Note that sources that have already been dispatched when C<quit()> is called wil
 method quit ( ) {
 
   g_main_loop_quit(
-    self.get-native-object-no-reffing
+    self._get-native-object-no-reffing
   );
 }
 
@@ -328,7 +328,7 @@ Returns: I<loop>
 method ref ( N-GObject $loop --> N-GObject ) {
 
   g_main_loop_ref(
-    self.get-native-object-no-reffing, $loop
+    self._get-native-object-no-reffing, $loop
   );
 }
 }}
@@ -351,7 +351,7 @@ Runs a main loop until C<quit()> is called on the loop. If this is called for th
 
 method run ( ) {
   g_main_loop_run(
-    self.get-native-object-no-reffing
+    self._get-native-object-no-reffing
   );
 }
 
@@ -392,7 +392,7 @@ method timeout-add (
   UInt $interval, GSourceFunc $function, Pointer $data --> UInt
 ) {
   g_timeout_add(
-    self.get-native-object-no-reffing, $interval, $function, $data
+    self._get-native-object-no-reffing, $interval, $function, $data
   )
 }
 
@@ -438,7 +438,7 @@ method timeout-add-full (
 ) {
 
   g_timeout_add_full(
-    self.get-native-object-no-reffing, $priority, $interval, $function, $data, $notify
+    self._get-native-object-no-reffing, $priority, $interval, $function, $data, $notify
   )
 }
 
@@ -480,7 +480,7 @@ method timeout-add-seconds (
 ) {
 
   g_timeout_add_seconds(
-    self.get-native-object-no-reffing, $interval, $function, $data
+    self._get-native-object-no-reffing, $interval, $function, $data
   )
 }
 
@@ -532,7 +532,7 @@ method timeout-add-seconds-full (
 ) {
 
   g_timeout_add_seconds_full(
-    self.get-native-object-no-reffing, $priority, $interval, $function, $data, $notify
+    self._get-native-object-no-reffing, $priority, $interval, $function, $data, $notify
   )
 }
 
@@ -559,7 +559,7 @@ Decreases the reference count on a B<Gnome::Glib::MainLoop> object by one. If th
 method unref ( N-GObject $loop ) {
 
   g_main_loop_unref(
-    self.get-native-object-no-reffing, $loop
+    self._get-native-object-no-reffing, $loop
   );
 }
 }}

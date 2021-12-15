@@ -267,13 +267,13 @@ submethod BUILD ( *%options ) {
 
       elsif %options<array> {
         $no = %options<array>;
-        $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
+        $no .= _get-native-object-no-reffing unless $no ~~ N-GObject;
         $no = _g_variant_type_new_array($no);
       }
 
       elsif %options<maybe> {
         $no = %options<maybe>;
-        $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
+        $no .= _get-native-object-no-reffing unless $no ~~ N-GObject;
         $no = _g_variant_type_new_maybe($no);
       }
 
@@ -288,7 +288,7 @@ submethod BUILD ( *%options ) {
       }
       #}}
 
-      self.set-native-object($no);
+      self._set-native-object($no);
     }
 
     # only after creating the native-object, the gtype is known
@@ -337,7 +337,7 @@ Returns: a new B<GVariantType>
 
 method copy ( --> Gnome::Glib::VariantType ) {
   Gnome::Glib::VariantType.new(
-    :native-object(g_variant_type_copy(self.get-native-object-no-reffing))
+    :native-object(g_variant_type_copy(self._get-native-object-no-reffing))
   );
 }
 
@@ -361,7 +361,7 @@ Returns: (transfer full): the corresponding type string
 method dup-string ( -->  Str  ) {
 
   g_variant_type_dup_string(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -384,7 +384,7 @@ Returns: the element type of I<type>
 
 method element ( --> Gnome::Glib::VariantType ) {
   Gnome::Glib::VariantType.new(
-    :native-object(g_variant_type_element(self.get-native-object-no-reffing))
+    :native-object(g_variant_type_element(self._get-native-object-no-reffing))
   );
 }
 
@@ -409,10 +409,10 @@ Compares this type and I<$type2> for equality.  Only returns C<True> if the type
 
 method equal ( $type2 --> Bool ) {
   my $no = $type2;
-  $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
+  $no .= _get-native-object-no-reffing unless $no ~~ N-GObject;
 
   g_variant_type_equal(
-    self.get-native-object-no-reffing, $no
+    self._get-native-object-no-reffing, $no
   ).Bool;
 }
 
@@ -436,7 +436,7 @@ Returns: the first item type of I<type>, or invalid
 
 method first ( --> Gnome::Glib::VariantType ) {
   Gnome::Glib::VariantType.new(
-    :native-object(g_variant_type_first(self.get-native-object-no-reffing))
+    :native-object(g_variant_type_first(self._get-native-object-no-reffing))
   );
 }
 
@@ -460,7 +460,7 @@ Returns: the length of the corresponding type string
 method get-string-length ( --> UInt ) {
 
   g_variant_type_get_string_length(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -487,7 +487,7 @@ Returns: the hash value
 method hash ( --> UInt ) {
 
   g_variant_type_hash(
-    self.get-native-object-no-reffing
+    self._get-native-object-no-reffing
   );
 }
 
@@ -512,7 +512,7 @@ Returns: C<True> if I<type> is an array type
 method is-array ( --> Bool ) {
 
   g_variant_type_is_array(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   ).Bool;
 }
 
@@ -536,7 +536,7 @@ Returns: C<True> if I<type> is a basic type
 method is-basic ( --> Bool ) {
 
   g_variant_type_is_basic(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   ).Bool;
 }
 
@@ -561,7 +561,7 @@ Returns: C<True> if I<type> is a container type
 method is-container ( --> Bool ) {
 
   g_variant_type_is_container(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   ).Bool;
 }
 
@@ -586,7 +586,7 @@ Returns: C<True> if I<type> is definite
 method is-definite ( --> Bool ) {
 
   g_variant_type_is_definite(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   ).Bool;
 }
 
@@ -611,7 +611,7 @@ Returns: C<True> if I<type> is a dictionary entry type
 method is-dict-entry ( --> Bool ) {
 
   g_variant_type_is_dict_entry(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   ).Bool;
 }
 
@@ -636,7 +636,7 @@ Returns: C<True> if I<type> is a maybe type
 method is-maybe ( --> Bool ) {
 
   g_variant_type_is_maybe(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   ).Bool;
 }
 
@@ -661,10 +661,10 @@ Returns: C<True> if I<type> is a subtype of I<$supertype>
 
 method is-subtype-of ( $supertype --> Bool ) {
   my $no = $supertype;
-  $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
+  $no .= _get-native-object-no-reffing unless $no ~~ N-GObject;
 
   g_variant_type_is_subtype_of(
-    self.get-native-object-no-reffing, $no
+    self._get-native-object-no-reffing, $no
   ).Bool;
 }
 
@@ -689,7 +689,7 @@ Returns: C<True> if I<type> is a tuple type
 method is-tuple ( --> Bool ) {
 
   g_variant_type_is_tuple(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   ).Bool;
 }
 
@@ -736,7 +736,7 @@ Returns: C<True> if I<type> is the variant type
 method is-variant ( --> Bool ) {
 
   g_variant_type_is_variant(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   ).Bool;
 }
 
@@ -760,7 +760,7 @@ Returns: the key type of the dictionary entry
 
 method key ( --> Gnome::Glib::VariantType ) {
   Gnome::Glib::VariantType.new(
-    :native-object(g_variant_type_key(self.get-native-object-no-reffing))
+    :native-object(g_variant_type_key(self._get-native-object-no-reffing))
   );
 }
 
@@ -785,7 +785,7 @@ Returns: the number of items in I<type>
 method n-items ( --> UInt ) {
 
   g_variant_type_n_items(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -808,7 +808,7 @@ Returns: the next B<Gnome::Glib::VariantType> after I<type>, or invalid
 
 method next ( --> Gnome::Glib::VariantType ) {
   Gnome::Glib::VariantType.new(
-    :native-object(g_variant_type_next(self.get-native-object-no-reffing))
+    :native-object(g_variant_type_next(self._get-native-object-no-reffing))
   );
 }
 
@@ -834,7 +834,7 @@ Returns: the corresponding type string (not nul-terminated)
 method peek-string ( -->  Str  ) {
 
   g_variant_type_peek_string(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -890,7 +890,7 @@ Returns: the value type of the dictionary entry
 
 method value ( --> Gnome::Glib::VariantType ) {
   Gnome::Glib::VariantType.new(
-    :native-object(g_variant_type_value(self.get-native-object-no-reffing))
+    :native-object(g_variant_type_value(self._get-native-object-no-reffing))
   );
 }
 
@@ -1012,7 +1012,7 @@ sub _g_variant_type_new_tuple ( @items --> N-GObject ) {
   my $no = CArray[N-GObject].new;
   my $count = 0;
   for @items -> $item is copy {
-    $item .= get-native-object-no-reffing unless $item ~~ N-GObject;
+    $item .= _get-native-object-no-reffing unless $item ~~ N-GObject;
     $no[$count++] = $item;
   }
 
@@ -1081,7 +1081,7 @@ sub _g_variant_type_new_dict_entry ( N-GObject $key, N-GObject $value --> N-GObj
 method checked- (  $const gchar * --> N-GObject ) {
 
   g_variant_type_checked_(
-    self.get-native-object-no-reffing, $const gchar *
+    self._get-native-object-no-reffing, $const gchar *
   );
 }
 
@@ -1109,7 +1109,7 @@ Returns: depth of I<type_string>, or 0 on error
 method string-get-depth- (  Str  $type_string --> UInt ) {
 
   g_variant_type_string_get_depth_(
-    self.get-native-object-no-reffing, $type_string
+    self._get-native-object-no-reffing, $type_string
   );
 }
 

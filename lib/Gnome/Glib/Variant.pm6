@@ -544,11 +544,11 @@ submethod BUILD ( *%options ) {
         my Int $i = 0;
         my $children = CArray[N-GObject].new;
         for @(%options<array>) -> $no is copy {
-          $no .= get-native-object unless $no ~~ N-GObject;
+          $no .= _get-native-object unless $no ~~ N-GObject;
           $children[$i++] = $no;
         }
 
-        $no = _g_variant_new_array( $vt.get-native-object, $children, $i);
+        $no = _g_variant_new_array( $vt._get-native-object, $children, $i);
       }
 
       elsif %options<boolean>:exists {
@@ -574,9 +574,9 @@ submethod BUILD ( *%options ) {
 
       elsif %options<dict>:exists {
         my $no1 = %options<dict>[0];
-        $no1 .= get-native-object-no-reffing unless $no1 ~~ N-GObject;
+        $no1 .= _get-native-object-no-reffing unless $no1 ~~ N-GObject;
         my $no2 = %options<dict>[1];
-        $no2 .= get-native-object-no-reffing unless $no2 ~~ N-GObject;
+        $no2 .= _get-native-object-no-reffing unless $no2 ~~ N-GObject;
 
         $no = _g_variant_new_dict_entry( $no1, $no2);
       }
@@ -614,7 +614,7 @@ submethod BUILD ( *%options ) {
         my Int $i = 0;
         my $children = CArray[N-GObject].new;
         for @(%options<tuple>) -> $no is copy {
-          $no .= get-native-object unless $no ~~ N-GObject;
+          $no .= _get-native-object unless $no ~~ N-GObject;
           $children[$i++] = $no;
         }
 
@@ -635,7 +635,7 @@ submethod BUILD ( *%options ) {
 
       elsif %options<variant>:exists {
         $no = %options<variant>;
-        $no .= get-native-object unless $no ~~ N-GObject;
+        $no .= _get-native-object unless $no ~~ N-GObject;
         $no = _g_variant_new_variant($no);
       }
 
@@ -660,7 +660,7 @@ submethod BUILD ( *%options ) {
       }
 
 
-      self.set-native-object($no);
+      self._set-native-object($no);
     }
 
     # only after creating the native-object, the gtype is known
@@ -711,7 +711,7 @@ Returns: (transfer full): the byteswapped form of I<value>
 method byteswap ( --> N-GObject ) {
 
   g_variant_byteswap(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -739,7 +739,7 @@ Returns: C<1> if I<format_string> is safe to use
 method check-format-string (  Str  $format_string, Int $copy_only --> Int ) {
 
   g_variant_check_format_string(
-    self.get-native-object-no-reffing, $format_string, $copy_only
+    self._get-native-object-no-reffing, $format_string, $copy_only
   );
 }
 
@@ -765,7 +765,7 @@ Returns: the B<GVariantClass> of I<value>
 method classify ( --> GVariantClass ) {
 
   g_variant_classify(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -793,7 +793,7 @@ Returns: negative value if a < b; zero if a = b; positive value if a > b.
 method compare ( Pointer $one, Pointer $two --> Int ) {
 
   g_variant_compare(
-    self.get-native-object-no-reffing, $one, $two
+    self._get-native-object-no-reffing, $one, $two
   );
 }
 
@@ -821,7 +821,7 @@ Returns: (transfer full) (array zero-terminated=1 length=length) (element-type g
 method dup-bytestring ( UInt $length -->  Str  ) {
 
   g_variant_dup_bytestring(
-    self.get-native-object-no-reffing, $length
+    self._get-native-object-no-reffing, $length
   );
 }
 
@@ -847,7 +847,7 @@ Returns: (array length=length) (transfer full): an array of strings
 method dup-bytestring-array ( UInt $length -->  CArray[Str]  ) {
 
   g_variant_dup_bytestring_array(
-    self.get-native-object-no-reffing, $length
+    self._get-native-object-no-reffing, $length
   );
 }
 
@@ -873,7 +873,7 @@ Returns: (array length=length zero-terminated=1) (transfer full): an array of st
 method dup-objv ( UInt $length -->  CArray[Str]  ) {
 
   g_variant_dup_objv(
-    self.get-native-object-no-reffing, $length
+    self._get-native-object-no-reffing, $length
   );
 }
 
@@ -899,7 +899,7 @@ Returns: (transfer full): a newly allocated string, UTF-8 encoded
 method dup-string ( UInt $length -->  Str  ) {
 
   g_variant_dup_string(
-    self.get-native-object-no-reffing, $length
+    self._get-native-object-no-reffing, $length
   );
 }
 
@@ -925,7 +925,7 @@ Returns: (array length=length zero-terminated=1) (transfer full): an array of st
 method dup-strv ( UInt $length -->  CArray[Str]  ) {
 
   g_variant_dup_strv(
-    self.get-native-object-no-reffing, $length
+    self._get-native-object-no-reffing, $length
   );
 }
 
@@ -954,7 +954,7 @@ Returns: C<1> if I<one> and I<two> are equal
 method equal ( Pointer $one, Pointer $two --> Int ) {
 
   g_variant_equal(
-    self.get-native-object-no-reffing, $one, $two
+    self._get-native-object-no-reffing, $one, $two
   );
 }
 
@@ -979,7 +979,7 @@ Deconstructs a B<N-GObject> instance.  Think of this function as an analogue to 
 method get (  Str  $format_string ) {
 
   g_variant_get(
-    self.get-native-object-no-reffing, $format_string
+    self._get-native-object-no-reffing, $format_string
   );
 }
 
@@ -1005,7 +1005,7 @@ Returns: C<True> or C<False>
 method get-boolean ( --> Bool ) {
 
   g_variant_get_boolean(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   ).Bool;
 }
 
@@ -1030,7 +1030,7 @@ Returns: a B<guint8>
 method get-byte ( --> UInt ) {
 
   g_variant_get_byte(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -1052,7 +1052,7 @@ Returns the string value of a B<N-GObject> instance with an array-of-bytes type.
 method get-bytestring ( -->  Str  ) {
 
   g_variant_get_bytestring(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -1074,7 +1074,7 @@ Gets the contents of an array of array of bytes B<N-GObject>.
 method get-bytestring-array ( -->  Array[Str]  ) {
 
   my CArray[Str] $ai8 = g_variant_get_bytestring_array(
-    self.get-native-object-no-reffing, my gsize $length
+    self._get-native-object-no-reffing, my gsize $length
   );
 
   my Array[Str] $a .= new;
@@ -1108,7 +1108,7 @@ Reads a child item out of a container B<N-GObject> instance and deconstructs it 
 method get-child ( UInt $index_,  Str  $format_string ) {
 
   g_variant_get_child(
-    self.get-native-object-no-reffing, $index_, $format_string
+    self._get-native-object-no-reffing, $index_, $format_string
   );
 }
 
@@ -1134,7 +1134,7 @@ sub g_variant_get_child ( N-GObject $value, gsize $index_, gchar-ptr $format_str
 method get-child-value ( UInt $index_ --> N-GObject ) {
 
   g_variant_get_child_value(
-    self.get-native-object-no-reffing, $index_
+    self._get-native-object-no-reffing, $index_
   );
 }
 
@@ -1158,7 +1158,7 @@ sub g_variant_get_child_value ( N-GObject $value, gsize $index_ --> N-GObject )
 method get-data ( --> Pointer ) {
 
   g_variant_get_data(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -1182,7 +1182,7 @@ sub g_variant_get_data ( N-GObject $value --> gpointer )
 method get-data-as-bytes ( --> N-GBytes ) {
 
   g_variant_get_data_as_bytes(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -1208,7 +1208,7 @@ Returns: a B<gdouble>
 method get-double ( --> Num ) {
 
   g_variant_get_double(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -1236,7 +1236,7 @@ Returns: (array length=n_elements) (transfer none): a pointer to the fixed array
 method get-fixed-array ( UInt $n_elements, UInt $element_size --> Pointer ) {
 
   g_variant_get_fixed_array(
-    self.get-native-object-no-reffing, $n_elements, $element_size
+    self._get-native-object-no-reffing, $n_elements, $element_size
   );
 }
 
@@ -1262,7 +1262,7 @@ Returns: a B<gint32>
 method get-handle ( --> Int ) {
 
   g_variant_get_handle(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -1288,7 +1288,7 @@ Returns: a B<gint16>
 method get-int16 ( --> Int ) {
 
   g_variant_get_int16(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -1313,7 +1313,7 @@ Returns: a B<gint32>
 method get-int32 ( --> Int ) {
 
   g_variant_get_int32(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -1338,7 +1338,7 @@ Returns: a B<gint64>
 method get-int64 ( --> Int ) {
 
   g_variant_get_int64(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -1364,7 +1364,7 @@ Returns: (nullable) (transfer full): the contents of I<value>, or C<Any>
 method get-maybe ( --> N-GObject ) {
 
   g_variant_get_maybe(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -1390,7 +1390,7 @@ Returns: (transfer full): a trusted B<N-GObject>
 method get-normal-form ( --> N-GObject ) {
 
   g_variant_get_normal_form(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -1417,7 +1417,7 @@ Returns: (array length=length zero-terminated=1) (transfer container): an array 
 method get-objv ( UInt $length -->  CArray[Str]  ) {
 
   g_variant_get_objv(
-    self.get-native-object-no-reffing, $length
+    self._get-native-object-no-reffing, $length
   );
 }
 
@@ -1441,7 +1441,7 @@ sub g_variant_get_objv ( N-GObject $value, gsize $length --> gchar-pptr )
 method get-size ( --> UInt ) {
 
   g_variant_get_size(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -1464,7 +1464,7 @@ Returns the string value of a B<N-GObject> instance with a string type.
 method get-string ( -->  Str  ) {
 
   my Str $s = g_variant_get_string(
-    self.get-native-object-no-reffing, my gsize $length
+    self._get-native-object-no-reffing, my gsize $length
   );
 
   $s
@@ -1489,7 +1489,7 @@ Gets the contents of an array of strings B<N-GObject>. This call makes a shallow
 method get-strv ( --> Array[Str]  ) {
 
   my CArray[Str] $astr = g_variant_get_strv(
-    self.get-native-object-no-reffing, my gsize $length
+    self._get-native-object-no-reffing, my gsize $length
   );
 
   my Array[Str] $a .= new;
@@ -1521,7 +1521,7 @@ Returns: a B<GVariantType>
 method get-type ( --> Gnome::Glib::VariantType ) {
 
   Gnome::Glib::VariantType.new(
-    :native-object(g_variant_get_type(self.get-native-object-no-reffing))
+    :native-object(g_variant_get_type(self._get-native-object-no-reffing))
   );
 }
 
@@ -1546,7 +1546,7 @@ Returns: the type string for the type of I<value>
 method get-type-string ( -->  Str  ) {
 
   g_variant_get_type_string(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -1571,7 +1571,7 @@ Returns: a B<guint16>
 method get-uint16 ( --> UInt ) {
 
   g_variant_get_uint16(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -1596,7 +1596,7 @@ Returns: a B<guint32>
 method get-uint32 ( --> UInt ) {
 
   g_variant_get_uint32(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -1621,7 +1621,7 @@ Returns: a B<guint64>
 method get-uint64 ( --> UInt ) {
 
   g_variant_get_uint64(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -1648,7 +1648,7 @@ This function is intended to be used by libraries based on B<N-GObject> that wan
 method get-va (  Str  $format_string,  CArray[Str]  $endptr, va_list $app ) {
 
   g_variant_get_va(
-    self.get-native-object-no-reffing, $format_string, $endptr, $app
+    self._get-native-object-no-reffing, $format_string, $endptr, $app
   );
 }
 
@@ -1674,7 +1674,7 @@ Returns: the item contained in the variant
 method get-variant ( --> Gnome::Glib::Variant ) {
 
   Gnome::Glib::Variant.new(
-    :native-object(g_variant_get_variant(self.get-native-object-no-reffing))
+    :native-object(g_variant_get_variant(self._get-native-object-no-reffing))
   );
 }
 
@@ -1701,7 +1701,7 @@ Returns: a hash value corresponding to I<value>
 method hash ( Pointer $value --> UInt ) {
 
   g_variant_hash(
-    self.get-native-object-no-reffing, $value
+    self._get-native-object-no-reffing, $value
   );
 }
 
@@ -1727,7 +1727,7 @@ Returns: C<1> if I<value> is a container
 method is-container ( --> Int ) {
 
   g_variant_is_container(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -1751,7 +1751,7 @@ sub g_variant_is_container ( N-GObject $value --> gboolean )
 method is-floating ( --> Int ) {
 
   g_variant_is_floating(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -1775,7 +1775,7 @@ sub g_variant_is_floating ( N-GObject $value --> gboolean )
 method is-normal-form ( --> Int ) {
 
   g_variant_is_normal_form(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -1802,7 +1802,7 @@ Returns: C<1> if I<string> is a D-Bus object path
 method is-object-path (  Str  $string --> Int ) {
 
   g_variant_is_object_path(
-    self.get-native-object-no-reffing, $string
+    self._get-native-object-no-reffing, $string
   );
 }
 
@@ -1828,10 +1828,10 @@ Returns: C<True> if the type of I<value> matches I<type>
 
 method is-of-type ( $type --> Bool ) {
   my $no = $type;
-  $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
+  $no .= _get-native-object-no-reffing unless $no ~~ N-GObject;
 
   g_variant_is_of_type(
-    self.get-native-object-no-reffing, $no
+    self._get-native-object-no-reffing, $no
   ).Bool;
 }
 
@@ -1858,7 +1858,7 @@ Returns: C<1> if I<string> is a D-Bus type signature
 method is-signature (  Str  $string --> Int ) {
 
   g_variant_is_signature(
-    self.get-native-object-no-reffing, $string
+    self._get-native-object-no-reffing, $string
   );
 }
 
@@ -1887,7 +1887,7 @@ Returns: C<1> if a value was unpacked
 method lookup (  Str  $key,  Str  $format_string --> Int ) {
 
   g_variant_lookup(
-    self.get-native-object-no-reffing, $key, $format_string
+    self._get-native-object-no-reffing, $key, $format_string
   );
 }
 
@@ -1918,10 +1918,10 @@ method lookup-value (
   Str $key, N-GObject $expected_type --> N-GObject
 ) {
   my $no = $expected_type;
-  $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
+  $no .= _get-native-object-no-reffing unless $no ~~ N-GObject;
 
   g_variant_lookup_value(
-    self.get-native-object-no-reffing, $key, $no
+    self._get-native-object-no-reffing, $key, $no
   );
 }
 
@@ -1948,7 +1948,7 @@ sub g_variant_lookup_value (
 method n-children ( --> UInt ) {
 
   g_variant_n_children(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -1989,7 +1989,7 @@ sub _g_variant_parse ( Str :$type-string = '', Str:D :$parse --> List ) {
   if ?$type-string {
     $nvt = Gnome::Glib::VariantType.new(
       :$type-string
-    ).get-native-object-no-reffing;
+    )._get-native-object-no-reffing;
   }
 
   else {
@@ -2035,7 +2035,7 @@ sub g_variant_parse (
 method parse-error-print-context ( N-GError $error,  Str  $source_str -->  Str  ) {
 
   g_variant_parse_error_print_context(
-    self.get-native-object-no-reffing, $error, $source_str
+    self._get-native-object-no-reffing, $error, $source_str
   );
 }
 
@@ -2059,7 +2059,7 @@ Error domain for GVariant text format parsing. Specific error codes are not curr
 method parse-error-quark ( --> UInt ) {
 
   g_variant_parse_error_quark(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -2086,7 +2086,7 @@ Returns: a newly-allocated string holding the result.
 method print ( Bool $type_annotate = False --> Str ) {
 
   g_variant_print(
-    self.get-native-object-no-reffing, $type_annotate.Int
+    self._get-native-object-no-reffing, $type_annotate.Int
   );
 }
 
@@ -2113,10 +2113,10 @@ Returns: a B<GString> containing the string
 
 method print-string ( $string, Int $type_annotate --> N-GObject ) {
   my $no = …;
-  $no .= get-native-object-no-reffing unless $no ~~ N-GObject;
+  $no .= _get-native-object-no-reffing unless $no ~~ N-GObject;
 
   g_variant_print_string(
-    self.get-native-object-no-reffing, $string, $type_annotate
+    self._get-native-object-no-reffing, $string, $type_annotate
   );
 }
 
@@ -2146,7 +2146,7 @@ sub _g_variant_ref ( N-GObject $value --> N-GObject )
 method ref-sink ( --> N-GObject ) {
 
   g_variant_ref_sink(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -2169,7 +2169,7 @@ sub g_variant_ref_sink ( N-GObject $value --> N-GObject )
 method store ( Pointer $data ) {
 
   g_variant_store(
-    self.get-native-object-no-reffing, $data
+    self._get-native-object-no-reffing, $data
   );
 }
 
@@ -2190,7 +2190,7 @@ sub g_variant_store ( N-GObject $value, gpointer $data  )
 method take-ref ( --> N-GObject ) {
 
   g_variant_take_ref(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 

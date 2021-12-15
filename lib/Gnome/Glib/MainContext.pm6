@@ -82,7 +82,7 @@ submethod BUILD ( *%options ) {
       my $no;
       if %options<default>:exists {
         #$no = %options<___x___>;
-        #$no .= get-native-object-no-reffing unless $no ~~ N-GObject;
+        #$no .= _get-native-object-no-reffing unless $no ~~ N-GObject;
         $no = _g_main_context_default;
       }
 
@@ -116,7 +116,7 @@ submethod BUILD ( *%options ) {
       }
       #}}
 
-      self.set-native-object($no);
+      self._set-native-object($no);
     }
 
     # only after creating the native-object, the gtype is known
@@ -150,7 +150,7 @@ Returns: C<True> if the operation succeeded, and this thread is now the owner of
 method acquire ( --> Bool ) {
 
   g_main_context_acquire(
-    self.get-native-object-no-reffing
+    self._get-native-object-no-reffing
   ).Bool;
 }
 
@@ -176,7 +176,7 @@ Returns: (transfer none): the global default main context.
 method default ( --> N-GObject ) {
 
   g_main_context_default(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 }}
@@ -226,7 +226,7 @@ There is a temptation to use C<depth()> to solve problems with reentrancy. For i
 =end pod
 
 method depth ( --> Int ) {
-  g_main_depth(self.get-native-object-no-reffing)
+  g_main_depth(self._get-native-object-no-reffing)
 }
 
 sub g_main_depth ( --> gint )
@@ -247,7 +247,7 @@ Dispatches all pending sources.  You must have successfully acquired the context
 method dispatch ( ) {
 
   g_main_context_dispatch(
-    self.get-native-object-no-reffing
+    self._get-native-object-no-reffing
   );
 }
 
@@ -275,7 +275,7 @@ Returns: (transfer none): the thread-default I<MainContext>, or C<undefined> if 
 method get-thread-default ( --> N-GObject ) {
 
   g_main_context_get_thread_default(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 }}
@@ -324,7 +324,7 @@ Where %options are free to use options given at the call to C<invoke()>. The met
 method invoke ( Any:D $handler-object, Str:D $method, *%options ) {
 
   g_main_context_invoke(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
     sub ( gpointer $d --> gboolean ) {
       CATCH { default { .message.note; .backtrace.concise.note } }
       if $handler-object.^can($method) {
@@ -341,7 +341,7 @@ method invoke ( Any:D $handler-object, Str:D $method, *%options ) {
 
 method invoke-raw ( Callable:D $function ) {
   g_main_context_invoke(
-    self.get-native-object-no-reffing, $function, Pointer
+    self._get-native-object-no-reffing, $function, Pointer
   )
 }
 
@@ -430,7 +430,7 @@ method invoke-full (
 ) {
 
   g_main_context_invoke_full(
-    self.get-native-object-no-reffing, $priority,
+    self._get-native-object-no-reffing, $priority,
     sub ( gpointer $d --> gboolean ) {
       CATCH { default { .message.note; .backtrace.concise.note } }
       return 0 unless (?$handler-object and ?$method);
@@ -461,7 +461,7 @@ method invoke-full-raw (
   gint $priority, Callable:D $function, Callable $notify
 ) {
   g_main_context_invoke_full(
-    self.get-native-object-no-reffing, $priority, $function,
+    self._get-native-object-no-reffing, $priority, $function,
     Pointer, $notify
   )
 }
@@ -489,7 +489,7 @@ Returns: C<True> if current thread is owner of the context.
 method is-owner ( --> Int ) {
 
   g_main_context_is_owner(
-    self.get-native-object-no-reffing
+    self._get-native-object-no-reffing
   );
 }
 
@@ -515,7 +515,7 @@ Returns: C<True> if events were dispatched.
 method iteration ( Bool $may_block --> Bool ) {
 
   g_main_context_iteration(
-    self.get-native-object-no-reffing, $may_block.Int
+    self._get-native-object-no-reffing, $may_block.Int
   ).Bool;
 }
 
@@ -539,7 +539,7 @@ Returns: C<True> if events are pending.
 method pending ( --> Bool ) {
 
   g_main_context_pending(
-    self.get-native-object-no-reffing
+    self._get-native-object-no-reffing
   ).Bool;
 }
 
@@ -561,7 +561,7 @@ Pops the context off the thread-default context stack (verifying that it was on 
 method pop-thread-default ( ) {
 
   g_main_context_pop_thread_default(
-    self.get-native-object-no-reffing
+    self._get-native-object-no-reffing
   );
 }
 
@@ -592,7 +592,7 @@ In some cases you may want to schedule a single operation in a non-default conte
 =end pod
 
 method push-thread-default ( ) {
-  g_main_context_push_thread_default(self.get-native-object-no-reffing);
+  g_main_context_push_thread_default(self._get-native-object-no-reffing);
 }
 
 sub g_main_context_push_thread_default ( N-GObject $context  )
@@ -618,7 +618,7 @@ Returns: the the context that was passed in (since 2.6)
 method ref ( N-GObject $context --> N-GObject ) {
 
   g_main_context_ref(
-    self.get-native-object-no-reffing, $context
+    self._get-native-object-no-reffing, $context
   );
 }
 }}
@@ -646,7 +646,7 @@ Returns: (transfer full): the thread-default I<MainContext>. Unref with C<unref(
 method ref-thread-default ( --> N-GObject ) {
 
   g_main_context_ref_thread_default(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 
@@ -669,7 +669,7 @@ Releases ownership of a context previously acquired by this thread with C<acquir
 method release ( ) {
 
   g_main_context_release(
-    self.get-native-object-no-reffing
+    self._get-native-object-no-reffing
   );
 }
 
@@ -693,7 +693,7 @@ Decreases the reference count on a I<MainContext> object by one. If the result i
 method unref ( N-GObject $context ) {
 
   g_main_context_unref(
-    self.get-native-object-no-reffing, $context
+    self._get-native-object-no-reffing, $context
   );
 }
 }}
@@ -717,7 +717,7 @@ If the context is currently blocking in C<iteration()> waiting for a source to b
 method wakeup ( ) {
 
   g_main_context_wakeup(
-    self.get-native-object-no-reffing
+    self._get-native-object-no-reffing
   );
 }
 
@@ -743,7 +743,7 @@ Returns: the new I<MainContext>
 method new ( --> N-GObject ) {
 
   g_main_context_new(
-    self.get-native-object-no-reffing,
+    self._get-native-object-no-reffing,
   );
 }
 }}
@@ -780,7 +780,7 @@ Adds a file descriptor to the set of file descriptors polled for this context. T
 method add-poll ( N-GObject $context, GPollFD $fd, Int $priority ) {
 
   g_main_context_add_poll(
-    self.get-native-object-no-reffing, $context, $fd, $priority
+    self._get-native-object-no-reffing, $context, $fd, $priority
   );
 }
 
@@ -809,7 +809,7 @@ Returns: C<True> if some sources are ready to be dispatched.
 method check ( N-GObject $context, Int $max_priority, GPollFD $fds, Int $n_fds --> Bool ) {
 
   g_main_context_check(
-    self.get-native-object-no-reffing, $context, $max_priority, $fds, $n_fds
+    self._get-native-object-no-reffing, $context, $max_priority, $fds, $n_fds
   ).Bool;
 }
 
@@ -834,7 +834,7 @@ Removes file descriptor from the set of file descriptors to be polled for a part
 method remove-poll ( N-GObject $context, GPollFD $fd ) {
 
   g_main_context_remove_poll(
-    self.get-native-object-no-reffing, $context, $fd
+    self._get-native-object-no-reffing, $context, $fd
   );
 }
 
@@ -859,7 +859,7 @@ Sets the function to use to handle polling of file descriptors. It will be used 
 method set-poll-func ( N-GObject $context, GPollFunc $func ) {
 
   g_main_context_set_poll_func(
-    self.get-native-object-no-reffing, $context, $func
+    self._get-native-object-no-reffing, $context, $func
   );
 }
 
@@ -889,7 +889,7 @@ Returns: the number of records actually stored in I<fds>, or, if more than I<n-f
 method query ( N-GObject $context, Int $max_priority, Int-ptr $timeout_, GPollFD $fds, Int $n_fds --> Int ) {
 
   g_main_context_query(
-    self.get-native-object-no-reffing, $context, $max_priority, $timeout_, $fds, $n_fds
+    self._get-native-object-no-reffing, $context, $max_priority, $timeout_, $fds, $n_fds
   );
 }
 
@@ -916,7 +916,7 @@ Returns: C<True> if some source is ready to be dispatched prior to polling.
 method prepare ( N-GObject $context, Int-ptr $priority --> Int ) {
 
   g_main_context_prepare(
-    self.get-native-object-no-reffing, $context, $priority
+    self._get-native-object-no-reffing, $context, $priority
   );
 }
 
@@ -945,7 +945,7 @@ Returns: (transfer none): the source, if one was found, otherwise C<undefined>
 method find-source-by-funcs-user-data ( N-GObject $context, GSourceFuncs $funcs, Pointer $user_data --> GSource ) {
 
   g_main_context_find_source_by_funcs_user_data(
-    self.get-native-object-no-reffing, $context, $funcs, $user_data
+    self._get-native-object-no-reffing, $context, $funcs, $user_data
   );
 }
 
@@ -972,7 +972,7 @@ Returns: (transfer none): the B<GSource>
 method find-source-by-id ( N-GObject $context, UInt $source_id --> GSource ) {
 
   g_main_context_find_source_by_id(
-    self.get-native-object-no-reffing, $context, $source_id
+    self._get-native-object-no-reffing, $context, $source_id
   );
 }
 
@@ -999,7 +999,7 @@ Returns: (transfer none): the source, if one was found, otherwise C<undefined>
 method find-source-by-user-data ( N-GObject $context, Pointer $user_data --> GSource ) {
 
   g_main_context_find_source_by_user_data(
-    self.get-native-object-no-reffing, $context, $user_data
+    self._get-native-object-no-reffing, $context, $user_data
   );
 }
 
@@ -1025,7 +1025,7 @@ Returns: the poll function
 method get-poll-func ( N-GObject $context --> GPollFunc ) {
 
   g_main_context_get_poll_func(
-    self.get-native-object-no-reffing, $context
+    self._get-native-object-no-reffing, $context
   );
 }
 

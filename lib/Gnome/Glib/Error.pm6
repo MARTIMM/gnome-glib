@@ -119,7 +119,7 @@ submethod BUILD ( *%options ) {
     elsif %options<domain>:exists and %options<code>:exists and
           %options<error-message>:exists {
 
-      self.set-native-object(
+      self._set-native-object(
         _g_error_new_literal(
           %options<domain>, %options<code>, %options<error-message>
         )
@@ -194,7 +194,7 @@ Get the domain code from the error object. Use C<to-string()> from I<Gnome::Glib
 =end pod
 
 method domain ( --> UInt ) {
-  self.is-valid ?? self.get-native-object-no-reffing.domain !! UInt;
+  self.is-valid ?? self._get-native-object-no-reffing.domain !! UInt;
 }
 
 #-------------------------------------------------------------------------------
@@ -209,7 +209,7 @@ Return the error code of the error. Returns C<Int> if object is invalid.
 =end pod
 
 method code ( --> Int ) {
-  self.is-valid ?? self.get-native-object-no-reffing.code !! Int;
+  self.is-valid ?? self._get-native-object-no-reffing.code !! Int;
 }
 
 #-------------------------------------------------------------------------------
@@ -224,7 +224,7 @@ Return the error message in the error object. Returns C<Str> if object is invali
 =end pod
 
 method message ( --> Str ) {
-  self.is-valid ?? self.get-native-object-no-reffing.message !! Str;
+  self.is-valid ?? self._get-native-object-no-reffing.message !! Str;
 }
 
 #`{{ Todo
