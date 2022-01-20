@@ -350,22 +350,19 @@ Runs a main loop until C<quit()> is called on the loop. If this is called for th
 =end pod
 
 method run ( ) {
-  g_main_loop_run(
-    self._get-native-object-no-reffing
-  );
+  g_main_loop_run(self._get-native-object-no-reffing);
 }
 
 sub g_main_loop_run ( N-GObject $loop )
   is native(&glib-lib)
   { * }
 
-#`{{
 #-------------------------------------------------------------------------------
 #TM:0:timeout-add:
 =begin pod
 =head2 timeout-add
 
-Sets a function to be called at regular intervals, with the default priority, B<Gnome::Glib::-PRIORITY-DEFAULT>. The function is called repeatedly until it returns C<False>, at which point the timeout is automatically destroyed and the function will not be called again. The first call to the function will be at the end of the first I<$interval>.
+Sets a function to be called at regular intervals, with the default priority, C<G_PRIORITY_DEFAULT>. The function is called repeatedly until it returns C<False>, at which point the timeout is automatically destroyed and the function will not be called again. The first call to the function will be at the end of the first I<$interval>.
 
 Note that timeout functions may be delayed, due to the processing of other event sources. Thus they should not be relied on for precise timing. After each call to the timeout function, the time of the next timeout is recalculated based on the current time and the given interval (it does not try to 'catch up' time lost in delays).
 
@@ -380,27 +377,36 @@ The interval given is in terms of monotonic time, not wall clock time. See C<g-g
 Returns: the ID (greater than 0) of the event source.
 
   method timeout-add (
-    UInt $interval, GSourceFunc $function, Pointer $data --> UInt
+    UInt $interval,  -->
   )
 
 =item UInt $interval; the time between calls to the function, in milliseconds (1/1000ths of a second)
-=item GSourceFunc $function; function to call
-=item Pointer $data; data to pass to I<function>
+=item
+=item
 =end pod
 
 method timeout-add (
-  UInt $interval, GSourceFunc $function, Pointer $data --> UInt
+  UInt $interval, Any:D $handler-object, Str:D $handler-name, *%handler-data
+  --> UInt
 ) {
   g_timeout_add(
-    self._get-native-object-no-reffing, $interval, $function, $data
+    $interval,
+    sub ( gpointer $ignore-user-data --> gboolean ) {
+      $handler-object."$handler-name"(|%handler-data) ?? 1 !! 0
+    },
+    gpointer
   )
 }
 
 sub g_timeout_add (
-  guint $interval, GSourceFunc $function, gpointer $data --> guint
+  guint $interval,
+  Callable $g-source-func ( Pointer $d --> gboolean ),
+  gpointer $data
+  --> guint
 ) is native(&glib-lib)
   { * }
 
+#`{{
 #-------------------------------------------------------------------------------
 #TM:0:timeout-add-full:
 =begin pod
