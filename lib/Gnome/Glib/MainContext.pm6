@@ -58,7 +58,7 @@ Set this object to the global default main context. This is the main context use
 
 Gets the thread-default I<MainContext> for this thread. Asynchronous operations that want to be able to be run in contexts other than the default one should call this method.
 
-  multi method new ( :default! )
+  multi method new ( :thread-default! )
 
 =end pod
 
@@ -238,17 +238,14 @@ sub g_main_depth ( --> gint )
 =begin pod
 =head2 dispatch
 
-Dispatches all pending sources.  You must have successfully acquired the context with C<acquire()> before you may call this function.
+Dispatches all pending sources. You must have successfully acquired the context with C<acquire()> before you may call this function.
 
   method dispatch ( )
 
 =end pod
 
 method dispatch ( ) {
-
-  g_main_context_dispatch(
-    self._get-native-object-no-reffing
-  );
+  g_main_context_dispatch(self._get-native-object-no-reffing);
 }
 
 sub g_main_context_dispatch ( N-GObject $context )
@@ -280,7 +277,7 @@ method get-thread-default ( --> N-GObject ) {
 }
 }}
 
-sub _g_main_context_get_thread_default (  --> N-GObject )
+sub _g_main_context_get_thread_default ( --> N-GObject )
   is symbol('g_main_context_get_thread_default')
   is native(&glib-lib)
   { * }
@@ -667,15 +664,13 @@ Releases ownership of a context previously acquired by this thread with C<acquir
 =end pod
 
 method release ( ) {
-
-  g_main_context_release(
-    self._get-native-object-no-reffing
-  );
+  g_main_context_release( self._get-native-object-no-reffing);
 }
 
 sub g_main_context_release ( N-GObject $context  )
   is native(&glib-lib)
   { * }
+
 #-------------------------------------------------------------------------------
 #TM:1:_g_main_context_unref:
 #`{{
@@ -708,7 +703,27 @@ sub _g_main_context_unref ( N-GObject $context  )
 =begin pod
 =head2 wakeup
 
-If the context is currently blocking in C<iteration()> waiting for a source to become ready, cause it to stop blocking and return.  Otherwise, cause the next invocation of C<iteration()> to return without blocking.  This API is useful for low-level control over I<MainContext>; for example, integrating it with main loop implementations such as B<Gnome::Glib::MainLoop>.  Another related use for this function is when implementing a main loop with a termination condition, computed from multiple threads:  |[<!-- language="C" -->  B<define> NUM-TASKS 10 static volatile gint tasks-remaining = NUM-TASKS; ...   while (g-atomic-int-get (&tasks-remaining) != 0) iteration (NULL, TRUE); ]|   Then in a thread: |[<!-- language="C" -->  C<perform-work()>;  if (g-atomic-int-dec-and-test (&tasks-remaining)) wakeup (NULL); ]|
+If the context is currently blocking in C<iteration()> waiting for a source to become ready, cause it to stop blocking and return. Otherwise, cause the next invocation of C<iteration()> to return without blocking.
+
+This API is useful for low-level control over I<MainContext>; for example, integrating it with main loop implementations such as B<Gnome::Glib::MainLoop>.
+
+=begin comment
+Another related use for this function is when implementing a main loop with a termination condition, computed from multiple threads:
+
+  B<define> NUM-TASKS 10 static volatile gint tasks-remaining = NUM-TASKS;
+  ...
+  while g-atomic-int-get($tasks-remaining) != 0 ) {
+    iteration( NULL, TRUE);
+  }
+
+Then in a thread:
+
+  C<perform-work()>;
+  if g-atomic-int-dec-and-test($tasks-remaining) {
+    wakeup(NULL);
+  }
+=end comment
+
 
   method wakeup ( )
 
