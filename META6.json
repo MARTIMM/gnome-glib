@@ -1,25 +1,12 @@
 {
   "description": "Raku - Gnome Glib Interface, Please install Gnome::Gtk3",
   "name": "Gnome::Glib",
-  "version": "0.20.2",
+  "version": "0.20.3",
   "authors": [ "Marcel Timmerman"],
   "tags": [ "gnome", "glib"],
 
   "perl": "6.d",
   "license": "Artistic-2.0",
-
-  "x-provides": {
-    "Gnome::Glib::N-GOptionContext": "lib/Gnome/Glib/N-GOptionContext.pm6",
-    "Gnome::Glib::N-GOptionGroup": "lib/Gnome/Glib/N-GOptionGroup.pm6",
-    "Gnome::Glib::OptionContext": "lib/Gnome/Glib/OptionContext.pm6",
-    "Gnome::Glib::OptionGroup": "lib/Gnome/Glib/OptionGroup.pm6",
-    "Gnome::Glib::N-GMainLoop": "lib/Gnome/Glib/N-GMainLoop.pm6",
-    "Gnome::Glib::N-GMainContext": "lib/Gnome/Glib/N-GMainContext.pm6",
-    "Gnome::Glib::Main": "lib/Gnome/Glib/Main.pm6",
-    "Gnome::Glib::N-GVariant": "lib/Gnome/Glib/N-GVariant.pm6",
-    "Gnome::Glib::N-GVariantDict": "lib/Gnome/Glib/N-GVariantDict.pm6",
-    "Gnome::Glib::N-GVariantType": "lib/Gnome/Glib/N-GVariantType.pm6"
-  },
 
   "provides": {
     "Gnome::Glib::Error": "lib/Gnome/Glib/Error.pm6",

@@ -1,4 +1,7 @@
 ## Release notes
+* 2022-01-21 0.20.3
+  * Extended module **Gnome::Glib::MainLoop** with method `timeout-add()`. With this method you can start a repeated event which a handler can process. Nice to show a clock or change pictures in a fotoviewer for example.
+
 * 2021-12-12 0.20.2
   * Changes for renamed methods in **Gnome::N::TopLevelClassSupport**.
 
