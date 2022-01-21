@@ -358,11 +358,11 @@ sub g_main_loop_run ( N-GObject $loop )
   { * }
 
 #-------------------------------------------------------------------------------
-#TM:0:timeout-add:
+#TM:1:timeout-add:
 =begin pod
 =head2 timeout-add
 
-Sets a function to be called at regular intervals, with the default priority, C<G_PRIORITY_DEFAULT>. The function is called repeatedly until it returns C<False>, at which point the timeout is automatically destroyed and the function will not be called again. The first call to the function will be at the end of the first I<$interval>.
+Sets a function to be called at regular intervals, with the default priority, C<G_PRIORITY_DEFAULT>. The function is called repeatedly until it returns C<G_SOURCE_REMOVE>, at which point the timeout is automatically destroyed and the function will not be called again. The first call to the function will be at the end of the first I<$interval>.
 
 Note that timeout functions may be delayed, due to the processing of other event sources. Thus they should not be relied on for precise timing. After each call to the timeout function, the time of the next timeout is recalculated based on the current time and the given interval (it does not try to 'catch up' time lost in delays).
 
@@ -377,12 +377,43 @@ The interval given is in terms of monotonic time, not wall clock time. See C<g-g
 Returns: the ID (greater than 0) of the event source.
 
   method timeout-add (
-    UInt $interval,  -->
+    UInt $interval,
+    Any:D $handler-object, Str:D $handler-name,
+    *%handler-data
+    --> UInt
   )
 
-=item UInt $interval; the time between calls to the function, in milliseconds (1/1000ths of a second)
-=item
-=item
+=item UInt $interval; the time between calls to the function, in milliseconds (1/1000ths of a second).
+=item $handler-object; the user object where the handler method is defined.
+=item $handler-name; the name of the method
+=item %handler-data; collection of named arguments in the call to C<timeout-add>.
+
+The handler signature is simple, just accept any named argument provided in the call to C<timeout-add()> and return an integer which can be one of C<G_SOURCE_CONTINUE> or C<G_SOURCE_REMOVE> to continue the events or to stop it respectively.
+
+A simple example taken from the tests;
+
+  class Timeout {
+    method tom-poes-do-something ( Str :$task, :$loop --> Int ) {
+      state Int $count = 1;
+      say "Tom Poes, please $task $count times";
+      if $count++ >= 5 {
+        $loop.quit;
+        G_SOURCE_REMOVE
+      }
+
+      else {
+        G_SOURCE_CONTINUE
+      }
+    }
+  }
+
+  my Gnome::Glib::MainLoop $loop .= new;
+
+  my Timeout $to .= new;
+  $loop.timeout-add( 1000, $to, 'tom-poes-do-something', :task<jump>, :$loop);
+  $loop.run;
+
+
 =end pod
 
 method timeout-add (
@@ -392,7 +423,7 @@ method timeout-add (
   g_timeout_add(
     $interval,
     sub ( gpointer $ignore-user-data --> gboolean ) {
-      $handler-object."$handler-name"(|%handler-data) ?? 1 !! 0
+      $handler-object."$handler-name"(|%handler-data)
     },
     gpointer
   )

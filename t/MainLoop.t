@@ -150,25 +150,28 @@ subtest "start thread with a new context", {
 #-------------------------------------------------------------------------------
 subtest 'timeout-add', {
   class Timeout {
-    method tom-poes-doe-iets ( Str :$task --> Bool ) {
-      state Int $count = 0;
-      note "Tom Poes, please do $task $count times";
-      $count++ > 5 ?? G_SOURCE_REMOVE !! G_SOURCE_CONTINUE;
+    method tom-poes-do-something ( Str :$task, :$loop --> Int ) {
+      state Int $count = 1;
+      diag "Tom Poes, please $task $count times";
+      if $count++ >= 5 {
+        $loop.quit;
+        G_SOURCE_REMOVE
+      }
+
+      else {
+        G_SOURCE_CONTINUE
+      }
     }
   }
 
+  my Gnome::Glib::MainLoop $loop .= new;
+
   my Timeout $to .= new;
-
-  my Gnome::Glib::MainContext $main-context1 .= new;
-  my Gnome::Glib::MainLoop $loop .= new(:context($main-context1));
-
-  $loop.timeout-add( 500, $to, 'tom-poes-doe-iets', :task<jump>);
-
-  diag "$*THREAD.id(), Start loop with .run\()";
+  my Int $esid = $loop.timeout-add(
+    100, $to, 'tom-poes-do-something', :task<jump>, :$loop
+  );
+  ok $esid > 0, '.timeout-add(): ' ~ $esid;
   $loop.run;
-  ok $loop.is-running, '.is-running()';
-  diag "$*THREAD.id(), Loop stopped";
-#  sleep(20);
 }
 
 #`{{
