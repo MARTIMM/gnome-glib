@@ -39,7 +39,8 @@ New source types basically interact with the main context in two ways. Their pre
 =head3 Customizing the main loop iteration
 
 Single iterations of a I<MainContext> can be run with g_main_context_iteration(). In some cases, more detailed control of exactly how the details of the main loop work is desired, for instance, when integrating the I<MainLoop> with an external main loop. In such cases, you can call the component functions of g_main_context_iteration() directly. These functions are g_main_context_prepare(), g_main_context_query(), g_main_context_check() and g_main_context_dispatch().
-State of a Main Context
+
+=head3 State of a Main Context
 
 The operation of these functions can best be seen in terms of a state diagram, as shown in this image.
 
@@ -368,9 +369,9 @@ Note that timeout functions may be delayed, due to the processing of other event
 
 =comment See [memory management of sources][mainloop-memory-management] for details on how to handle the return value and memory management of I<data>.
 
-If you want to have a timer in the "seconds" range and do not care about the exact time of the first call of the timer, use the C<timeout-add-seconds()> function; this function allows for more optimizations and more efficient system power usage.
+=comment If you want to have a timer in the "seconds" range and do not care about the exact time of the first call of the timer, use the C<timeout-add-seconds()> function; this function allows for more optimizations and more efficient system power usage.
 
-This internally creates a main loop source using C<g-timeout-source-new()> and attaches it to the global B<Gnome::Glib::MainContext> using C<g-source-attach()>, so the callback will be invoked in whichever thread is running that main context. You can do these steps manually if you need greater control or to use a custom main context.
+This internally creates a main loop source using C<g-timeout-source-new()> and attaches it to the global B<Gnome::Glib::MainContext> using C<Gnome::Glib::Source.attach()>, so the callback will be invoked in whichever thread is running that main context. You can do these steps manually if you need greater control or to use a custom main context.
 
 The interval given is in terms of monotonic time, not wall clock time. See C<g-get-monotonic-time()>.
 
@@ -394,7 +395,7 @@ A simple example taken from the tests;
 
   class Timeout {
     method tom-poes-do-something ( Str :$task, :$loop --> Int ) {
-      state Int $count = 1;
+      state Int $count = 2;
       say "Tom Poes, please $task $count times";
       if $count++ >= 5 {
         $loop.quit;
@@ -413,6 +414,7 @@ A simple example taken from the tests;
   $loop.timeout-add( 1000, $to, 'tom-poes-do-something', :task<jump>, :$loop);
   $loop.run;
 
+The method C<tom-poes-do-something()> is called every 1000 ms and stops when the C<$count> reaches 5. The user data is provided in C<$task> and C<$loop>. C<$loop> is used to stop the event loop after which C<G_SOURCE_REMOVE> is returned to flag that the timeout structure must be destroyed and that no more calls to the handler are expected.
 
 =end pod
 
@@ -420,6 +422,9 @@ method timeout-add (
   UInt $interval, Any:D $handler-object, Str:D $handler-name, *%handler-data
   --> UInt
 ) {
+  die X::Gnome.new(:message("Method $handler-name or handler object not found"))
+    unless $handler-object.^can($handler-name);
+
   g_timeout_add(
     $interval,
     sub ( gpointer $ignore-user-data --> gboolean ) {

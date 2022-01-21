@@ -7,6 +7,7 @@ use Gnome::N::GlibToRakuTypes;
 
 use Gnome::Glib::MainLoop;
 use Gnome::Glib::MainContext;
+use Gnome::Glib::Source;
 
 #use Gnome::N::X;
 #Gnome::N::debug(:on);
@@ -151,11 +152,12 @@ subtest "start thread with a new context", {
 subtest 'timeout-add', {
   class Timeout {
     method tom-poes-do-something ( Str :$task, :$loop --> Int ) {
-      state Int $count = 1;
+      state Int $count = 2;
       diag "Tom Poes, please $task $count times";
       if $count++ >= 5 {
-        $loop.quit;
-        G_SOURCE_REMOVE
+        $loop.quit;       # quit loop
+        $count = 2;       # prepare for next test
+        G_SOURCE_REMOVE   # destroy timeout struct
       }
 
       else {
@@ -172,6 +174,20 @@ subtest 'timeout-add', {
   );
   ok $esid > 0, '.timeout-add(): ' ~ $esid;
   $loop.run;
+
+
+
+#`{{TODO
+  my Gnome::Glib::MainContext $main-context .= new(:thread-default);
+  $loop .= new(:context($main-context));
+
+  my Gnome::Glib::Source $source .= new(:timeout(200));
+  $source.set-callback( $to, 'tom-poes-do-something', :task<jump>, :$loop);
+  note 'acq: ', $main-context.acquire;
+  $main-context.attach($source);
+  $main-context.dispatch;
+  $loop.run;
+}}
 }
 
 #`{{
