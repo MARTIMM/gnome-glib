@@ -17,17 +17,16 @@ subtest 'ISA test', {
 
 #-------------------------------------------------------------------------------
 subtest 'Manipulations', {
+  # in a clean simple program GQuarks can be followed from 0
   my Int $q = $quark.try-string('my string');
-  is $q, 0, 'no quark for string';
+  is $q, 0, '.try-string()';
 
-  $q = $quark.from-string('my string');
-  is $quark.from-string('my string'), $q, "string has now quark $q";
+  is $quark.from-string('my string'), 1, '.from-string()';
 
-  $q = $quark.from-string('my 2nd string');
-  is $quark.from-string('my 2nd string'), $q, "2nd string has got quark $q";
-  is $quark.to-string($q), 'my 2nd string', "2nd string found from quark";
+  is $quark.from-string('my 2nd string'), 2, '.from-string()';
+  is $quark.to-string(2), 'my 2nd string', '.to-string()';
 
-  is $quark.to-string(42), Str, 'quark not registered';
+  is $quark.to-string(42), Str, '.to-string()';
 }
 
 #-------------------------------------------------------------------------------
