@@ -1,4 +1,8 @@
 ## Release notes
+* 2022-07-19 0.20.4
+  * Reviewed **Gnome::Glib::Error** module and changed its documentation. Also added methods and some deprecation messages. Deprecated methods are removed. Quite a few bugs found too. Introduction of `GQuark` type which is a `uint32`.
+  * Also reviewed **Gnome::Glib::Quark**.
+
 * 2022-01-21 0.20.3
   * Extended module **Gnome::Glib::MainLoop** with method `timeout-add()`. With this method you can start a repeated event which a handler can process. Nice to show a clock or change pictures in a fotoviewer for example.
 
