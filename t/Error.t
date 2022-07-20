@@ -4,6 +4,7 @@ use NativeCall;
 use Test;
 
 use Gnome::N::NativeLib;
+use Gnome::N::GlibToRakuTypes;
 
 use Gnome::Glib::Quark;
 use Gnome::Glib::Error;
@@ -16,54 +17,60 @@ my Gnome::Glib::Quark $quark .= new;
 my Gnome::Glib::Error $e;
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
-  dies-ok(
-    { Gnome::Glib::Error.new(); },
-    'No options specified'
-  );
-
   # The error domain is called <NAMESPACE>_<MODULE>_ERROR
-  my Int $domain = $quark.from-string('gnome_gtk3_button_test_error');
+  my GQuark $domain = $quark.from-string('gnome_gtk3_button_test_error');
   $e .= new( :$domain, :code(1), :error-message('Error in test'));
-  isa-ok $e, Gnome::Glib::Error, '.new(:$domain, :$code, :$error-message)';
+  isa-ok $e, Gnome::Glib::Error, '.new( :domain, :code, :error-message)';
 
   $e.clear-object;
-  ok !$e.is-valid, '.clear-object(), error $e is not valid';
+  ok !$e.is-valid, '.clear-object()';
   $e = Nil;
 }
 
 #-------------------------------------------------------------------------------
 subtest 'Manipulations', {
-  my Int $domain = $quark.from-string('gnome_gtk3_button_test_error');
+  my GQuark $domain = $quark.from-string('gnome_gtk3_button_test_error');
   $e .= new( :$domain, :code(2), :error-message('Error in test'));
-  ok $e.is-valid, 'error $e is valid';
+#  ok $e.is-valid, 'error $e is valid';
 
-  my Gnome::Glib::Error $e2 .= new(:native-object($e.g-error-copy));
-  ok $e2.is-valid, 'error $e2 is valid';
-  is $e2.g-error-matches( $domain, 2), 1, 'Error matches with domain and code';
+  my Gnome::Glib::Error() $e2 = $e.copy;
+  ok $e2.is-valid, '.copy()';
+  ok $e2.matches( $domain, 2), '.matches()';
 
-  is $e2.domain, $domain, 'domain in structure ok';
-  is $e2.code, 2, 'code in structure ok';
-  is $e2.message, 'Error in test', 'message in structure ok';
+  is $e2.domain, $domain, '.domain()';
+  is $e2.code, 2, '.code()';
+  is $e2.message, 'Error in test', '.message()';
   $e2.clear-object;
-  ok !$e2.is-valid, 'error $e is not valid anymore';
+  nok $e2.is-valid, '.clear-object()';
 
+#`{{
   $domain = $quark.from-string('gnome_gtk3_button_2nd_test_error');
   $e2 .= new( :$domain, :code(3), :error-message('2nd error in test'));
-  is $e2.g-error-matches( $domain, 3), 1,
-     '2nd error matches with domain and code';
+  ok $e2.matches( $domain, 3), '2nd error matches with domain and code';
 
   is $e2.domain, $domain, 'domain in structure ok';
   is $e2.code, 3, 'code in structure ok';
   is $e2.message, '2nd error in test', 'message in structure ok';
 
   $e2.clear-object;
+}}
   $e.clear-object;
+#  nok $e.is-valid, '.clear-object()';
+#  is $e.domain, GQuark, 'domain undefined';
+#  is $e.code, Int, 'code undefined';
+#  is $e.message, Str, 'message undefined';
+#  nok $e.matches( $domain, 3), 'error does not match anymore';
 
-  is $e.domain, UInt, 'domain undefined';
-  is $e.code, Int, 'code undefined';
-  is $e.message, Str, 'message undefined';
+  $e.set-error-literal(
+    my GQuark $q = $quark.from-string('some_other_error'),
+    222, 'Very weird error!'
+  );
+#  ok $e.is-valid, 'error $e is valid';
+  is $e.domain, $q, '.set-error-literal()';
 
-  is $e.g-error-matches( $domain, 3), 0, 'error does not match anymore';
+  $e.prefix-error-literal('a multi % followed by a ');
+  is $e.message, 'a multi % followed by a Very weird error!',
+    '.prefix-error-literal()';
 }
 
 
