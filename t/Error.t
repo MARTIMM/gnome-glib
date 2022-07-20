@@ -14,7 +14,7 @@ use Gnome::Glib::Error;
 
 #-------------------------------------------------------------------------------
 my Gnome::Glib::Quark $quark .= new;
-my Gnome::Glib::Error $e;
+my Gnome::Glib::Error() $e;
 #-------------------------------------------------------------------------------
 subtest 'ISA test', {
   # The error domain is called <NAMESPACE>_<MODULE>_ERROR
@@ -94,7 +94,7 @@ subtest 'Manipulations', {
 sub g_file_get_contents (
   Str $filename, CArray[Str] $contents, int32 $length is rw,
   CArray[N-GError] $error
-) returns int32
+) returns gboolean
   is native(&glib-lib)
   { * }
 
@@ -105,17 +105,15 @@ subtest 'A real error', {
   my CArray[N-GError] $ga .= new(N-GError);
   my CArray[Str] $s .= new(Str);
   my int32 $l;
-  my Int $r = g_file_get_contents( $f, $s, $l, $ga);
-  #my Int $r = g_file_get_contents( $f, $s, $l, $e.set-error);
-  is $r, 1, 'no error';
+  my Bool $r = g_file_get_contents( $f, $s, $l, $ga).Bool;
+  ok $r, 'no error';
   is $l, 9, 'length of string is ok';
   is $s[0], 'test text', 'returned text is ok';
 
-  $r = g_file_get_contents( 'unknown-file.txt', $s, $l, $ga);
-  #$r = g_file_get_contents( 'unknown-file.txt', $s, $l, $e.set-error);
-  is $r, 0, 'returned an error';
+  $r = g_file_get_contents( 'unknown-file.txt', $s, $l, $ga).Bool;
+  nok $r, 'returned an error';
 
-  $e .= new(:native-object($ga[0]));
+  $e = $ga[0];
 #removed test because there is an issue about this domain being 4 instead of 3.
 #this means that perhaps there is an extra registration done somehow
 #is $e.domain, 3, 'domain is 3; 3rd domain registration in this test';
