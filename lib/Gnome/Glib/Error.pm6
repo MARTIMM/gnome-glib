@@ -163,7 +163,7 @@ method _fallback ( $native-sub --> Callable ) {
       try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
       if ?$s {
         Gnome::N::deprecate(
-          "$native-sub", $new-patt.subst('g-error-'), '0.20.4', '0.23.0'
+          $native-sub, $new-patt.subst('g-error-'), '0.20.4', '0.23.0'
         );
       }
     }
