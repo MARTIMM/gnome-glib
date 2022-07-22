@@ -88,6 +88,11 @@ class N-GError is repr('CStruct') is export {
   has GQuark $.domain;
   has gint $.code;
   has gchar-ptr $.message;
+
+  method COERCE ( $no --> N-GError ) {
+    note "Coercing from {$no.^name} to ", self.^name if $Gnome::N::x-debug;
+    nativecast( N-GError, $no)
+  }
 }
 
 #TM:4:new(:native-object):Gnome::N::TopLevelClassSupport
@@ -176,7 +181,7 @@ method _fallback ( $native-sub --> Callable ) {
 
 #-------------------------------------------------------------------------------
 # no ref/unref for a variant type
-method native-object-ref ( $n-native-object --> N-GError ) {
+method native-object-ref ( $n-native-object ) {
   $n-native-object
 }
 
