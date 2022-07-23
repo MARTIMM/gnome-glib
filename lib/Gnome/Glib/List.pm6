@@ -211,10 +211,33 @@ submethod BUILD ( *%options ) {
 # no pod. user does not have to know about it.
 method _fallback ( $native-sub --> Callable ) {
 
+  my Str $new-patt = $native-sub.subst( '_', '-', :g);
+
   my Callable $s;
   try { $s = &::("g_list_$native-sub"); };
-  try { $s = &::("g_$native-sub"); } unless ?$s;
-  try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
+  if ?$s {
+    Gnome::N::deprecate(
+      "g_list_$native-sub", $new-patt, '0.20.4', '0.23.0'
+    );
+  }
+
+  else {
+    try { $s = &::("g_$native-sub"); } unless ?$s;
+    if ?$s {
+      Gnome::N::deprecate(
+        "g_$native-sub", $new-patt.subst('list-'), '0.20.4', '0.23.0'
+      );
+    }
+
+    else {
+      try { $s = &::($native-sub); } if !$s and $native-sub ~~ m/^ 'g_' /;
+      if ?$s {
+        Gnome::N::deprecate(
+          "$native-sub", $new-patt.subst('g-list-'), '0.20.4', '0.23.0'
+        );
+      }
+    }
+  }
 
   self._set-class-name-of-sub('GList');
 
@@ -299,11 +322,44 @@ Note that the return value is the new start of the list, if I<list> was empty; m
 C<append()> has to traverse the entire list to find the end, which is inefficient when adding multiple elements. A common idiom to avoid the inefficiency is to use C<prepend()> and reverse the list with C<reverse()> when all elements have been added.
 
 =begin comment
-|[<!-- language="C" --> // Notice that these are initialized to the empty list. GList *string-list = NULL, *number-list = NULL;
+=head3 Example
 
-// This is a list of strings. string-list = g-list-append (string-list, "first"); string-list = g-list-append (string-list, "second");
+  use Gnome::N::GlibToRakuTypes;
+  use Gnome::Glib::List;
 
-// This is a list of integers. number-list = g-list-append (number-list, GINT-TO-POINTER (27)); number-list = g-list-append (number-list, GINT-TO-POINTER (14)); ]|
+  unit class MyList;
+
+  has Gnome::Glib::List() $!string-list .= new;
+  has Gnome::Glib::List() $!number-list .= new;
+
+  method pack ( Int $n --> gpointer ) {
+    my $o = CArray[gint].new;
+    $o[0] = $n;
+
+    # collect data to prevent problems caused by Raku's garbage collection
+    $!user-side-data.push: $o;
+    nativecast( gpointer, $o)
+  }
+
+  method unpack ( gpointer $p --> Int ) {
+    my $o = nativecast( CArray[gint], $p);
+    $o[0]
+  }
+
+
+
+…
+  # Notice that these are initialized to the empty list.
+  GList *string-list = NULL, *number-list = NULL;
+
+  # This is a list of strings.
+  string-list = g-list-append (string-list, "first");
+  string-list = g-list-append (string-list, "second");
+
+  # This is a list of integers.
+  number-list = g-list-append (number-list, GINT-TO-POINTER (27));
+  number-list = g-list-append (number-list, GINT-TO-POINTER (14));
+
 =end comment
 
 Returns: either I<list> or the new start of the B<Gnome::Glib::List> if I<list> was C<undefined>
