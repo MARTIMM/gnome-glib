@@ -251,7 +251,7 @@ subtest 'Signals ...', {
 
     method ... (
       'any-args',
-      Gnome::Glib::Main :$_widget, gulong :$_handler-id
+      Gnome::Glib::Main() :$_native-object, gulong :$_handler-id
       # --> ...
     ) {
 

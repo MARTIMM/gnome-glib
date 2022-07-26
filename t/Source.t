@@ -129,7 +129,7 @@ subtest 'Signals ...', {
 
     method ... (
       'any-args',
-      Gnome::Glib::Source :$_widget, gulong :$_handler-id
+      Gnome::Glib::Source() :$_native-object, gulong :$_handler-id
       # --> ...
     ) {
 
