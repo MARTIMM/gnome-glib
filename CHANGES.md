@@ -1,4 +1,7 @@
 ## Release notes
+* 2022-08-03 0.20.5
+  * Reviewed **Gnome::Glib::List.
+
 * 2022-07-19 0.20.4
   * Reviewed **Gnome::Glib::Error** module and changed its documentation. Also added methods and some deprecation messages. Deprecated methods are removed. Quite a few bugs found too. Introduction of `GQuark` type which is a `uint32`.
   * Also reviewed **Gnome::Glib::Quark**.

@@ -6,7 +6,7 @@ use Test;
 use Gnome::Glib::List;
 use Gnome::N::GlibToRakuTypes;
 
-#use Gnome::N::X;
+use Gnome::N::X;
 #Gnome::N::debug(:on);
 
 #-------------------------------------------------------------------------------
@@ -155,6 +155,7 @@ subtest 'Manipulations', {
   }
 
   subtest 'concat, copy, etc.', {
+#Gnome::N::debug(:on);
     # make another list with 2 items and concatenate
     my Gnome::Glib::List $l2 .= new;
     for ^2 -> $i {

@@ -130,6 +130,16 @@ class N-GList is repr('CStruct') is export {
   has gpointer $.data;
   has N-GList $.next;
   has N-GList $.prev;
+
+  multi method COERCE ( N-GObject $no --> N-GList ) {
+    note "Coercing from {$no.^name} to ", self.^name if $Gnome::N::x-debug;
+    nativecast( N-GList, $no)
+  }
+
+  multi method COERCE ( Gnome::Glib::List $ro --> N-GList ) {
+    note "Coercing from {$ro.^name} to ", self.^name if $Gnome::N::x-debug;
+    nativecast( N-GList, $ro.get-native-object)
+  }
 }
 
 #-------------------------------------------------------------------------------
@@ -321,46 +331,42 @@ Note that the return value is the new start of the list, if I<list> was empty; m
 
 C<append()> has to traverse the entire list to find the end, which is inefficient when adding multiple elements. A common idiom to avoid the inefficiency is to use C<prepend()> and reverse the list with C<reverse()> when all elements have been added.
 
-=begin comment
 =head3 Example
 
   use Gnome::N::GlibToRakuTypes;
   use Gnome::Glib::List;
 
-  unit class MyList;
+  class IntList {
 
-  has Gnome::Glib::List() $!string-list .= new;
-  has Gnome::Glib::List() $!number-list .= new;
+    has Gnome::Glib::List() $!int-list;
 
-  method pack ( Int $n --> gpointer ) {
-    my $o = CArray[gint].new;
-    $o[0] = $n;
+    submethod BUILD () {
+      $!int-list .= new;
+    }
 
-    # collect data to prevent problems caused by Raku's garbage collection
-    $!user-side-data.push: $o;
-    nativecast( gpointer, $o)
+    # A list item is a pointer to your data. We need to convert it into one.
+    # This works for simple data. Raku Structures can not be stored
+    # because it is not native and garbage collection might destroy it.
+    method pack ( Int $n --> gpointer ) {
+      my $o = CArray[gint].new($n);
+      nativecast( gpointer, $o)
+    }
+
+    # To get it back we must get the data from where the list item points to
+    method unpack ( gpointer $p --> Int ) {
+      my $o = nativecast( CArray[gint], $p);
+      $o[0]
+    }
+
+    method append ( Int:D $n ) {
+      $!int-list .= append(self.pack($n);
+    }
+
+    method get( Int:D $index --> Int ) {
+      $!int-list .= first;
+      self.unpack($!int-list.nth-data($index)) // Int
+    }
   }
-
-  method unpack ( gpointer $p --> Int ) {
-    my $o = nativecast( CArray[gint], $p);
-    $o[0]
-  }
-
-
-
-…
-  # Notice that these are initialized to the empty list.
-  GList *string-list = NULL, *number-list = NULL;
-
-  # This is a list of strings.
-  string-list = g-list-append (string-list, "first");
-  string-list = g-list-append (string-list, "second");
-
-  # This is a list of integers.
-  number-list = g-list-append (number-list, GINT-TO-POINTER (27));
-  number-list = g-list-append (number-list, GINT-TO-POINTER (14));
-
-=end comment
 
 Returns: either I<list> or the new start of the B<Gnome::Glib::List> if I<list> was C<undefined>
 
@@ -370,9 +376,9 @@ Returns: either I<list> or the new start of the B<Gnome::Glib::List> if I<list> 
 =end pod
 
 method append ( Pointer $data --> Gnome::Glib::List ) {
-  Gnome::Glib::List.new(
-    :native-object(g_list_append( self._get-native-object-no-reffing, $data))
-  )
+  my Gnome::Glib::List() $l = g_list_append(
+    self._get-native-object-no-reffing, $data
+  );
 }
 
 sub g_list_append (
@@ -397,16 +403,18 @@ This function is for example used to move an element in the list.
 
 Returns: the start of the new B<Gnome::Glib::List>, which equals I<list1> if not C<undefined>
 
-  method concat ( N-GList $list --> Gnome::Glib::List )
+  method concat ( N-GList() $list --> Gnome::Glib::List )
 
 =item N-GList $list; the B<Gnome::Glib::List> to add to the end of this list B<Gnome::Glib::List>, this must point  to the top of the list
 =end pod
 
+#NOTE 'N-GList() $list' is interpreted as if it is a function call ->
+# it calls FALLBACK
 method concat ( $list is copy --> Gnome::Glib::List ) {
   $list .= _get-native-object-no-reffing unless $list ~~ N-GList;
 
-  Gnome::Glib::List.new(
-    :native-object(g_list_concat( self._get-native-object-no-reffing, $list))
+  my Gnome::Glib::List() $l = g_list_concat(
+    self._get-native-object-no-reffing, $list
   )
 }
 
@@ -442,7 +450,8 @@ sub g_list_copy (
 ) is native(&glib-lib)
   { * }
 
-#`{{
+#`{{NOTE not implemented because user mostly receives a list to
+# investigate, not to manipulate
 #-------------------------------------------------------------------------------
 # TM:0:copy-deep:
 =begin pod
