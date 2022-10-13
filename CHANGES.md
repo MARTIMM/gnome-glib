@@ -1,4 +1,7 @@
 ## Release notes
+* 2022-10-13 0.20.6
+  * File extensions renamed
+
 * 2022-08-03 0.20.5
   * Reviewed **Gnome::Glib::List.
 

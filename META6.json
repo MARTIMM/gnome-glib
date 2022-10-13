@@ -1,7 +1,7 @@
 {
   "description": "Raku - Gnome Glib Interface, Please install Gnome::Gtk3",
   "name": "Gnome::Glib",
-  "version": "0.20.6",
+  "version": "0.20.7",
   "authors": [ "Marcel Timmerman"],
   "tags": [ "gnome", "glib"],
 
@@ -9,16 +9,16 @@
   "license": "Artistic-2.0",
 
   "provides": {
-    "Gnome::Glib::Error": "lib/Gnome/Glib/Error.pm6",
-    "Gnome::Glib::List": "lib/Gnome/Glib/List.pm6",
-    "Gnome::Glib::MainContext": "lib/Gnome/Glib/MainContext.pm6",
-    "Gnome::Glib::MainLoop": "lib/Gnome/Glib/MainLoop.pm6",
-    "Gnome::Glib::Quark": "lib/Gnome/Glib/Quark.pm6",
-    "Gnome::Glib::SList": "lib/Gnome/Glib/SList.pm6",
-    "Gnome::Glib::Source": "lib/Gnome/Glib/Source.pm6",
-    "Gnome::Glib::Variant": "lib/Gnome/Glib/Variant.pm6",
-    "Gnome::Glib::VariantDict": "lib/Gnome/Glib/VariantDict.pm6",
-    "Gnome::Glib::VariantType": "lib/Gnome/Glib/VariantType.pm6"
+    "Gnome::Glib::Error": "lib/Gnome/Glib/Error.rakumod",
+    "Gnome::Glib::List": "lib/Gnome/Glib/List.rakumod",
+    "Gnome::Glib::MainContext": "lib/Gnome/Glib/MainContext.rakumod",
+    "Gnome::Glib::MainLoop": "lib/Gnome/Glib/MainLoop.rakumod",
+    "Gnome::Glib::Quark": "lib/Gnome/Glib/Quark.rakumod",
+    "Gnome::Glib::SList": "lib/Gnome/Glib/SList.rakumod",
+    "Gnome::Glib::Source": "lib/Gnome/Glib/Source.rakumod",
+    "Gnome::Glib::Variant": "lib/Gnome/Glib/Variant.rakumod",
+    "Gnome::Glib::VariantDict": "lib/Gnome/Glib/VariantDict.rakumod",
+    "Gnome::Glib::VariantType": "lib/Gnome/Glib/VariantType.rakumod"
   },
 
   "source-url": "git://github.com/MARTIMM/gnome-glib.git",
