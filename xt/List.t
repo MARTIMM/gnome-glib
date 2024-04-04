@@ -3,18 +3,18 @@ use v6;
 use NativeCall;
 use Test;
 
-#use Gnome::N::N-GObject;
-#use Gnome::N::N-GList;
-use Gnome::N::GlibToRakuTypes;
-use Gnome::N::X;
+#use Gnome::N::N-GObject:api<1>;
+#use Gnome::N::N-GList:api<1>;
+use Gnome::N::GlibToRakuTypes:api<1>;
+use Gnome::N::X:api<1>;
 #Gnome::N::debug(:on);
 
-use Gnome::Glib::List;
-use Gnome::GObject::Value;
-use Gnome::Gtk3::Grid;
-use Gnome::Gtk3::Widget;
-use Gnome::Gtk3::Label;
-use Gnome::Gtk3::Entry;
+use Gnome::Glib::List:api<1>;
+use Gnome::GObject::Value:api<1>;
+use Gnome::Gtk3::Grid:api<1>;
+use Gnome::Gtk3::Widget:api<1>;
+use Gnome::Gtk3::Label:api<1>;
+use Gnome::Gtk3::Entry:api<1>;
 
 
 #-------------------------------------------------------------------------------

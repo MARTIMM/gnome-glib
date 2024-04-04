@@ -5,11 +5,11 @@ use lib '../gnome-gtk3/lib';
 use NativeCall;
 use Test;
 
-use Gnome::Glib::Error;
-use Gnome::Glib::OptionContext;
-use Gnome::Gtk3::Main;
+use Gnome::Glib::Error:api<1>;
+use Gnome::Glib::OptionContext:api<1>;
+use Gnome::Gtk3::Main:api<1>;
 
-use Gnome::N::X;
+use Gnome::N::X:api<1>;
 #Gnome::N::debug(:on);
 
 #-------------------------------------------------------------------------------

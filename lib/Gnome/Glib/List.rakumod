@@ -105,16 +105,16 @@ When methods return lists, the list might be empty if e.g., things can not be fo
 #-------------------------------------------------------------------------------
 use NativeCall;
 
-#use Gnome::N::X;
-use Gnome::N::N-GObject;
-use Gnome::N::NativeLib;
-use Gnome::N::TopLevelClassSupport;
-use Gnome::N::GlibToRakuTypes;
+#use Gnome::N::X:api<1>;
+use Gnome::N::N-GObject:api<1>;
+use Gnome::N::NativeLib:api<1>;
+use Gnome::N::TopLevelClassSupport:api<1>;
+use Gnome::N::GlibToRakuTypes:api<1>;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/glib/glist.h
 # https://developer.gnome.org/glib/stable/glib-Doubly-Linked-Lists.html
-unit class Gnome::Glib::List:auth<github:MARTIMM>:ver<0.2.0>;
+unit class Gnome::Glib::List:auth<github:MARTIMM>:api<1>;
 also is Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
@@ -333,8 +333,8 @@ C<append()> has to traverse the entire list to find the end, which is inefficien
 
 =head3 Example
 
-  use Gnome::N::GlibToRakuTypes;
-  use Gnome::Glib::List;
+  use Gnome::N::GlibToRakuTypes:api<1>;
+  use Gnome::Glib::List:api<1>;
 
   class IntList {
 

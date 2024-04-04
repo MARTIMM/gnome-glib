@@ -76,17 +76,17 @@ One important caveat of this second approach is that it will keep the object ali
 #-------------------------------------------------------------------------------
 use NativeCall;
 
-#use Gnome::N::X;
-use Gnome::N::N-GObject;
-use Gnome::N::NativeLib;
-use Gnome::N::TopLevelClassSupport;
-use Gnome::N::GlibToRakuTypes;
+#use Gnome::N::X:api<1>;
+use Gnome::N::N-GObject:api<1>;
+use Gnome::N::NativeLib:api<1>;
+use Gnome::N::TopLevelClassSupport:api<1>;
+use Gnome::N::GlibToRakuTypes:api<1>;
 
-use Gnome::Glib::MainContext;
+use Gnome::Glib::MainContext:api<1>;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/gmain.h
-unit class Gnome::Glib::MainLoop:auth<github:MARTIMM>:ver<0.1.0>;
+unit class Gnome::Glib::MainLoop:auth<github:MARTIMM>:api<1>;
 also is Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------

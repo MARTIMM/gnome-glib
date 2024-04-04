@@ -1,9 +1,9 @@
 use v6;
 use NativeCall;
 
-#use Gnome::N::N-GObject;
-use Gnome::Glib::List;
-use Gnome::N::GlibToRakuTypes;
+#use Gnome::N::N-GObject:api<1>;
+use Gnome::Glib::List:api<1>;
+use Gnome::N::GlibToRakuTypes:api<1>;
 
 my Gnome::Glib::List $l .= new;
 my N-GList $n-l;

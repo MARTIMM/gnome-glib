@@ -3,22 +3,22 @@ use v6;
 use NativeCall;
 use Test;
 
-use Gnome::N::N-GObject;
-use Gnome::N::GlibToRakuTypes;
-#use Gnome::N::X;
+use Gnome::N::N-GObject:api<1>;
+use Gnome::N::GlibToRakuTypes:api<1>;
+#use Gnome::N::X:api<1>;
 #Gnome::N::debug(:on);
 
-use Gnome::Glib::SList;
+use Gnome::Glib::SList:api<1>;
 
-use Gnome::GObject::Value;
-use Gnome::GObject::Type;
+use Gnome::GObject::Value:api<1>;
+use Gnome::GObject::Type:api<1>;
 
-use Gnome::Gtk3::Button;
-use Gnome::Gtk3::Enums;
-use Gnome::Gtk3::Grid;
-use Gnome::Gtk3::Widget;
-use Gnome::Gtk3::WidgetPath;
-use Gnome::Gtk3::Window;
+use Gnome::Gtk3::Button:api<1>;
+use Gnome::Gtk3::Enums:api<1>;
+use Gnome::Gtk3::Grid:api<1>;
+use Gnome::Gtk3::Widget:api<1>;
+use Gnome::Gtk3::WidgetPath:api<1>;
+use Gnome::Gtk3::Window:api<1>;
 
 #-------------------------------------------------------------------------------
 my Gnome::Gtk3::WidgetPath $wp .= new;
@@ -65,10 +65,10 @@ done-testing;
 
 
 =finish
-use Gnome::Gtk3::Grid;
-use Gnome::Gtk3::Widget;
-use Gnome::Gtk3::Label;
-use Gnome::Gtk3::Entry;
+use Gnome::Gtk3::Grid:api<1>;
+use Gnome::Gtk3::Widget:api<1>;
+use Gnome::Gtk3::Label:api<1>;
+use Gnome::Gtk3::Entry:api<1>;
 
 #-------------------------------------------------------------------------------
 # preparations

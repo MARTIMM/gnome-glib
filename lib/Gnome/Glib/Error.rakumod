@@ -62,15 +62,15 @@ Error domains and codes are conventionally named as follows:
 # https://docs.gtk.org/glib/error-reporting.html
 use NativeCall;
 
-use Gnome::N::X;
-use Gnome::N::NativeLib;
-use Gnome::N::TopLevelClassSupport;
-use Gnome::N::GlibToRakuTypes;
+use Gnome::N::X:api<1>;
+use Gnome::N::NativeLib:api<1>;
+use Gnome::N::TopLevelClassSupport:api<1>;
+use Gnome::N::GlibToRakuTypes:api<1>;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/glib/gerror.h
 # https://developer.gnome.org/glib/stable/glib-Error-Reporting.html
-unit class Gnome::Glib::Error:auth<github:MARTIMM>;
+unit class Gnome::Glib::Error:auth<github:MARTIMM>:api<1>;
 also is Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
@@ -180,7 +180,6 @@ method _fallback ( $native-sub --> Callable ) {
 }
 
 #-------------------------------------------------------------------------------
-# no ref/unref for a variant type
 method native-object-ref ( $n-native-object ) {
   $n-native-object
 }

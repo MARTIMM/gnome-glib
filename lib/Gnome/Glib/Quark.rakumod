@@ -36,7 +36,7 @@ Another use for the string pool maintained for the quark functions is string int
 =head2 Example
 
   use Test;
-  use Gnome::Glib::Quark;
+  use Gnome::Glib::Quark:api<1>;
 
   my Gnome::Glib::Quark $quark .= new;
   my UInt $q = $quark.try-string('my string'); # 0
@@ -49,15 +49,15 @@ Another use for the string pool maintained for the quark functions is string int
 #-------------------------------------------------------------------------------
 use NativeCall;
 
-use Gnome::N::X;
-use Gnome::N::NativeLib;
-use Gnome::N::N-GObject;
-use Gnome::N::GlibToRakuTypes;
+use Gnome::N::X:api<1>;
+use Gnome::N::NativeLib:api<1>;
+use Gnome::N::N-GObject:api<1>;
+use Gnome::N::GlibToRakuTypes:api<1>;
 
 #-------------------------------------------------------------------------------
 # /usr/include/gtk-3.0/gtk/INCLUDE
 # https://developer.gnome.org/WWW
-unit class Gnome::Glib::Quark:auth<github:MARTIMM>;
+unit class Gnome::Glib::Quark:auth<github:MARTIMM>:api<1>;
 
 #-------------------------------------------------------------------------------
 # method new, mark for code coverage

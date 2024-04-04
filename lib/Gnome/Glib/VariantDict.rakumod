@@ -52,18 +52,18 @@ C<end()> is used to convert the B<Gnome::Glib::VariantDict> back into a dictiona
 #-------------------------------------------------------------------------------
 use NativeCall;
 
-use Gnome::N::X;
-use Gnome::N::NativeLib;
-use Gnome::N::TopLevelClassSupport;
-use Gnome::N::GlibToRakuTypes;
-use Gnome::N::N-GObject;
+use Gnome::N::X:api<1>;
+use Gnome::N::NativeLib:api<1>;
+use Gnome::N::TopLevelClassSupport:api<1>;
+use Gnome::N::GlibToRakuTypes:api<1>;
+use Gnome::N::N-GObject:api<1>;
 
-use Gnome::Glib::Error;
-use Gnome::Glib::VariantType;
-use Gnome::Glib::Variant;
+use Gnome::Glib::Error:api<1>;
+use Gnome::Glib::VariantType:api<1>;
+use Gnome::Glib::Variant:api<1>;
 
 #-------------------------------------------------------------------------------
-unit class Gnome::Glib::VariantDict:auth<github:MARTIMM>:ver<0.1.0>;
+unit class Gnome::Glib::VariantDict:auth<github:MARTIMM>:api<1>;
 also is Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------

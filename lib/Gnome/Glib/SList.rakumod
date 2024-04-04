@@ -77,16 +77,16 @@ This example shows how to get and show some information from a widget path.
 #-------------------------------------------------------------------------------
 use NativeCall;
 
-use Gnome::N::X;
-use Gnome::N::N-GObject;
-use Gnome::N::NativeLib;
-use Gnome::N::TopLevelClassSupport;
-use Gnome::N::GlibToRakuTypes;
+use Gnome::N::X:api<1>;
+use Gnome::N::N-GObject:api<1>;
+use Gnome::N::NativeLib:api<1>;
+use Gnome::N::TopLevelClassSupport:api<1>;
+use Gnome::N::GlibToRakuTypes:api<1>;
 
 #-------------------------------------------------------------------------------
 # See /usr/include/glib-2.0/glib/gslist.h
 # https://developer.gnome.org/glib/stable/glib-Singly-Linked-List.html
-unit class Gnome::Glib::SList:auth<github:MARTIMM>;
+unit class Gnome::Glib::SList:auth<github:MARTIMM>:api<1>;
 also is Gnome::N::TopLevelClassSupport;
 
 #-------------------------------------------------------------------------------
