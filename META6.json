@@ -1,11 +1,15 @@
 {
-  "description": "Raku - Gnome Glib Interface, Please install Gnome::Gtk3",
+  "description": "Raku - Gnome Glib Interface",
   "name": "Gnome::Glib",
-  "version": "0.20.7",
+  "version": "0.21.0",
   "authors": [ "Marcel Timmerman"],
+  "auth": "cpan:MARTIMM",
   "tags": [ "gnome", "glib"],
+  "api": "1",
 
+  "meta-version": "2",
   "perl": "6.d",
+  "raku": "6.d",
   "license": "Artistic-2.0",
 
   "provides": {
@@ -23,7 +27,7 @@
 
   "source-url": "git://github.com/MARTIMM/gnome-glib.git",
 
-  "depends": [ "Gnome::N"],
+  "depends": [ "Gnome::N:api<1>"],
   "test-depends": [ ],
   "build-depends": [ ],
   "resources": [ ]

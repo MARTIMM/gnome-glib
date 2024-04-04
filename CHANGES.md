@@ -1,4 +1,7 @@
 ## Release notes
+* 2024-04-04 0.21.0
+  * Add `:api<1>` to all class names. Use statements loading the gnome libs have also the api<1> added. Api 1 is also added the 'META6.json' as well as to the dependencies of other gnome modules.
+
 * 2022-10-13 0.20.6
   * File extensions renamed
 
